@@ -52,7 +52,7 @@ import {
   RapportGestionDB,
   DepenseImmeubleDB
 } from '@/hooks/useImmobilier';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 type TypeDepenseImmeuble = 'PLOMBERIE_ASSAINISSEMENT' | 'ELECTRICITE_ECLAIRAGE' | 'ENTRETIEN_MAINTENANCE' | 'SECURITE_GARDIENNAGE_ASSURANCE' | 'AUTRES_DEPENSES';
 
@@ -65,7 +65,7 @@ const typeDepenseLabels: Record<TypeDepenseImmeuble, string> = {
 };
 
 export default function RapportsPage() {
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);

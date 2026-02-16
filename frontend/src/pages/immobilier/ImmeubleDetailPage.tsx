@@ -64,7 +64,7 @@ import {
   useCreateDepenseImmeuble,
   useCreateRapportGestion
 } from '@/hooks/useImmobilier';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { generateQuittancePDF, shouldGenerateQuittance } from '@/utils/generateQuittancePDF';
 import { generateRapportPDF } from '@/utils/generateRapportPDF';
 
@@ -79,7 +79,7 @@ const typeDepenseLabels: Record<TypeDepenseImmeuble, string> = {
 export default function ImmeubleDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   
   // Fetch data from Supabase
   const { data: immeuble, isLoading: immeubleLoading } = useImmeuble(id || '');

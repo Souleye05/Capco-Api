@@ -50,11 +50,11 @@ import {
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useLots, useImmeubles, useCreateLot, useUpdateLot, useLocataires, LotDB } from '@/hooks/useImmobilier';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 export default function LotsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   const { data: lots = [], isLoading: lotsLoading } = useLots();
   const { data: immeubles = [], isLoading: immeublesLoading } = useImmeubles();
   const { data: locataires = [] } = useLocataires();

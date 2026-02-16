@@ -55,7 +55,7 @@ import {
   usePaiementsHonorairesContentieux,
   useCreatePaiementHonorairesContentieux
 } from '@/hooks/useHonorairesDepenses';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 const typeDepenseLabels: Record<TypeDepenseDossier, string> = {
   FRAIS_HUISSIER: 'Frais d\'huissier',
@@ -97,7 +97,7 @@ const modePaiementLabels: Record<string, string> = {
 export default function AffaireDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   
   // Fetch data from database
   const { data: affaire, isLoading: loadingAffaire } = useAffaire(id || '');

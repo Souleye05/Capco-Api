@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { NestJSAuthProvider } from "@/contexts/NestJSAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import Dashboard from "@/pages/Dashboard";
@@ -26,7 +26,8 @@ import ClientsPage from "@/pages/conseil/ClientsPage";
 import ClientDetailPage from "@/pages/conseil/ClientDetailPage";
 import FacturesPage from "@/pages/conseil/FacturesPage";
 import AlertesPage from "@/pages/AlertesPage";
-import LoginPage from "@/pages/auth/LoginPage";
+import NestJSLogin from "@/pages/NestJSLogin";
+import ChangePassword from "@/pages/ChangePassword";
 import SignUpPage from "@/pages/auth/SignUpPage";
 import UsersPage from "@/pages/admin/UsersPage";
 import NotFound from "@/pages/NotFound";
@@ -40,11 +41,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
+        <NestJSAuthProvider>
           <Routes>
             {/* Auth routes */}
-            <Route path="/auth/login" element={<LoginPage />} />
+            <Route path="/auth/login" element={<NestJSLogin />} />
             <Route path="/auth/signup" element={<SignUpPage />} />
+            <Route path="/change-password" element={<ChangePassword />} />
             
             {/* Protected routes */}
             <Route element={
@@ -95,7 +97,7 @@ const App = () => (
             
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </AuthProvider>
+        </NestJSAuthProvider>
       </BrowserRouter>
     </TooltipProvider>
     </QueryClientProvider>

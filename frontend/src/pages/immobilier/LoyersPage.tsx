@@ -46,11 +46,11 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useEncaissementsLoyers, useImmeubles, useLots, useCreateEncaissementLoyer } from '@/hooks/useImmobilier';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 export default function LoyersPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   
   const { data: encaissements = [], isLoading: encLoading } = useEncaissementsLoyers();
   const { data: immeubles = [], isLoading: immLoading } = useImmeubles();

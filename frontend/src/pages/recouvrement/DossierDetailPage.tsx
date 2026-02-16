@@ -55,7 +55,7 @@ import {
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { TypeAction, TypeDepenseDossier } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { 
   useDossierRecouvrement,
   useActionsRecouvrement,
@@ -130,7 +130,7 @@ const typeDepenseLabels: Record<TypeDepenseDossier, string> = {
 export default function DossierDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   
   // Fetch dossier from database
   const { data: dossier, isLoading: isLoadingDossier } = useDossierRecouvrement(id || '');

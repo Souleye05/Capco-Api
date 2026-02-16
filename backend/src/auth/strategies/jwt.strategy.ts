@@ -30,9 +30,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // Retourner les informations utilisateur pour la requête
     return {
-      userId: user.id,
+      id: user.id,
       email: user.email,
-      roles: user.userRoles.map(role => role.role),
+      roles: user.userRoles.map(role => ({ role: role.role })),
       migrationSource: user.migrationSource,
       emailVerified: user.emailVerified,
     };

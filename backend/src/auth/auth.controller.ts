@@ -73,7 +73,7 @@ export class AuthController {
     @Request() req,
     @Body() dto: ChangePasswordDto,
   ): Promise<{ message: string }> {
-    return this.authService.changePassword(req.user.userId, dto);
+    return this.authService.changePassword(req.user.id, dto);
   }
 
   @ApiOperation({ summary: 'Get current user profile' })
@@ -83,7 +83,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Request() req): Promise<UserProfile> {
-    return this.authService.getProfile(req.user.userId);
+    return this.authService.getProfile(req.user.id);
   }
 
   @ApiOperation({ summary: 'Check if current user is migrated from Supabase' })
@@ -92,7 +92,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('migration-status')
   async getMigrationStatus(@Request() req): Promise<{ isMigrated: boolean }> {
-    const isMigrated = await this.authService.isMigratedUser(req.user.userId);
+    const isMigrated = await this.authService.isMigratedUser(req.user.id);
     return { isMigrated };
   }
 

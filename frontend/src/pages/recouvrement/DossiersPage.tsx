@@ -53,7 +53,7 @@ import {
 } from '@/hooks/useDossiersRecouvrement';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 type TypeAction = 'APPEL_TELEPHONIQUE' | 'COURRIER' | 'LETTRE_RELANCE' | 'MISE_EN_DEMEURE' | 'COMMANDEMENT_PAYER' | 'ASSIGNATION' | 'REQUETE' | 'AUDIENCE_PROCEDURE' | 'AUTRE';
 
@@ -71,7 +71,7 @@ const typeActionLabels: Record<TypeAction, string> = {
 
 export default function DossiersPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statutFilter, setStatutFilter] = useState<string>('all');
   

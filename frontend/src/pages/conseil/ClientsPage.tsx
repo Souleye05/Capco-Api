@@ -51,7 +51,7 @@ import {
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useClientsConseil, useCreateClientConseil, ClientConseilDB } from '@/hooks/useConseil';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 type StatutClientConseil = 'ACTIF' | 'SUSPENDU' | 'RESILIE';
 
@@ -68,7 +68,7 @@ const getStatutBadge = (statut: StatutClientConseil) => {
 
 export default function ClientsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   const { data: clients = [], isLoading } = useClientsConseil();
   const createClient = useCreateClientConseil();
   

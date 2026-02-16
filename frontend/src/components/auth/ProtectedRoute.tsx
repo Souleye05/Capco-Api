@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, role, loading } = useAuth();
+  const { user, roles, loading, isAuthenticated } = useNestJSAuth();
   const location = useLocation();
 
   if (loading) {
@@ -19,11 +19,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  if (requiredRole && role !== requiredRole && role !== 'admin') {
+  if (requiredRole && !roles.includes(requiredRole) && !roles.includes('admin')) {
     return <Navigate to="/" replace />;
   }
 

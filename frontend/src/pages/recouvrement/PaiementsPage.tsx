@@ -46,7 +46,7 @@ import {
   useDossiersRecouvrement,
   useCreatePaiementRecouvrement 
 } from '@/hooks/useDossiersRecouvrement';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -60,7 +60,7 @@ const modeLabels: Record<string, string> = {
 
 export default function PaiementsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDossier, setSelectedDossier] = useState<string>('all');
   

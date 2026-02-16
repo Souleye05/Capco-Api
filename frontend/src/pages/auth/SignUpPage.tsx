@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signIn } = useNestJSAuth(); // Temporaire - signUp n'est pas encore implémenté
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,16 +34,9 @@ export default function SignUpPage() {
       return;
     }
 
-    setLoading(true);
-    const { error } = await signUp(email, password);
-    setLoading(false);
-
-    if (error) {
-      toast.error(error.message || 'Erreur lors de la création du compte');
-    } else {
-      toast.success('Compte créé avec succès !');
-      navigate('/');
-    }
+    // Temporairement, rediriger vers la page de connexion
+    toast.info('L\'inscription n\'est pas encore disponible. Contactez l\'administrateur.');
+    navigate('/auth/login');
   };
 
   return (

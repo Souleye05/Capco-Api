@@ -13,7 +13,7 @@ import {
 } from '@/hooks/useLocataires';
 import { useDossiersRecouvrement } from '@/hooks/useDossiersRecouvrement';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,7 +86,7 @@ export default function LocatairesPage() {
   const { data: locatairesData, isLoading, refetch } = useLocataires();
   const { data: lots } = useLots();
   const { data: allDossiers } = useDossiersRecouvrement();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   const createLocataire = useCreateLocataire();
   const updateLocataire = useUpdateLocataire();
   const linkToDossier = useLinkLocataireToDossier();

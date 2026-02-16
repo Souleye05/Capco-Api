@@ -65,7 +65,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       await this.$queryRaw`SELECT 1 as health_check`;
       
       // Test if we can access our main tables (basic schema validation)
-      await this.$queryRaw`SELECT COUNT(*) FROM "User" LIMIT 1`;
+      // Use a more robust check that handles table existence
+      const result = await this.$queryRaw`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'User'
+        ) as table_exists
+      ` as any[];
+      
+      if (result[0]?.table_exists) {
+        await this.$queryRaw`SELECT COUNT(*)::int FROM "User" LIMIT 1`;
+      }
       
       return true;
     } catch (error) {
@@ -134,9 +145,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       // Get database connection statistics
       const stats = await this.$queryRaw`
         SELECT 
-          count(*) as total_connections,
-          count(*) FILTER (WHERE state = 'active') as active_connections,
-          count(*) FILTER (WHERE state = 'idle') as idle_connections
+          count(*)::int as total_connections,
+          count(*) FILTER (WHERE state = 'active')::int as active_connections,
+          count(*) FILTER (WHERE state = 'idle')::int as idle_connections
         FROM pg_stat_activity 
         WHERE datname = current_database()
       ` as any[];

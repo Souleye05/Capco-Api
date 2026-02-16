@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { useCreateDossierRecouvrement } from '@/hooks/useDossiersRecouvrement';
 import { useCreateHonorairesRecouvrement } from '@/hooks/useHonorairesDepenses';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
@@ -20,7 +20,7 @@ interface NouveauDossierDialogProps {
 }
 
 export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialogProps) {
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   const createDossier = useCreateDossierRecouvrement();
   
   const [formData, setFormData] = useState({

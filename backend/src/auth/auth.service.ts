@@ -257,7 +257,16 @@ export class AuthService {
     }
 
     // Vérifier l'ancien mot de passe
-    const isOldPasswordValid = await bcrypt.compare(dto.currentPassword, user.password);
+    let isOldPasswordValid = await bcrypt.compare(dto.currentPassword, user.password);
+    
+    // Pour les utilisateurs migrés avec un token de reset actif, permettre aussi "Passer1234"
+    if (!isOldPasswordValid && user.resetToken && user.resetExpiry && user.resetExpiry > new Date()) {
+      if ((user.migrationSource === 'supabase' || user.migrationSource === 'lovable_cloud') && dto.currentPassword === 'Passer1234') {
+        isOldPasswordValid = true;
+        this.logger.log(`User ${user.email} changing password from default migration password`);
+      }
+    }
+    
     if (!isOldPasswordValid) {
       throw new BadRequestException('Current password is incorrect');
     }

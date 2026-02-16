@@ -54,7 +54,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useFacturesConseil, useClientsConseil, useCreatePaiementConseil, useUpdateFactureConseil } from '@/hooks/useConseil';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 type StatutFacture = 'BROUILLON' | 'ENVOYEE' | 'PAYEE' | 'EN_RETARD' | 'ANNULEE';
 type ModePaiement = 'CASH' | 'VIREMENT' | 'CHEQUE' | 'WAVE' | 'OM';
@@ -78,7 +78,7 @@ type FilterType = 'all' | 'impayees' | 'payees' | 'en_retard';
 
 export default function FacturesPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useNestJSAuth();
   
   const { data: factures = [], isLoading: facturesLoading } = useFacturesConseil();
   const { data: clients = [], isLoading: clientsLoading } = useClientsConseil();

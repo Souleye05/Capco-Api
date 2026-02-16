@@ -19,7 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import capcoLogo from '@/assets/capco-logo.png';
@@ -101,7 +101,7 @@ const roleLabels: Record<string, { label: string; color: string }> = {
 
 export function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { user, role, signOut, isAdmin } = useAuth();
+  const { user, roles, signOut, isAdmin } = useNestJSAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -109,7 +109,8 @@ export function Sidebar() {
   };
 
   const userInitials = user?.email?.substring(0, 2).toUpperCase() || 'U';
-  const roleInfo = role ? roleLabels[role] : roleLabels.collaborateur;
+  const userRole = roles[0] || 'collaborateur'; // Get first role
+  const roleInfo = roleLabels[userRole] || roleLabels.collaborateur;
 
   return (
     <>

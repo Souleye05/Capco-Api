@@ -1,0 +1,284 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Century Gothic - using system font stack with fallbacks */
+/* Note: Century Gothic is a licensed font. Using similar alternatives. */
+
+@layer base {
+  :root {
+    /* CAPCO Minimalist Design System - White & Logo Colors */
+    /* Colors: Green #7CB342, Orange #C4965E, Violet #4A3B53 */
+    
+    --background: 0 0% 100%;
+    --foreground: 270 18% 28%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 270 18% 28%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 18% 28%;
+
+    /* Violet Primary - from logo */
+    --primary: 270 18% 28%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Light Gray Secondary */
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 270 18% 28%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    /* Green Accent - from logo */
+    --accent: 88 52% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Orange - from logo */
+    --capco-orange: 28 47% 57%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --success: 88 52% 48%;
+    --success-foreground: 0 0% 100%;
+    --warning: 28 47% 57%;
+    --warning-foreground: 0 0% 100%;
+    --info: 270 18% 28%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 270 18% 28%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar - White minimalist */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 270 18% 28%;
+    --sidebar-primary: 88 52% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 270 18% 28%;
+    --sidebar-border: 0 0% 92%;
+    --sidebar-ring: 88 52% 48%;
+
+    /* Module Colors - using CAPCO palette */
+    --contentieux: 270 18% 28%;
+    --contentieux-foreground: 0 0% 100%;
+    --recouvrement: 88 52% 48%;
+    --recouvrement-foreground: 0 0% 100%;
+    --immobilier: 28 47% 57%;
+    --immobilier-foreground: 0 0% 100%;
+
+    /* Fonts - Century Gothic style */
+    --font-display: 'Century Gothic', 'Futura', 'Trebuchet MS', Arial, sans-serif;
+    --font-body: 'Century Gothic', 'Futura', 'Trebuchet MS', Arial, sans-serif;
+  }
+
+  .dark {
+    --background: 270 18% 8%;
+    --foreground: 0 0% 96%;
+
+    --card: 270 18% 12%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 270 18% 12%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 88 52% 48%;
+    --primary-foreground: 270 18% 15%;
+
+    --secondary: 270 15% 18%;
+    --secondary-foreground: 0 0% 96%;
+
+    --muted: 270 15% 18%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 88 52% 48%;
+    --accent-foreground: 270 18% 15%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 15% 20%;
+    --input: 270 15% 20%;
+    --ring: 88 52% 48%;
+
+    --sidebar-background: 270 18% 8%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 88 52% 48%;
+    --sidebar-primary-foreground: 270 18% 15%;
+    --sidebar-accent: 270 18% 15%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 270 15% 18%;
+    --sidebar-ring: 88 52% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card rounded-lg border p-6 shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+
+  .module-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .module-badge-contentieux {
+    @apply bg-info/10 text-info;
+  }
+
+  .module-badge-recouvrement {
+    @apply bg-success/10 text-success;
+  }
+
+  .module-badge-immobilier {
+    @apply bg-[hsl(var(--immobilier))]/10 text-[hsl(var(--immobilier))];
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  .status-badge-urgent {
+    @apply bg-destructive/10 text-destructive;
+  }
+
+  .status-badge-warning {
+    @apply bg-warning/10 text-warning;
+  }
+
+  .status-badge-success {
+    @apply bg-success/10 text-success;
+  }
+
+  .status-badge-info {
+    @apply bg-info/10 text-info;
+  }
+
+  .page-header {
+    @apply mb-8;
+  }
+
+  .page-title {
+    @apply text-3xl font-semibold text-foreground tracking-tight;
+  }
+
+  .page-description {
+    @apply text-muted-foreground mt-1;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-foreground mb-4;
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table th {
+    @apply text-left font-medium text-muted-foreground py-3 px-4 border-b;
+  }
+
+  .data-table td {
+    @apply py-3 px-4 border-b border-border/50;
+  }
+
+  .data-table tr:hover td {
+    @apply bg-muted/50;
+  }
+
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors;
+  }
+
+  .sidebar-nav-item-active {
+    @apply bg-sidebar-accent text-sidebar-foreground font-medium;
+  }
+
+  .calendar-day {
+    @apply h-24 border border-border/50 p-1 text-sm transition-colors hover:bg-muted/50;
+  }
+
+  .calendar-day-today {
+    @apply bg-primary/5 border-primary;
+  }
+
+  .calendar-event {
+    @apply text-xs p-1 rounded truncate mb-0.5 cursor-pointer transition-opacity hover:opacity-80;
+  }
+
+  .calendar-event-audience {
+    @apply bg-info text-info-foreground;
+  }
+
+  .calendar-event-echeance {
+    @apply bg-warning text-warning-foreground;
+  }
+
+  .calendar-event-loyer {
+    @apply bg-[hsl(var(--immobilier))] text-[hsl(var(--immobilier-foreground))];
+  }
+
+  .form-section {
+    @apply space-y-4 p-6 bg-card rounded-lg border;
+  }
+
+  .form-section-title {
+    @apply text-base font-semibold text-foreground mb-4 pb-2 border-b;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-body {
+    font-family: var(--font-body);
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

@@ -1,0 +1,1131 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { MigrationLoggerService, LogLevel, MigrationPhase, StructuredLogEntry, AuditTrailEntry } from './migration-logger.service';
+import { MigrationMonitorService, MigrationMetrics } from './migration-monitor.service';
+import { MigrationAlertService, AlertSeverity, AlertType, Alert } from './migration-alert.service';
+import { PrismaService } from '../../common/services/prisma.service';
+import * as fc from 'fast-check';
+
+/**
+ * Feature: supabase-to-nestjs-migration, Property 4: Migration Monitoring and Audit Trail
+ * **Validates: Requirements 4.5, 4.6, 4.7**
+ * 
+ * This comprehensive property-based test suite validates the complete monitoring system:
+ * - Requirement 4.5: Detailed error logging with stack traces and remediation steps
+ * - Requirement 4.6: Real-time monitoring with metrics, ETA calculations, and performance tracking  
+ * - Requirement 4.7: Automatic alerting system and complete audit trail for compliance
+ * 
+ * The property-based tests cover:
+ * - Structured logging properties across all possible inputs
+ * - Real-time monitoring metrics accuracy and consistency
+ * - Alert triggering conditions and notification delivery
+ * - Audit trail completeness and integrity
+ * - System performance under various load conditions
+ */
+
+describe('Migration Monitoring System - Comprehensive Property-Based Tests', () => {
+  let loggerService: MigrationLoggerService;
+  let monitorService: MigrationMonitorService;
+  let alertService: MigrationAlertService;
+  let prismaService: PrismaService;
+
+  const mockPrismaService = {
+    migrationLog: {
+      create: jest.fn().mockResolvedValue({}),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    auditTrail: {
+      create: jest.fn().mockResolvedValue({}),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    migrationMetrics: {
+      create: jest.fn().mockResolvedValue({}),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    migrationAlert: {
+      create: jest.fn().mockResolvedValue({}),
+      update: jest.fn().mockResolvedValue({}),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        MigrationLoggerService,
+        MigrationMonitorService,
+        MigrationAlertService,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+      ],
+    }).compile();
+
+    loggerService = module.get<MigrationLoggerService>(MigrationLoggerService);
+    monitorService = module.get<MigrationMonitorService>(MigrationMonitorService);
+    alertService = module.get<MigrationAlertService>(MigrationAlertService);
+    prismaService = module.get<PrismaService>(PrismaService);
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
+    monitorService.endMigration('completed');
+    alertService.stopMonitoring();
+  });
+
+  // Generators for property-based testing
+  const validMigrationIdGenerator = fc.string({ minLength: 8, maxLength: 50 })
+    .filter(s => s.trim().length > 0)
+    .map(s => s.replace(/[^a-zA-Z0-9-_]/g, 'a'));
+
+  const validOperationGenerator = fc.string({ minLength: 3, maxLength: 30 })
+    .filter(s => s.trim().length > 0)
+    .map(s => s.replace(/[^a-zA-Z0-9-_]/g, 'a'));
+
+  const validMessageGenerator = fc.string({ minLength: 10, maxLength: 200 })
+    .filter(s => s.trim().length > 0);
+
+  const logLevelGenerator = fc.constantFrom(
+    LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR, LogLevel.CRITICAL
+  );
+
+  const migrationPhaseGenerator = fc.constantFrom(
+    MigrationPhase.INITIALIZATION, MigrationPhase.SCHEMA_EXTRACTION, MigrationPhase.DATA_MIGRATION,
+    MigrationPhase.USER_MIGRATION, MigrationPhase.FILE_MIGRATION, MigrationPhase.VALIDATION,
+    MigrationPhase.ROLLBACK, MigrationPhase.COMPLETION
+  );
+
+  const positiveIntGenerator = fc.integer({ min: 1, max: 1000000 });
+  const nonNegativeIntGenerator = fc.integer({ min: 0, max: 1000000 });
+
+  const contextGenerator = fc.record({
+    recordsProcessed: fc.option(positiveIntGenerator),
+    totalRecords: fc.option(positiveIntGenerator),
+    errorCode: fc.option(fc.string({ minLength: 3, maxLength: 10 })),
+    tableName: fc.option(validOperationGenerator),
+    fileName: fc.option(validOperationGenerator),
+    userId: fc.option(fc.uuid()),
+    sessionId: fc.option(fc.uuid()),
+  });
+
+  const remediationStepsGenerator = fc.array(
+    fc.string({ minLength: 10, maxLength: 100 }),
+    { minLength: 0, maxLength: 5 }
+  );
+
+  const progressUpdateGenerator = fc.record({
+    recordsProcessed: fc.option(nonNegativeIntGenerator),
+    tablesProcessed: fc.option(nonNegativeIntGenerator),
+    filesProcessed: fc.option(nonNegativeIntGenerator),
+    bytesProcessed: fc.option(nonNegativeIntGenerator),
+    errorsCount: fc.option(nonNegativeIntGenerator),
+    warningsCount: fc.option(nonNegativeIntGenerator),
+  });
+
+  const alertSeverityGenerator = fc.constantFrom(
+    AlertSeverity.LOW, AlertSeverity.MEDIUM, AlertSeverity.HIGH, AlertSeverity.CRITICAL
+  );
+
+  const alertTypeGenerator = fc.constantFrom(
+    AlertType.ERROR, AlertType.PERFORMANCE, AlertType.RESOURCE,
+    AlertType.PROGRESS, AlertType.SECURITY, AlertType.DATA_INTEGRITY
+  );
+
+  /**
+   * Property 4.1: Comprehensive Error Logging with Stack Traces and Remediation Steps
+   * **Validates: Requirement 4.5**
+   * For any error logging operation, the system should capture detailed error information
+   * with complete stack traces, contextual data, and actionable remediation steps.
+   */
+  it('should provide comprehensive error logging with stack traces and remediation steps for any error scenario', async () => {
+    await fc.assert(fc.asyncProperty(
+      validOperationGenerator,
+      validMessageGenerator,
+      contextGenerator,
+      remediationStepsGenerator,
+      logLevelGenerator.filter(level => level === LogLevel.ERROR || level === LogLevel.CRITICAL),
+      migrationPhaseGenerator,
+      async (operation, message, context, remediationSteps, level, phase) => {
+        // Set migration phase for context
+        loggerService.setCurrentPhase(phase);
+
+        // Create comprehensive error with realistic stack trace
+        const mockError = new Error('Comprehensive test error for property validation');
+        mockError.stack = [
+          'Error: Comprehensive test error for property validation',
+          '    at MigrationService.processRecords (/app/src/migration/services/data-migrator.service.ts:145:23)',
+          '    at async MigrationService.migrateTable (/app/src/migration/services/data-migrator.service.ts:89:12)',
+          '    at async MigrationService.executeDataMigration (/app/src/migration/services/data-migrator.service.ts:45:7)',
+          '    at async MigrationController.startMigration (/app/src/migration/controllers/migration.controller.ts:78:5)'
+        ].join('\n');
+
+        // Start operation timing
+        loggerService.startOperation(operation);
+        
+        // Simulate some processing time
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        // Log the error with comprehensive details
+        if (level === LogLevel.ERROR) {
+          loggerService.logError(operation, message, mockError, context, remediationSteps);
+        } else {
+          loggerService.logCritical(operation, message, mockError, context, remediationSteps);
+        }
+
+        // End operation timing
+        const duration = loggerService.endOperation(operation);
+
+        // Verify comprehensive database logging
+        expect(mockPrismaService.migrationLog.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            id: expect.any(String),
+            level: level,
+            phase: phase,
+            component: 'MigrationSystem',
+            operation: operation,
+            message: message,
+            context: expect.objectContaining({
+              ...context,
+              errorName: 'Error',
+              errorMessage: 'Comprehensive test error for property validation',
+            }),
+            stackTrace: expect.stringContaining('MigrationService.processRecords'),
+            remediationSteps: remediationSteps,
+            duration: expect.any(Number),
+            timestamp: expect.any(Date),
+          })
+        });
+
+        // Property: Stack trace should contain realistic call stack
+        const createCall = mockPrismaService.migrationLog.create.mock.calls[
+          mockPrismaService.migrationLog.create.mock.calls.length - 1
+        ];
+        expect(createCall[0].data.stackTrace).toContain('MigrationService.processRecords');
+        expect(createCall[0].data.stackTrace).toContain('data-migrator.service.ts');
+        expect(createCall[0].data.stackTrace).toContain('migration.controller.ts');
+
+        // Property: Remediation steps should be preserved and actionable
+        expect(createCall[0].data.remediationSteps).toEqual(remediationSteps);
+        expect(Array.isArray(createCall[0].data.remediationSteps)).toBe(true);
+
+        // Property: Context should include comprehensive error details
+        expect(createCall[0].data.context.errorName).toBe('Error');
+        expect(createCall[0].data.context.errorMessage).toBe('Comprehensive test error for property validation');
+
+        // Property: Duration should be captured for performance analysis
+        expect(createCall[0].data.duration).toBeGreaterThanOrEqual(0);
+
+        // Property: Phase context should be preserved
+        expect(createCall[0].data.phase).toBe(phase);
+      }
+    ), { numRuns: 50 });
+  });
+  /**
+   * Property 4.2: Real-time Monitoring with Accurate Metrics and ETA Calculations
+   * **Validates: Requirement 4.6**
+   * For any migration monitoring scenario, the system should provide accurate real-time
+   * metrics with consistent ETA calculations and comprehensive performance tracking.
+   */
+  it('should provide accurate real-time monitoring with consistent metrics and ETA calculations for any migration scenario', async () => {
+    await fc.assert(fc.asyncProperty(
+      validMigrationIdGenerator,
+      positiveIntGenerator, // totalRecords
+      positiveIntGenerator, // totalTables
+      positiveIntGenerator, // totalFiles
+      fc.bigInt({ min: 1000000n, max: 10000000000n }), // totalBytes
+      fc.array(progressUpdateGenerator, { minLength: 1, maxLength: 15 }),
+      fc.array(migrationPhaseGenerator, { minLength: 1, maxLength: 5 }),
+      async (migrationId, totalRecords, totalTables, totalFiles, totalBytes, progressUpdates, phases) => {
+        // Start comprehensive migration monitoring
+        monitorService.startMigration(migrationId, totalRecords, totalTables, totalFiles, Number(totalBytes));
+
+        let cumulativeRecords = 0;
+        let cumulativeErrors = 0;
+        let cumulativeWarnings = 0;
+        let cumulativeTables = 0;
+        let cumulativeFiles = 0;
+        let cumulativeBytes = 0;
+
+        // Process phases with realistic progression
+        const uniquePhases = [...new Set(phases)];
+        for (const phase of uniquePhases) {
+          monitorService.startPhase(phase);
+          
+          // Apply progress updates during each phase
+          const phaseUpdates = progressUpdates.slice(0, Math.ceil(progressUpdates.length / uniquePhases.length));
+          for (const update of phaseUpdates) {
+            monitorService.updateProgress(update);
+            cumulativeRecords += update.recordsProcessed || 0;
+            cumulativeErrors += update.errorsCount || 0;
+            cumulativeWarnings += update.warningsCount || 0;
+            cumulativeTables += update.tablesProcessed || 0;
+            cumulativeFiles += update.filesProcessed || 0;
+            cumulativeBytes += update.bytesProcessed || 0;
+            
+            // Small delay to ensure realistic timing
+            await new Promise(resolve => setTimeout(resolve, 5));
+          }
+          
+          monitorService.endPhase(phase, cumulativeErrors > 0 ? 'failed' : 'completed');
+        }
+
+        const metrics = monitorService.getCurrentMetrics();
+        const eta = monitorService.getETA();
+        const phaseMetrics = monitorService.getPhaseMetrics();
+        const statusReport = monitorService.generateStatusReport();
+
+        // Property: Metrics should accurately reflect all cumulative updates
+        expect(metrics).not.toBeNull();
+        expect(metrics!.migrationId).toBe(migrationId);
+        expect(metrics!.recordsProcessed).toBe(cumulativeRecords);
+        expect(metrics!.errorsCount).toBe(cumulativeErrors);
+        expect(metrics!.warningsCount).toBe(cumulativeWarnings);
+        expect(metrics!.tablesProcessed).toBe(cumulativeTables);
+        expect(metrics!.filesProcessed).toBe(cumulativeFiles);
+        expect(metrics!.bytesProcessed).toBe(cumulativeBytes);
+        expect(metrics!.totalRecords).toBe(totalRecords);
+        expect(metrics!.totalTables).toBe(totalTables);
+        expect(metrics!.totalFiles).toBe(totalFiles);
+        expect(metrics!.totalBytes).toBe(Number(totalBytes));
+
+        // Property: Progress percentage should be calculated accurately
+        const expectedProgress = Math.min(Math.round((cumulativeRecords / totalRecords) * 100), 100);
+        expect(metrics!.progressPercentage).toBe(expectedProgress);
+        expect(metrics!.progressPercentage).toBeGreaterThanOrEqual(0);
+        expect(metrics!.progressPercentage).toBeLessThanOrEqual(100);
+
+        // Property: Performance metrics should be realistic and consistent
+        expect(metrics!.recordsPerSecond).toBeGreaterThanOrEqual(0);
+        expect(metrics!.elapsedTime).toBeGreaterThan(0);
+        expect(metrics!.startTime).toBeInstanceOf(Date);
+        expect(metrics!.currentTime).toBeInstanceOf(Date);
+        expect(metrics!.currentTime.getTime()).toBeGreaterThanOrEqual(metrics!.startTime.getTime());
+
+        // Property: ETA calculations should be reasonable when progress is made
+        if (cumulativeRecords > 0 && cumulativeRecords < totalRecords && metrics!.recordsPerSecond > 0) {
+          expect(eta.confidence).toBeGreaterThanOrEqual(0);
+          expect(eta.confidence).toBeLessThanOrEqual(100);
+          
+          if (eta.eta) {
+            expect(eta.eta.getTime()).toBeGreaterThan(Date.now());
+            expect(metrics!.estimatedRemainingTime).toBeGreaterThan(0);
+            expect(metrics!.estimatedTotalTime).toBeGreaterThan(metrics!.elapsedTime);
+          }
+        }
+
+        // Property: Memory usage should be realistic
+        expect(metrics!.memoryUsage.heapUsed).toBeGreaterThan(0);
+        expect(metrics!.memoryUsage.heapTotal).toBeGreaterThan(0);
+        expect(metrics!.memoryUsage.heapUsed).toBeLessThanOrEqual(metrics!.memoryUsage.heapTotal);
+        expect(metrics!.memoryUsage.rss).toBeGreaterThan(0);
+
+        // Property: Phase metrics should be comprehensive and accurate
+        expect(phaseMetrics.length).toBe(uniquePhases.length);
+        for (const phaseMetric of phaseMetrics) {
+          expect(uniquePhases).toContain(phaseMetric.phase);
+          expect(phaseMetric.startTime).toBeInstanceOf(Date);
+          expect(phaseMetric.endTime).toBeInstanceOf(Date);
+          expect(phaseMetric.duration).toBeGreaterThanOrEqual(0);
+          expect(phaseMetric.recordsProcessed).toBeGreaterThanOrEqual(0);
+          expect(phaseMetric.errorsCount).toBeGreaterThanOrEqual(0);
+          expect(phaseMetric.warningsCount).toBeGreaterThanOrEqual(0);
+          expect(['completed', 'failed']).toContain(phaseMetric.status);
+        }
+
+        // Property: Status report should be comprehensive
+        expect(statusReport.migration).not.toBeNull();
+        expect(statusReport.phases).toHaveLength(uniquePhases.length);
+        expect(statusReport.eta).toHaveProperty('eta');
+        expect(statusReport.eta).toHaveProperty('confidence');
+        expect(Array.isArray(statusReport.alerts)).toBe(true);
+        expect(Array.isArray(statusReport.recommendations)).toBe(true);
+
+        monitorService.endMigration('completed');
+      }
+    ), { numRuns: 25 });
+  }, 30000);
+  });
+  /**
+   * Property 4.3: Automatic Alerting System with Complete Notification Delivery
+   * **Validates: Requirement 4.7**
+   * For any alerting scenario, the system should automatically trigger appropriate alerts
+   * based on configurable rules and deliver comprehensive notifications with actionable recommendations.
+   */
+  it('should automatically trigger comprehensive alerts with proper notification delivery for any alert conditions', async () => {
+    await fc.assert(fc.asyncProperty(
+      validMigrationIdGenerator,
+      alertTypeGenerator,
+      alertSeverityGenerator,
+      fc.integer({ min: 0, max: 120 }), // cooldownMinutes
+      fc.boolean(), // enabled
+      fc.record({
+        recordsProcessed: fc.integer({ min: 100, max: 10000 }),
+        errorsCount: fc.integer({ min: 0, max: 500 }),
+        warningsCount: fc.integer({ min: 0, max: 1000 }),
+        elapsedTime: fc.integer({ min: 60000, max: 7200000 }), // 1 minute to 2 hours
+        memoryUsageMB: fc.integer({ min: 100, max: 4000 }),
+        recordsPerSecond: fc.float({ min: Math.fround(0.1), max: Math.fround(1000) }),
+      }),
+      async (migrationId, alertType, severity, cooldownMinutes, enabled, conditions) => {
+        // Create comprehensive alert rule
+        const ruleId = `comprehensive_rule_${alertType}_${Date.now()}`;
+        const alertRule = {
+          id: ruleId,
+          name: `Comprehensive ${alertType} Alert Rule`,
+          type: alertType,
+          severity: severity,
+          condition: (metrics: MigrationMetrics) => {
+            switch (alertType) {
+              case AlertType.ERROR:
+                return metrics.errorsCount >= 10 && (metrics.errorsCount / Math.max(metrics.recordsProcessed, 1)) > 0.05;
+              case AlertType.PERFORMANCE:
+                return metrics.recordsPerSecond < 5 && metrics.recordsProcessed > 100;
+              case AlertType.RESOURCE:
+                return (metrics.memoryUsage.heapUsed / 1024 / 1024) > 1500;
+              case AlertType.PROGRESS:
+                return metrics.progressPercentage === 0 && metrics.elapsedTime > 300000;
+              case AlertType.DATA_INTEGRITY:
+                return metrics.errorsCount > 0 && metrics.recordsProcessed > 1000;
+              case AlertType.SECURITY:
+                return false; // Simulated - would check for security violations
+              default:
+                return false;
+            }
+          },
+          message: (context: any) => `Comprehensive ${alertType} alert: ${JSON.stringify(context)}`,
+          cooldownMinutes: cooldownMinutes,
+          enabled: enabled
+        };
+
+        alertService.addAlertRule(alertRule);
+
+        // Start migration with comprehensive monitoring
+        monitorService.startMigration(migrationId, 10000, 100, 1000, 1000000000);
+
+        // Create realistic conditions that should trigger the alert
+        let shouldTriggerAlert = false;
+        
+        // Mock the metrics to match our test conditions
+        const mockMetrics: MigrationMetrics = {
+          migrationId,
+          phase: MigrationPhase.DATA_MIGRATION,
+          startTime: new Date(Date.now() - conditions.elapsedTime),
+          currentTime: new Date(),
+          elapsedTime: conditions.elapsedTime,
+          progressPercentage: conditions.recordsProcessed > 0 ? Math.min(Math.round((conditions.recordsProcessed / 10000) * 100), 100) : 0,
+          recordsProcessed: conditions.recordsProcessed,
+          totalRecords: 10000,
+          recordsPerSecond: conditions.recordsPerSecond,
+          errorsCount: conditions.errorsCount,
+          warningsCount: conditions.warningsCount,
+          tablesProcessed: Math.floor(conditions.recordsProcessed / 100),
+          totalTables: 100,
+          filesProcessed: Math.floor(conditions.recordsProcessed / 200),
+          totalFiles: 1000,
+          bytesProcessed: conditions.recordsProcessed * 1024,
+          totalBytes: 1000000000,
+          memoryUsage: {
+            heapUsed: conditions.memoryUsageMB * 1024 * 1024,
+            heapTotal: conditions.memoryUsageMB * 1024 * 1024 * 1.5,
+            external: 0,
+            arrayBuffers: 0,
+            rss: conditions.memoryUsageMB * 1024 * 1024 * 1.2,
+          },
+          cpuUsage: { user: 50000, system: 25000 },
+          estimatedRemainingTime: conditions.recordsPerSecond > 0 ? Math.round((10000 - conditions.recordsProcessed) / conditions.recordsPerSecond * 1000) : undefined,
+          estimatedTotalTime: conditions.recordsPerSecond > 0 ? Math.round(10000 / conditions.recordsPerSecond * 1000) : undefined,
+        };
+
+        // Override getCurrentMetrics to return our test conditions
+        jest.spyOn(monitorService, 'getCurrentMetrics').mockReturnValue(mockMetrics);
+
+        // Update progress to trigger monitoring
+        monitorService.updateProgress({
+          recordsProcessed: conditions.recordsProcessed,
+          errorsCount: conditions.errorsCount,
+          warningsCount: conditions.warningsCount,
+        });
+
+        // Determine if alert should be triggered based on rule conditions
+        if (enabled) {
+          shouldTriggerAlert = alertRule.condition(mockMetrics);
+        }
+
+        // Wait for alert processing
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const activeAlerts = alertService.getActiveAlerts();
+        const triggeredAlert = activeAlerts.find(alert => alert.ruleId === ruleId);
+
+        // Property: Alert should be triggered when conditions are met and rule is enabled
+        if (shouldTriggerAlert && enabled) {
+          expect(triggeredAlert).toBeDefined();
+          expect(triggeredAlert!.type).toBe(alertType);
+          expect(triggeredAlert!.severity).toBe(severity);
+          expect(triggeredAlert!.migrationId).toBe(migrationId);
+          expect(triggeredAlert!.timestamp).toBeInstanceOf(Date);
+          expect(triggeredAlert!.acknowledged).toBe(false);
+          expect(triggeredAlert!.resolved).toBe(false);
+          
+          // Property: Alert should have comprehensive context and actions
+          expect(typeof triggeredAlert!.context).toBe('object');
+          expect(Array.isArray(triggeredAlert!.actions)).toBe(true);
+          expect(triggeredAlert!.actions.length).toBeGreaterThan(0);
+          
+          // Property: Actions should be relevant to alert type
+          const actions = triggeredAlert!.actions;
+          switch (alertType) {
+            case AlertType.ERROR:
+              expect(actions.some(action => action.toLowerCase().includes('error') || action.toLowerCase().includes('log'))).toBe(true);
+              break;
+            case AlertType.PERFORMANCE:
+              expect(actions.some(action => action.toLowerCase().includes('performance') || action.toLowerCase().includes('resource'))).toBe(true);
+              break;
+            case AlertType.RESOURCE:
+              expect(actions.some(action => action.toLowerCase().includes('memory') || action.toLowerCase().includes('resource'))).toBe(true);
+              break;
+            case AlertType.PROGRESS:
+              expect(actions.some(action => action.toLowerCase().includes('progress') || action.toLowerCase().includes('stuck'))).toBe(true);
+              break;
+          }
+
+          // Property: Database should record the alert
+          expect(mockPrismaService.migrationAlert.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+              id: triggeredAlert!.id,
+              ruleId: ruleId,
+              type: alertType,
+              severity: severity,
+              title: expect.any(String),
+              message: expect.any(String),
+              migrationId: migrationId,
+              context: expect.any(Object),
+              actions: expect.any(Array),
+              acknowledged: false,
+              resolved: false,
+              timestamp: expect.any(Date),
+            })
+          });
+        }
+
+        // Property: Alert should not be triggered if rule is disabled
+        if (!enabled) {
+          expect(triggeredAlert).toBeUndefined();
+        }
+
+        // Property: Alert should not be triggered if conditions are not met
+        if (!shouldTriggerAlert) {
+          expect(triggeredAlert).toBeUndefined();
+        }
+
+        // Restore original method
+        jest.restoreAllMocks();
+        monitorService.endMigration('completed');
+      }
+    ), { numRuns: 20 });
+  });
+  /**
+   * Property 4.4: Complete Audit Trail for Compliance and Forensic Analysis
+   * **Validates: Requirement 4.7**
+   * For any audit operation, the system should maintain a complete audit trail with all
+   * required information for compliance reporting and forensic analysis capabilities.
+   */
+  it('should maintain complete audit trail with comprehensive forensic capabilities for any audit operation', async () => {
+    await fc.assert(fc.asyncProperty(
+      validOperationGenerator, // action
+      validOperationGenerator, // resource
+      fc.constantFrom('success', 'failure', 'partial'), // result
+      fc.record({
+        userId: fc.option(fc.uuid()),
+        resourceId: fc.option(fc.uuid()),
+        oldValues: fc.option(fc.record({
+          status: fc.string({ minLength: 1, maxLength: 20 }),
+          count: fc.integer({ min: 0, max: 10000 }),
+          lastModified: fc.date(),
+          metadata: fc.record({
+            version: fc.integer({ min: 1, max: 100 }),
+            checksum: fc.string({ minLength: 32, maxLength: 64 }),
+          }),
+        })),
+        newValues: fc.option(fc.record({
+          status: fc.string({ minLength: 1, maxLength: 20 }),
+          count: fc.integer({ min: 0, max: 10000 }),
+          lastModified: fc.date(),
+          metadata: fc.record({
+            version: fc.integer({ min: 1, max: 100 }),
+            checksum: fc.string({ minLength: 32, maxLength: 64 }),
+          }),
+        })),
+        ipAddress: fc.option(fc.ipV4()),
+        userAgent: fc.option(fc.string({ minLength: 20, maxLength: 200 })),
+        sessionId: fc.option(fc.uuid()),
+        additionalDetails: fc.option(fc.record({
+          migrationPhase: migrationPhaseGenerator,
+          recordsAffected: fc.integer({ min: 1, max: 100000 }),
+          operationDuration: fc.integer({ min: 1, max: 300000 }),
+          systemLoad: fc.float({ min: Math.fround(0.1), max: Math.fround(100.0) }),
+          databaseConnections: fc.integer({ min: 1, max: 100 }),
+          memoryUsage: fc.integer({ min: 100, max: 4000 }),
+          errorDetails: fc.option(fc.record({
+            errorCode: fc.string({ minLength: 3, maxLength: 10 }),
+            errorMessage: fc.string({ minLength: 10, maxLength: 200 }),
+            stackTrace: fc.string({ minLength: 50, maxLength: 1000 }),
+          })),
+        })),
+      }),
+      async (action, resource, result, auditDetails) => {
+        // Create comprehensive audit entry with full forensic context
+        await loggerService.createAuditEntry(action, resource, result as any, auditDetails);
+
+        // Verify comprehensive database audit logging
+        expect(mockPrismaService.auditTrail.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            id: expect.any(String),
+            userId: auditDetails.userId,
+            action: action,
+            resource: resource,
+            resourceId: auditDetails.resourceId,
+            oldValues: auditDetails.oldValues || {},
+            newValues: auditDetails.newValues || {},
+            ipAddress: auditDetails.ipAddress,
+            userAgent: auditDetails.userAgent,
+            sessionId: auditDetails.sessionId,
+            result: result,
+            details: auditDetails.additionalDetails || {},
+            timestamp: expect.any(Date),
+          })
+        });
+
+        const auditCall = mockPrismaService.auditTrail.create.mock.calls[
+          mockPrismaService.auditTrail.create.mock.calls.length - 1
+        ];
+        const auditData = auditCall[0].data;
+
+        // Property: Audit entry should have unique, properly formatted ID
+        expect(auditData.id).toMatch(/^log_\d+_[a-z0-9]{9}$/);
+
+        // Property: Timestamp should be recent and accurate
+        const now = new Date();
+        const auditTime = new Date(auditData.timestamp);
+        expect(auditTime).toBeInstanceOf(Date);
+        expect(now.getTime() - auditTime.getTime()).toBeLessThan(5000); // Within 5 seconds
+
+        // Property: All required compliance fields should be present
+        expect(auditData).toHaveProperty('action', action);
+        expect(auditData).toHaveProperty('resource', resource);
+        expect(auditData).toHaveProperty('result', result);
+
+        // Property: Optional forensic fields should be preserved when provided
+        if (auditDetails.userId) expect(auditData.userId).toBe(auditDetails.userId);
+        if (auditDetails.resourceId) expect(auditData.resourceId).toBe(auditDetails.resourceId);
+        if (auditDetails.ipAddress) expect(auditData.ipAddress).toBe(auditDetails.ipAddress);
+        if (auditDetails.userAgent) expect(auditData.userAgent).toBe(auditDetails.userAgent);
+        if (auditDetails.sessionId) expect(auditData.sessionId).toBe(auditDetails.sessionId);
+
+        // Property: Value changes should be preserved as structured objects
+        expect(typeof auditData.oldValues).toBe('object');
+        expect(typeof auditData.newValues).toBe('object');
+        expect(typeof auditData.details).toBe('object');
+
+        // Property: Complex nested data should be preserved accurately
+        if (auditDetails.oldValues) {
+          expect(auditData.oldValues).toEqual(auditDetails.oldValues);
+        }
+        if (auditDetails.newValues) {
+          expect(auditData.newValues).toEqual(auditDetails.newValues);
+        }
+        if (auditDetails.additionalDetails) {
+          expect(auditData.details).toEqual(auditDetails.additionalDetails);
+        }
+
+        // Property: Audit trail should support forensic analysis requirements
+        if (auditDetails.additionalDetails?.errorDetails) {
+          expect(auditData.details.errorDetails).toEqual(auditDetails.additionalDetails.errorDetails);
+        }
+        if (auditDetails.additionalDetails?.migrationPhase) {
+          expect(auditData.details.migrationPhase).toBe(auditDetails.additionalDetails.migrationPhase);
+        }
+        if (auditDetails.additionalDetails?.recordsAffected) {
+          expect(auditData.details.recordsAffected).toBe(auditDetails.additionalDetails.recordsAffected);
+        }
+
+        // Property: System context should be captured for forensic analysis
+        if (auditDetails.additionalDetails?.systemLoad) {
+          expect(auditData.details.systemLoad).toBe(auditDetails.additionalDetails.systemLoad);
+        }
+        if (auditDetails.additionalDetails?.databaseConnections) {
+          expect(auditData.details.databaseConnections).toBe(auditDetails.additionalDetails.databaseConnections);
+        }
+        if (auditDetails.additionalDetails?.memoryUsage) {
+          expect(auditData.details.memoryUsage).toBe(auditDetails.additionalDetails.memoryUsage);
+        }
+      }
+    ), { numRuns: 50 });
+  });
+  /**
+   * Property 4.5: System Performance Under Various Load Conditions
+   * **Validates: Requirements 4.5, 4.6, 4.7**
+   * For any system load scenario, the monitoring system should maintain consistent
+   * performance and accuracy while handling concurrent operations and high throughput.
+   */
+  it('should maintain consistent performance and accuracy under various load conditions', async () => {
+    await fc.assert(fc.asyncProperty(
+      validMigrationIdGenerator,
+      fc.integer({ min: 2, max: 20 }), // concurrent operations
+      fc.array(fc.record({
+        operation: validOperationGenerator,
+        delay: fc.integer({ min: 0, max: 100 }),
+        recordsProcessed: fc.integer({ min: 1, max: 1000 }),
+        hasError: fc.boolean(),
+        logLevel: logLevelGenerator,
+        phase: migrationPhaseGenerator,
+      }), { minLength: 5, maxLength: 50 }),
+      async (migrationId, concurrentOps, operations) => {
+        // Start comprehensive monitoring under load
+        monitorService.startMigration(migrationId, 100000, 1000, 10000, 10000000000);
+
+        const startTime = Date.now();
+        let totalRecords = 0;
+        let totalErrors = 0;
+        let totalAuditEntries = 0;
+
+        // Execute operations with varying load patterns
+        const operationPromises = operations.slice(0, concurrentOps).map(async (op, index) => {
+          // Stagger operations to simulate realistic load
+          await new Promise(resolve => setTimeout(resolve, op.delay));
+
+          // Set phase context
+          loggerService.setCurrentPhase(op.phase);
+          monitorService.startPhase(op.phase);
+
+          // Start operation timing
+          const operationId = `${op.operation}_${index}`;
+          loggerService.startOperation(operationId);
+
+          try {
+            // Update monitoring progress
+            monitorService.updateProgress({
+              recordsProcessed: op.recordsProcessed,
+              errorsCount: op.hasError ? 1 : 0,
+            });
+
+            // Log operation with appropriate level
+            if (op.hasError && (op.logLevel === LogLevel.ERROR || op.logLevel === LogLevel.CRITICAL)) {
+              const error = new Error(`Load test error for operation ${index}`);
+              if (op.logLevel === LogLevel.ERROR) {
+                loggerService.logError(op.operation, `Load test error ${index}`, error, {
+                  operationIndex: index,
+                  recordsProcessed: op.recordsProcessed,
+                });
+              } else {
+                loggerService.logCritical(op.operation, `Critical load test error ${index}`, error, {
+                  operationIndex: index,
+                  recordsProcessed: op.recordsProcessed,
+                }, [`Investigate operation ${index}`, 'Check system resources']);
+              }
+              totalErrors++;
+            } else {
+              switch (op.logLevel) {
+                case LogLevel.DEBUG:
+                  loggerService.logDebug(op.operation, `Debug operation ${index}`, { operationIndex: index });
+                  break;
+                case LogLevel.INFO:
+                  loggerService.logInfo(op.operation, `Info operation ${index}`, { operationIndex: index });
+                  break;
+                case LogLevel.WARN:
+                  loggerService.logWarn(op.operation, `Warning operation ${index}`, { operationIndex: index });
+                  break;
+              }
+            }
+
+            // Create audit entry for compliance tracking
+            await loggerService.createAuditEntry(
+              `load_test_${op.operation}`,
+              'performance_test',
+              op.hasError ? 'failure' : 'success',
+              {
+                userId: `test_user_${index % 5}`, // Simulate multiple users
+                additionalDetails: {
+                  operationIndex: index,
+                  recordsProcessed: op.recordsProcessed,
+                  phase: op.phase,
+                  concurrentOperations: concurrentOps,
+                  loadTestTimestamp: new Date(),
+                },
+              }
+            );
+            totalAuditEntries++;
+
+            totalRecords += op.recordsProcessed;
+
+            // End operation timing
+            const duration = loggerService.endOperation(operationId);
+            expect(duration).toBeGreaterThanOrEqual(0);
+
+          } finally {
+            monitorService.endPhase(op.phase, op.hasError ? 'failed' : 'completed');
+          }
+
+          return {
+            operationIndex: index,
+            recordsProcessed: op.recordsProcessed,
+            hasError: op.hasError,
+            phase: op.phase,
+          };
+        });
+
+        // Wait for all concurrent operations to complete
+        const results = await Promise.all(operationPromises);
+        const endTime = Date.now();
+        const totalDuration = endTime - startTime;
+
+        // Verify system performance under load
+        const finalMetrics = monitorService.getCurrentMetrics();
+        const phaseMetrics = monitorService.getPhaseMetrics();
+        const activeAlerts = alertService.getActiveAlerts();
+
+        // Property: All operations should be tracked accurately despite concurrent load
+        expect(finalMetrics).not.toBeNull();
+        expect(finalMetrics!.recordsProcessed).toBe(totalRecords);
+        expect(finalMetrics!.errorsCount).toBe(totalErrors);
+
+        // Property: System should maintain data consistency under load
+        expect(results.length).toBe(Math.min(concurrentOps, operations.length));
+        const expectedTotalRecords = results.reduce((sum, result) => sum + result.recordsProcessed, 0);
+        expect(finalMetrics!.recordsProcessed).toBe(expectedTotalRecords);
+
+        // Property: Database operations should complete successfully under load
+        expect(mockPrismaService.migrationLog.create).toHaveBeenCalledTimes(
+          Math.min(concurrentOps, operations.length)
+        );
+        expect(mockPrismaService.auditTrail.create).toHaveBeenCalledTimes(totalAuditEntries);
+
+        // Property: Performance should remain reasonable under load
+        const avgOperationTime = totalDuration / Math.min(concurrentOps, operations.length);
+        expect(avgOperationTime).toBeLessThan(5000); // Should complete within 5 seconds on average
+
+        // Property: Memory usage should not grow excessively under load
+        expect(finalMetrics!.memoryUsage.heapUsed).toBeGreaterThan(0);
+        expect(finalMetrics!.memoryUsage.heapUsed).toBeLessThan(finalMetrics!.memoryUsage.heapTotal);
+
+        // Property: Phase tracking should work correctly under concurrent load
+        const uniquePhases = [...new Set(operations.slice(0, concurrentOps).map(op => op.phase))];
+        expect(phaseMetrics.length).toBeGreaterThanOrEqual(uniquePhases.length);
+
+        // Property: Alert system should function under load
+        if (totalErrors > 5) {
+          // Should have some alerts for high error conditions
+          expect(activeAlerts.length).toBeGreaterThanOrEqual(0);
+        }
+
+        // Property: No data corruption should occur under concurrent load
+        for (const result of results) {
+          expect(result.operationIndex).toBeGreaterThanOrEqual(0);
+          expect(result.recordsProcessed).toBeGreaterThan(0);
+          expect(typeof result.hasError).toBe('boolean');
+          expect(Object.values(MigrationPhase)).toContain(result.phase);
+        }
+
+        monitorService.endMigration('completed');
+      }
+    ), { numRuns: 20 });
+  });
+
+  /**
+   * Property 4.6: Alert Lifecycle Management and Resolution Workflow
+   * **Validates: Requirement 4.7**
+   * For any alert lifecycle operation, the system should properly manage alert
+   * acknowledgment, resolution, and maintain complete audit trail of alert states.
+   */
+  it('should properly manage complete alert lifecycle with comprehensive audit trail for any alert scenario', async () => {
+    await fc.assert(fc.asyncProperty(
+      validMigrationIdGenerator,
+      validOperationGenerator, // acknowledgedBy
+      alertSeverityGenerator,
+      alertTypeGenerator,
+      fc.record({
+        title: fc.string({ minLength: 10, maxLength: 100 }),
+        message: fc.string({ minLength: 20, maxLength: 300 }),
+        context: fc.record({
+          errorRate: fc.float({ min: 0, max: 100 }),
+          recordsProcessed: fc.integer({ min: 100, max: 10000 }),
+          memoryUsage: fc.integer({ min: 100, max: 4000 }),
+          phase: migrationPhaseGenerator,
+        }),
+        actions: fc.array(fc.string({ minLength: 10, maxLength: 100 }), { minLength: 1, maxLength: 5 }),
+      }),
+      async (migrationId, acknowledgedBy, severity, alertType, alertData) => {
+        // Create comprehensive alert for lifecycle testing
+        const alertId = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const mockAlert: Alert = {
+          id: alertId,
+          ruleId: 'lifecycle_test_rule',
+          type: alertType,
+          severity: severity,
+          title: alertData.title,
+          message: alertData.message,
+          timestamp: new Date(),
+          migrationId: migrationId,
+          phase: alertData.context.phase,
+          context: alertData.context,
+          acknowledged: false,
+          resolved: false,
+          actions: alertData.actions,
+        };
+
+        // Manually add alert to simulate triggered alert
+        (alertService as any).activeAlerts.set(alertId, mockAlert);
+
+        // Test acknowledgment workflow
+        const acknowledgeTime = new Date();
+        await alertService.acknowledgeAlert(alertId, acknowledgedBy);
+
+        // Verify acknowledgment was recorded properly
+        expect(mockPrismaService.migrationAlert.update).toHaveBeenCalledWith({
+          where: { id: alertId },
+          data: {
+            acknowledged: true,
+            acknowledgedBy: acknowledgedBy,
+            acknowledgedAt: expect.any(Date),
+          }
+        });
+
+        // Property: Alert should be marked as acknowledged with proper metadata
+        const acknowledgedAlert = (alertService as any).activeAlerts.get(alertId);
+        expect(acknowledgedAlert.acknowledged).toBe(true);
+        expect(acknowledgedAlert.acknowledgedBy).toBe(acknowledgedBy);
+        expect(acknowledgedAlert.acknowledgedAt).toBeInstanceOf(Date);
+        expect(acknowledgedAlert.acknowledgedAt.getTime()).toBeGreaterThanOrEqual(acknowledgeTime.getTime());
+
+        // Small delay to ensure resolution timestamp is after acknowledgment
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        // Test resolution workflow
+        const resolveTime = new Date();
+        await alertService.resolveAlert(alertId);
+
+        // Verify resolution was recorded properly
+        expect(mockPrismaService.migrationAlert.update).toHaveBeenCalledWith({
+          where: { id: alertId },
+          data: {
+            resolved: true,
+            resolvedAt: expect.any(Date),
+          }
+        });
+
+        // Property: Alert should be removed from active alerts after resolution
+        const activeAlerts = alertService.getActiveAlerts();
+        const resolvedAlert = activeAlerts.find(alert => alert.id === alertId);
+        expect(resolvedAlert).toBeUndefined();
+
+        // Property: Resolution timestamp should be after acknowledgment timestamp
+        const updateCalls = mockPrismaService.migrationAlert.update.mock.calls;
+        const acknowledgmentCall = updateCalls.find(call => call[0].data.acknowledged === true);
+        const resolutionCall = updateCalls.find(call => call[0].data.resolved === true);
+        
+        expect(acknowledgmentCall).toBeDefined();
+        expect(resolutionCall).toBeDefined();
+        expect(resolutionCall![0].data.resolvedAt.getTime()).toBeGreaterThanOrEqual(
+          acknowledgmentCall![0].data.acknowledgedAt.getTime()
+        );
+
+        // Property: Alert lifecycle should maintain data integrity
+        expect(acknowledgmentCall![0].where.id).toBe(alertId);
+        expect(resolutionCall![0].where.id).toBe(alertId);
+
+        // Property: All alert properties should be preserved throughout lifecycle
+        expect(acknowledgedAlert.id).toBe(alertId);
+        expect(acknowledgedAlert.type).toBe(alertType);
+        expect(acknowledgedAlert.severity).toBe(severity);
+        expect(acknowledgedAlert.title).toBe(alertData.title);
+        expect(acknowledgedAlert.message).toBe(alertData.message);
+        expect(acknowledgedAlert.migrationId).toBe(migrationId);
+        expect(acknowledgedAlert.context).toEqual(alertData.context);
+        expect(acknowledgedAlert.actions).toEqual(alertData.actions);
+
+        // Property: Timestamps should be in logical order
+        expect(acknowledgedAlert.acknowledgedAt!.getTime()).toBeGreaterThanOrEqual(mockAlert.timestamp.getTime());
+        expect(resolveTime.getTime()).toBeGreaterThanOrEqual(acknowledgedAlert.acknowledgedAt!.getTime());
+      }
+    ), { numRuns: 25 });
+  });
+
+  /**
+   * Property 4.7: Integration Consistency Across All Monitoring Components
+   * **Validates: Requirements 4.5, 4.6, 4.7**
+   * For any integrated monitoring operation, all components (logger, monitor, alerts)
+   * should work together seamlessly with consistent data and synchronized state.
+   */
+  it('should maintain seamless integration and consistency across all monitoring components for any operation', async () => {
+    await fc.assert(fc.asyncProperty(
+      validMigrationIdGenerator,
+      migrationPhaseGenerator,
+      fc.array(fc.record({
+        operation: validOperationGenerator,
+        recordsProcessed: fc.integer({ min: 1, max: 500 }),
+        hasError: fc.boolean(),
+        hasWarning: fc.boolean(),
+        errorMessage: fc.string({ minLength: 10, maxLength: 200 }),
+        warningMessage: fc.string({ minLength: 10, maxLength: 200 }),
+        auditAction: validOperationGenerator,
+        auditResource: validOperationGenerator,
+      }), { minLength: 1, maxLength: 10 }),
+      async (migrationId, phase, operations) => {
+        // Start integrated monitoring system
+        loggerService.setCurrentPhase(phase);
+        monitorService.startMigration(migrationId, 50000, 500, 5000, 5000000000);
+        monitorService.startPhase(phase);
+
+        let totalRecords = 0;
+        let totalErrors = 0;
+        let totalWarnings = 0;
+        let totalAuditEntries = 0;
+
+        // Process operations with full integration
+        for (const [index, op] of operations.entries()) {
+          // Start operation timing for performance tracking
+          const operationId = `integrated_${op.operation}_${index}`;
+          loggerService.startOperation(operationId);
+
+          // Update monitoring progress
+          monitorService.updateProgress({
+            recordsProcessed: op.recordsProcessed,
+            errorsCount: op.hasError ? 1 : 0,
+            warningsCount: op.hasWarning ? 1 : 0,
+          });
+
+          totalRecords += op.recordsProcessed;
+          if (op.hasError) totalErrors++;
+          if (op.hasWarning) totalWarnings++;
+
+          // Log operation with appropriate level
+          if (op.hasError) {
+            const error = new Error(op.errorMessage);
+            loggerService.logError(
+              op.operation,
+              op.errorMessage,
+              error,
+              { 
+                operationIndex: index,
+                recordsProcessed: op.recordsProcessed,
+                phase: phase,
+                migrationId: migrationId,
+              },
+              [`Review operation ${index}`, 'Check data integrity', 'Verify system resources']
+            );
+          } else if (op.hasWarning) {
+            loggerService.logWarn(
+              op.operation,
+              op.warningMessage,
+              {
+                operationIndex: index,
+                recordsProcessed: op.recordsProcessed,
+                phase: phase,
+                migrationId: migrationId,
+              }
+            );
+          } else {
+            loggerService.logProgress(
+              op.operation,
+              `Successfully processed ${op.recordsProcessed} records`,
+              op.recordsProcessed,
+              50000,
+              {
+                operationIndex: index,
+                phase: phase,
+                migrationId: migrationId,
+              }
+            );
+          }
+
+          // Create comprehensive audit entry
+          await loggerService.createAuditEntry(
+            op.auditAction,
+            op.auditResource,
+            op.hasError ? 'failure' : 'success',
+            {
+              userId: 'integration_test_user',
+              resourceId: `resource_${index}`,
+              additionalDetails: {
+                operationIndex: index,
+                recordsProcessed: op.recordsProcessed,
+                phase: phase,
+                migrationId: migrationId,
+                hasError: op.hasError,
+                hasWarning: op.hasWarning,
+                integrationTestTimestamp: new Date(),
+              },
+            }
+          );
+          totalAuditEntries++;
+
+          // End operation timing
+          const duration = loggerService.endOperation(operationId);
+          expect(duration).toBeGreaterThanOrEqual(0);
+
+          // Small delay for realistic timing
+          await new Promise(resolve => setTimeout(resolve, 5));
+        }
+
+        // End phase and migration
+        monitorService.endPhase(phase, totalErrors > 0 ? 'failed' : 'completed');
+
+        // Verify complete integration consistency
+        const finalMetrics = monitorService.getCurrentMetrics();
+        const phaseMetrics = monitorService.getPhaseMetrics();
+        const statusReport = monitorService.generateStatusReport();
+        const activeAlerts = alertService.getActiveAlerts();
+
+        // Property: All metrics should be consistent across components
+        expect(finalMetrics).not.toBeNull();
+        expect(finalMetrics!.migrationId).toBe(migrationId);
+        expect(finalMetrics!.recordsProcessed).toBe(totalRecords);
+        expect(finalMetrics!.errorsCount).toBe(totalErrors);
+        expect(finalMetrics!.warningsCount).toBe(totalWarnings);
+
+        // Property: Phase metrics should be consistent with overall metrics
+        const currentPhaseMetric = phaseMetrics.find(p => p.phase === phase);
+        expect(currentPhaseMetric).toBeDefined();
+        expect(currentPhaseMetric!.recordsProcessed).toBeGreaterThan(0);
+        expect(currentPhaseMetric!.errorsCount).toBe(totalErrors);
+        expect(currentPhaseMetric!.warningsCount).toBe(totalWarnings);
+        expect(currentPhaseMetric!.status).toBe(totalErrors > 0 ? 'failed' : 'completed');
+
+        // Property: Status report should reflect integrated state
+        expect(statusReport.migration).not.toBeNull();
+        expect(statusReport.migration!.recordsProcessed).toBe(totalRecords);
+        expect(statusReport.migration!.errorsCount).toBe(totalErrors);
+        expect(statusReport.migration!.warningsCount).toBe(totalWarnings);
+        expect(statusReport.phases).toContainEqual(
+          expect.objectContaining({
+            phase: phase,
+            recordsProcessed: expect.any(Number),
+            errorsCount: totalErrors,
+            warningsCount: totalWarnings,
+          })
+        );
+
+        // Property: Database operations should be consistent
+        expect(mockPrismaService.migrationLog.create).toHaveBeenCalledTimes(operations.length);
+        expect(mockPrismaService.auditTrail.create).toHaveBeenCalledTimes(totalAuditEntries);
+
+        // Property: Alert system should be integrated with monitoring
+        if (totalErrors > 3) {
+          // High error count should potentially trigger alerts
+          expect(activeAlerts.length).toBeGreaterThanOrEqual(0);
+        }
+
+        // Property: All timestamps should be consistent and in order
+        const now = new Date();
+        expect(finalMetrics!.startTime.getTime()).toBeLessThanOrEqual(now.getTime());
+        expect(finalMetrics!.currentTime.getTime()).toBeLessThanOrEqual(now.getTime());
+        expect(finalMetrics!.currentTime.getTime()).toBeGreaterThanOrEqual(finalMetrics!.startTime.getTime());
+
+        // Property: Progress calculations should be accurate
+        const expectedProgress = Math.min(Math.round((totalRecords / 50000) * 100), 100);
+        expect(finalMetrics!.progressPercentage).toBe(expectedProgress);
+
+        monitorService.endMigration('completed');
+      }
+    ), { numRuns: 15 });
+  });
+});

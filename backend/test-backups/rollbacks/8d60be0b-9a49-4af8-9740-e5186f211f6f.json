@@ -1,0 +1,8 @@
+{
+  "id": "8d60be0b-9a49-4af8-9740-e5186f211f6f",
+  "backupId": "l8DaaamEa",
+  "timestamp": "2026-02-13T07:21:56.842Z",
+  "status": "FAILED",
+  "duration": 2,
+  "error": "Backup l8DaaamEa is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
+}

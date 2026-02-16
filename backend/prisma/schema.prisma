@@ -1,0 +1,663 @@
+// Generated Prisma schema from Supabase migration
+// Generated at: 2026-02-13T10:20:58.675Z
+// Source migration files: 6
+// Tables extracted: 28
+// Enums extracted: 21
+// Supabase version: unknown
+//
+// This schema was automatically generated from Supabase migrations.
+// Manual modifications may be overwritten on regeneration.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums extracted from Supabase
+
+enum AppRole {
+  admin
+  collaborateur
+  compta
+}
+
+enum StatutAffaire {
+  ACTIVE
+  CLOTUREE
+  RADIEE
+}
+
+enum StatutAudience {
+  A_VENIR
+  PASSEE_NON_RENSEIGNEE
+  RENSEIGNEE
+}
+
+enum TypeResultat {
+  RENVOI
+  RADIATION
+  DELIBERE
+}
+
+enum ObjetAudience {
+  MISE_EN_ETAT
+  PLAIDOIRIE
+  REFERE
+  AUTRE
+}
+
+enum StatutRecouvrement {
+  EN_COURS
+  CLOTURE
+}
+
+enum TypeAction {
+  APPEL_TELEPHONIQUE
+  COURRIER
+  LETTRE_RELANCE
+  MISE_EN_DEMEURE
+  COMMANDEMENT_PAYER
+  ASSIGNATION
+  REQUETE
+  AUDIENCE_PROCEDURE
+  AUTRE
+}
+
+enum TypeHonoraires {
+  FORFAIT
+  POURCENTAGE
+  MIXTE
+}
+
+enum ModePaiement {
+  CASH
+  VIREMENT
+  CHEQUE
+  WAVE
+  OM
+}
+
+enum TypeLot {
+  STUDIO
+  F1
+  F2
+  F3
+  F4
+  F5
+  MAGASIN
+  BUREAU
+  AUTRE
+}
+
+enum StatutLot {
+  LIBRE
+  OCCUPE
+}
+
+enum StatutBail {
+  ACTIF
+  INACTIF
+}
+
+enum TypeDepenseImmeuble {
+  PLOMBERIE_ASSAINISSEMENT
+  ELECTRICITE_ECLAIRAGE
+  ENTRETIEN_MAINTENANCE
+  SECURITE_GARDIENNAGE_ASSURANCE
+  AUTRES_DEPENSES
+}
+
+enum TypeDepenseDossier {
+  FRAIS_HUISSIER
+  FRAIS_GREFFE
+  TIMBRES_FISCAUX
+  FRAIS_COURRIER
+  FRAIS_DEPLACEMENT
+  FRAIS_EXPERTISE
+  AUTRES
+}
+
+enum StatutClientConseil {
+  ACTIF
+  SUSPENDU
+  RESILIE
+}
+
+enum StatutFacture {
+  BROUILLON
+  ENVOYEE
+  PAYEE
+  EN_RETARD
+  ANNULEE
+}
+
+enum TypeTache {
+  CONSULTATION
+  REDACTION
+  NEGOCIATION
+  RECHERCHE
+  REUNION
+  APPEL
+  EMAIL
+  AUTRE
+}
+
+enum TypeAlerte {
+  AUDIENCE_NON_RENSEIGNEE
+  DOSSIER_SANS_ACTION
+  LOYER_IMPAYE
+  ECHEANCE_PROCHE
+  FACTURE_IMPAYEE
+}
+
+enum PrioriteAlerte {
+  HAUTE
+  MOYENNE
+  BASSE
+}
+
+enum TypePartie {
+  physique
+  morale
+}
+
+enum TypeRelation {
+  creancier
+  debiteur
+  proprietaire
+  locataire
+  adversaire
+  demandeur
+  defendeur
+}
+
+// Models extracted from Supabase tables
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  password String
+  emailVerified Boolean @default(false) @map("email_verified")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  lastSignIn DateTime? @map("last_sign_in_at")
+  migrationSource String? @map("migration_source")
+  resetToken String? @map("reset_token")
+  resetExpiry DateTime? @map("reset_expiry")
+
+  userRoles UserRoles[]
+
+  @@map("users")
+}
+
+model UserRoles {
+  id String @id @default(uuid())
+  userId String @map("user_id")
+  role AppRole
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+  userId String? @map("user_id")
+  userEmail String? @map("user_email")
+  action String
+  module String
+  entityType String @map("entity_type")
+  entityId String? @map("entity_id")
+  entityReference String? @map("entity_reference")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([module])
+  @@index([createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("audit_log")
+}
+
+model Parties {
+  id String @id @default(uuid())
+  type TypePartie @default(physique)
+  nom String
+  telephone String?
+  email String?
+  adresse String?
+  typeRelation TypeRelation @map("type_relation")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String? @map("created_by")
+
+  dossiersCreancier DossiersRecouvrement[] @relation("CreancierRelation")
+  dossiersDebiteur DossiersRecouvrement[] @relation("DebiteurRelation")
+  @@map("parties")
+}
+
+model Affaires {
+  id String @id @default(uuid())
+  reference String
+  intitule String
+  demandeurs Json @default("[]")
+  defendeurs Json @default("[]")
+  juridiction String
+  chambre String
+  statut StatutAffaire @default(ACTIVE)
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  createdBy String @map("created_by")
+
+  audienceses Audiences[]
+  honorairesContentieuxes HonorairesContentieux[]
+  depensesAffaireses DepensesAffaires[]
+  @@map("affaires")
+}
+
+model Audiences {
+  id String @id @default(uuid())
+  affaireId String @map("affaire_id")
+  date DateTime
+  heure String?
+  objet ObjetAudience @default(MISE_EN_ETAT)
+  statut StatutAudience @default(A_VENIR)
+  notesPreparation String? @map("notes_preparation")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  affaires Affaires @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+  resultatsAudienceses ResultatsAudiences[]
+  @@map("audiences")
+}
+
+model ResultatsAudiences {
+  id String @id @default(uuid())
+  audienceId String @map("audience_id")
+  type TypeResultat
+  nouvelleDate DateTime? @map("nouvelle_date")
+  motifRenvoi String? @map("motif_renvoi")
+  motifRadiation String? @map("motif_radiation")
+  texteDelibere String? @map("texte_delibere")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  audiences Audiences @relation(fields: [audienceId], references: [id], onDelete: Cascade)
+  @@map("resultats_audiences")
+}
+
+model HonorairesContentieux {
+  id String @id @default(uuid())
+  affaireId String @map("affaire_id")
+  montantFacture Decimal @default(0) @map("montant_facture")
+  montantEncaisse Decimal @default(0) @map("montant_encaisse")
+  dateFacturation DateTime? @map("date_facturation")
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  affaires Affaires @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+  paiementsHonorairesContentieuxes PaiementsHonorairesContentieux[]
+  @@map("honoraires_contentieux")
+}
+
+model DossiersRecouvrement {
+  id String @id @default(uuid())
+  reference String
+  creancierId String? @map("creancier_id")
+  creancierNom String @map("creancier_nom")
+  creancierTelephone String? @map("creancier_telephone")
+  creancierEmail String? @map("creancier_email")
+  debiteurId String? @map("debiteur_id")
+  debiteurNom String @map("debiteur_nom")
+  debiteurTelephone String? @map("debiteur_telephone")
+  debiteurEmail String? @map("debiteur_email")
+  debiteurAdresse String? @map("debiteur_adresse")
+  montantPrincipal Decimal @map("montant_principal")
+  penalitesInterets Decimal? @default(0) @map("penalites_interets")
+  totalARecouvrer Decimal @map("total_a_recouvrer")
+  statut StatutRecouvrement @default(EN_COURS)
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  createdBy String @map("created_by")
+
+  creancier Parties? @relation("CreancierRelation", fields: [creancierId], references: [id])
+  debiteur Parties? @relation("DebiteurRelation", fields: [debiteurId], references: [id])
+  actionsRecouvrements ActionsRecouvrement[]
+  paiementsRecouvrements PaiementsRecouvrement[]
+  honorairesRecouvrements HonorairesRecouvrement[]
+  depensesDossiers DepensesDossier[]
+  locatairesDossiersRecouvrements LocatairesDossiersRecouvrement[]
+  @@map("dossiers_recouvrement")
+}
+
+model ActionsRecouvrement {
+  id String @id @default(uuid())
+  dossierId String @map("dossier_id")
+  date DateTime
+  typeAction TypeAction @map("type_action")
+  resume String
+  prochaineEtape String? @map("prochaine_etape")
+  echeanceProchaineEtape DateTime? @map("echeance_prochaine_etape")
+  pieceJointe String? @map("piece_jointe")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  dossiersRecouvrement DossiersRecouvrement @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  @@map("actions_recouvrement")
+}
+
+model PaiementsRecouvrement {
+  id String @id @default(uuid())
+  dossierId String @map("dossier_id")
+  date DateTime
+  montant Decimal
+  mode ModePaiement
+  reference String?
+  commentaire String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  dossiersRecouvrement DossiersRecouvrement @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  @@map("paiements_recouvrement")
+}
+
+model HonorairesRecouvrement {
+  id String @id @default(uuid())
+  dossierId String @map("dossier_id")
+  type TypeHonoraires @default(FORFAIT)
+  montantPrevu Decimal @default(0) @map("montant_prevu")
+  pourcentage Decimal?
+  montantPaye Decimal @default(0) @map("montant_paye")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  dossiersRecouvrement DossiersRecouvrement @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  @@map("honoraires_recouvrement")
+}
+
+model DepensesDossier {
+  id String @id @default(uuid())
+  dossierId String @map("dossier_id")
+  date DateTime
+  nature String
+  typeDepense TypeDepenseDossier @default(AUTRES) @map("type_depense")
+  montant Decimal
+  justificatif String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  dossiersRecouvrement DossiersRecouvrement @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  @@map("depenses_dossier")
+}
+
+model Proprietaires {
+  id String @id @default(uuid())
+  nom String
+  telephone String?
+  email String?
+  adresse String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String? @map("created_by")
+
+  immeubleses Immeubles[]
+  @@map("proprietaires")
+}
+
+model Immeubles {
+  id String @id @default(uuid())
+  proprietaireId String @map("proprietaire_id")
+  nom String
+  reference String
+  adresse String
+  tauxCommissionCapco Decimal @map("taux_commission_capco")
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String? @map("created_by")
+
+  proprietaires Proprietaires @relation(fields: [proprietaireId], references: [id], onDelete: Cascade)
+  lotses Lots[]
+  depensesImmeubleses DepensesImmeubles[]
+  rapportsGestions RapportsGestion[]
+  @@map("immeubles")
+}
+
+model Locataires {
+  id String @id @default(uuid())
+  nom String
+  telephone String?
+  email String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String? @map("created_by")
+
+  lotses Lots[]
+  bauxes Baux[]
+  locatairesDossiersRecouvrements LocatairesDossiersRecouvrement[]
+  @@map("locataires")
+}
+
+model Lots {
+  id String @id @default(uuid())
+  immeubleId String @map("immeuble_id")
+  locataireId String? @map("locataire_id")
+  numero String
+  etage String?
+  type TypeLot @default(AUTRE)
+  loyerMensuelAttendu Decimal @default(0) @map("loyer_mensuel_attendu")
+  statut StatutLot @default(LIBRE)
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String? @map("created_by")
+
+  immeubles Immeubles @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
+  locataires Locataires? @relation(fields: [locataireId], references: [id])
+  bauxes Baux[]
+  encaissementsLoyerses EncaissementsLoyers[]
+
+  @@unique([immeubleId, numero])
+  @@map("lots")
+}
+
+model Baux {
+  id String @id @default(uuid())
+  lotId String @map("lot_id")
+  locataireId String @map("locataire_id")
+  dateDebut DateTime @map("date_debut")
+  dateFin DateTime? @map("date_fin")
+  montantLoyer Decimal @map("montant_loyer")
+  jourPaiementPrevu Int @default(5) @map("jour_paiement_prevu")
+  statut StatutBail @default(ACTIF)
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String? @map("created_by")
+
+  lots Lots @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  locataires Locataires @relation(fields: [locataireId], references: [id])
+  @@map("baux")
+}
+
+model EncaissementsLoyers {
+  id String @id @default(uuid())
+  lotId String @map("lot_id")
+  moisConcerne String @map("mois_concerne")
+  dateEncaissement DateTime @map("date_encaissement")
+  montantEncaisse Decimal @map("montant_encaisse")
+  modePaiement ModePaiement @map("mode_paiement")
+  observation String?
+  commissionCapco Decimal @default(0) @map("commission_capco")
+  netProprietaire Decimal @default(0) @map("net_proprietaire")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  lots Lots @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  @@map("encaissements_loyers")
+}
+
+model DepensesImmeubles {
+  id String @id @default(uuid())
+  immeubleId String @map("immeuble_id")
+  date DateTime
+  nature String
+  description String?
+  montant Decimal
+  typeDepense TypeDepenseImmeuble @default(AUTRES_DEPENSES) @map("type_depense")
+  justificatif String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  immeubles Immeubles @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
+  @@map("depenses_immeubles")
+}
+
+model RapportsGestion {
+  id String @id @default(uuid())
+  immeubleId String @map("immeuble_id")
+  periodeDebut DateTime @map("periode_debut")
+  periodeFin DateTime @map("periode_fin")
+  totalLoyers Decimal @default(0) @map("total_loyers")
+  totalDepenses Decimal @default(0) @map("total_depenses")
+  totalCommissions Decimal @default(0) @map("total_commissions")
+  netProprietaire Decimal @default(0) @map("net_proprietaire")
+  dateGeneration DateTime @default(now()) @map("date_generation")
+  genererPar String @map("generer_par")
+  statut String @default("BROUILLON")
+
+  immeubles Immeubles @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
+  @@map("rapports_gestion")
+}
+
+model ClientsConseil {
+  id String @id @default(uuid())
+  reference String
+  nom String
+  type TypePartie @default(morale)
+  telephone String?
+  email String?
+  adresse String?
+  honoraireMensuel Decimal @default(0) @map("honoraire_mensuel")
+  jourFacturation Int @default(1) @map("jour_facturation")
+  statut StatutClientConseil @default(ACTIF)
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  createdBy String @map("created_by")
+
+  tachesConseils TachesConseil[]
+  facturesConseils FacturesConseil[]
+  @@map("clients_conseil")
+}
+
+model TachesConseil {
+  id String @id @default(uuid())
+  clientId String @map("client_id")
+  date DateTime
+  type TypeTache @default(AUTRE)
+  description String
+  dureeMinutes Int? @map("duree_minutes")
+  moisConcerne String @map("mois_concerne")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  clientsConseil ClientsConseil @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  @@map("taches_conseil")
+}
+
+model FacturesConseil {
+  id String @id @default(uuid())
+  clientId String @map("client_id")
+  reference String
+  moisConcerne String @map("mois_concerne")
+  montantHt Decimal @map("montant_ht")
+  tva Decimal? @default(0)
+  montantTtc Decimal @map("montant_ttc")
+  dateEmission DateTime @map("date_emission")
+  dateEcheance DateTime @map("date_echeance")
+  statut StatutFacture @default(BROUILLON)
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  clientsConseil ClientsConseil @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  paiementsConseils PaiementsConseil[]
+  @@map("factures_conseil")
+}
+
+model PaiementsConseil {
+  id String @id @default(uuid())
+  factureId String @map("facture_id")
+  date DateTime
+  montant Decimal
+  mode ModePaiement
+  reference String?
+  commentaire String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  facturesConseil FacturesConseil @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  @@map("paiements_conseil")
+}
+
+model Alertes {
+  id String @id @default(uuid())
+  type TypeAlerte
+  titre String
+  description String
+  lien String?
+  priorite PrioriteAlerte @default(MOYENNE)
+  lu Boolean @default(false)
+  userId String? @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("alertes")
+}
+
+model LocatairesDossiersRecouvrement {
+  id String @id @default(uuid())
+  locataireId String @map("locataire_id")
+  dossierId String @map("dossier_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String? @map("created_by")
+
+  locataires Locataires @relation(fields: [locataireId], references: [id], onDelete: Cascade)
+  dossiersRecouvrement DossiersRecouvrement @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  @@unique([locataireId, dossierId])
+  @@map("locataires_dossiers_recouvrement")
+}
+
+model DepensesAffaires {
+  id String @id @default(uuid())
+  affaireId String @map("affaire_id")
+  date DateTime @default(now())
+  typeDepense String @map("type_depense")
+  nature String
+  montant Decimal @default(0)
+  description String?
+  justificatif String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  affaires Affaires @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
+  @@index([affaireId])
+  @@map("depenses_affaires")
+}
+
+model PaiementsHonorairesContentieux {
+  id String @id @default(uuid())
+  honorairesId String @map("honoraires_id")
+  date DateTime @default(now())
+  montant Decimal @default(0)
+  modePaiement String @map("mode_paiement")
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String @map("created_by")
+
+  honorairesContentieux HonorairesContentieux @relation(fields: [honorairesId], references: [id], onDelete: Cascade)
+
+  @@index([honorairesId])
+  @@map("paiements_honoraires_contentieux")
+}

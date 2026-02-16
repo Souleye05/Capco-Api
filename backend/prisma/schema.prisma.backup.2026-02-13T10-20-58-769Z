@@ -1,0 +1,320 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum AppRole {
+  admin
+  collaborateur
+  compta
+}
+
+enum StatutAffaire {
+  ACTIVE
+  CLOTUREE
+  RADIEE
+}
+
+enum MigrationType {
+  SCHEMA
+  DATA
+  USERS
+  FILES
+  VALIDATION
+  ROLLBACK
+}
+
+enum MigrationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+}
+
+enum CheckpointStatus {
+  CREATED
+  VALIDATED
+  ACTIVE
+  SUPERSEDED
+  FAILED
+}
+
+enum MigrationPhase {
+  INITIAL
+  SCHEMA_EXTRACTED
+  DATA_MIGRATED
+  USERS_MIGRATED
+  FILES_MIGRATED
+  VALIDATION_COMPLETE
+  PRODUCTION_READY
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}
+
+enum AlertType {
+  ERROR
+  PERFORMANCE
+  RESOURCE
+  PROGRESS
+  SECURITY
+  DATA_INTEGRITY
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// User Management (with migration support)
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  emailVerified     Boolean   @default(false)
+  lastSignIn        DateTime?
+  migrationSource   String?   @default("supabase")
+  migrationMetadata Json?     // For storing custom permissions and migration details
+  resetToken        String?
+  resetExpiry       DateTime?
+  
+  // Relations
+  userRoles UserRole[]
+  affaires  Affaire[]
+  files     File[]
+  
+  @@map("users")
+}
+
+model UserRole {
+  id     String  @id @default(uuid())
+  userId String
+  role   AppRole
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+// Business Models (examples - would include all tables from Supabase)
+model Affaire {
+  id          String        @id @default(uuid())
+  reference   String        @unique
+  intitule    String
+  demandeurs  Json          @default("[]")
+  defendeurs  Json          @default("[]")
+  juridiction String
+  chambre     String
+  statut      StatutAffaire @default(ACTIVE)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  createdBy   String
+  
+  creator   User        @relation(fields: [createdBy], references: [id])
+  audiences Audience[]
+  
+  @@map("affaires")
+}
+
+model Audience {
+  id        String   @id @default(uuid())
+  affaireId String
+  date      DateTime
+  heure     String
+  type      String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  affaire Affaire @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+  
+  @@map("audiences")
+}
+
+// File Management (with migration support)
+model File {
+  id              String   @id @default(uuid())
+  filename        String
+  originalName    String
+  mimetype        String
+  size            Int
+  path            String
+  originalPath    String?
+  bucketName      String?
+  checksum        String?
+  uploadedBy      String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  migrationSource String?  @default("supabase")
+  
+  uploader       User             @relation(fields: [uploadedBy], references: [id])
+  fileReferences FileReference[]
+  
+  @@map("files")
+}
+
+model FileReference {
+  id         String   @id @default(uuid())
+  tableName  String
+  recordId   String
+  columnName String
+  oldPath    String
+  newPath    String
+  fileId     String
+  migratedAt DateTime @default(now())
+  
+  file File @relation(fields: [fileId], references: [id])
+  
+  @@unique([tableName, recordId, columnName])
+  @@map("file_references")
+}
+
+// Migration System Models
+model MigrationLog {
+  id             String          @id @default(uuid())
+  migrationType  MigrationType
+  status         MigrationStatus
+  startTime      DateTime
+  endTime        DateTime?
+  recordsTotal   Int?
+  recordsSuccess Int?
+  recordsFailed  Int?
+  errorDetails   Json?
+  checkpointName String?
+  createdAt      DateTime        @default(now())
+  
+  @@map("migration_logs")
+}
+
+model MigrationCheckpoint {
+  id                String          @id
+  name              String          @unique
+  description       String?
+  phase             MigrationPhase
+  status            CheckpointStatus
+  createdAt         DateTime
+  databaseBackup    String
+  storageBackup     String
+  configBackup      String
+  metadata          Json
+  validationResults Json?
+  
+  @@map("migration_checkpoints")
+}
+
+// Backup System Models
+model BackupRecord {
+  id          String   @id @default(uuid())
+  backupId    String   @unique
+  backupType  String   // 'database', 'storage', 'config', 'complete'
+  filePath    String
+  size        Int
+  checksum    String
+  status      String   // 'PENDING', 'COMPLETED', 'FAILED'
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+  metadata    Json?
+  
+  @@map("backup_records")
+}
+
+// Monitoring and Logging Models
+model MigrationLogEntry {
+  id               String         @id
+  level            String         // LogLevel enum as string
+  phase            String         // MigrationPhase enum as string
+  component        String
+  operation        String
+  message          String
+  context          Json           @default("{}")
+  stackTrace       String?
+  duration         Int?
+  recordsProcessed Int?
+  remediationSteps String[]       @default([])
+  timestamp        DateTime       @default(now())
+  
+  @@map("migration_log_entries")
+}
+
+model AuditTrail {
+  id          String    @id
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String?
+  oldValues   Json      @default("{}")
+  newValues   Json      @default("{}")
+  ipAddress   String?
+  userAgent   String?
+  sessionId   String?
+  result      String    // 'success', 'failure', 'partial'
+  details     Json      @default("{}")
+  timestamp   DateTime  @default(now())
+  
+  @@map("audit_trail")
+}
+
+model MigrationMetrics {
+  id                String   @id @default(uuid())
+  migrationId       String
+  phase             String   // MigrationPhase enum as string
+  timestamp         DateTime
+  elapsedTime       Int
+  progressPercentage Int
+  recordsProcessed  Int
+  totalRecords      Int?
+  recordsPerSecond  Float
+  errorsCount       Int
+  warningsCount     Int
+  tablesProcessed   Int
+  totalTables       Int?
+  filesProcessed    Int
+  totalFiles        Int?
+  bytesProcessed    BigInt
+  totalBytes        BigInt?
+  memoryUsageMB     Int
+  cpuUsagePercent   Int?
+  
+  @@map("migration_metrics")
+}
+
+model MigrationAlert {
+  id             String    @id
+  ruleId         String
+  type           String    // AlertType enum as string
+  severity       String    // AlertSeverity enum as string
+  title          String
+  message        String
+  migrationId    String?
+  phase          String?   // MigrationPhase enum as string
+  context        Json      @default("{}")
+  actions        String[]  @default([])
+  acknowledged   Boolean   @default(false)
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  resolved       Boolean   @default(false)
+  resolvedAt     DateTime?
+  timestamp      DateTime  @default(now())
+  
+  @@map("migration_alerts")
+}

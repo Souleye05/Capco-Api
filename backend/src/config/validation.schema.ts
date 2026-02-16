@@ -21,6 +21,8 @@ export const validationSchema = Joi.object({
   DB_SSL: Joi.boolean().default(false),
   DB_CONNECTION_TIMEOUT: Joi.number().default(60000),
   DB_MAX_CONNECTIONS: Joi.number().default(10),
+  DB_CONNECT_RETRIES: Joi.number().default(5),
+  DB_CONNECT_BASE_DELAY: Joi.number().default(200),
 
   // JWT
   JWT_SECRET: Joi.string().min(32).required(),

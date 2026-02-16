@@ -1,0 +1,24 @@
+{
+  "name": "capco-project",
+  "version": "1.0.0",
+  "description": "CAPCO - Supabase to NestJS Migration Project",
+  "private": true,
+  "scripts": {
+    "dev": "npm run start:dev --prefix backend",
+    "build": "npm run build --prefix backend",
+    "start": "npm run start --prefix backend",
+    "start:prod": "npm run start:prod --prefix backend",
+    "test": "npm run test --prefix backend",
+    "test:pbt": "npm run test:pbt --prefix backend",
+    "lint": "npm run lint --prefix backend",
+    "prisma:generate": "npm run prisma:generate --prefix backend",
+    "prisma:push": "npm run prisma:push --prefix backend",
+    "prisma:studio": "npm run prisma:studio --prefix backend",
+    "import:capco": "npm run import:capco --prefix backend",
+    "install:backend": "npm install --prefix backend",
+    "install:all": "npm run install:backend"
+  },
+  "workspaces": [
+    "backend"
+  ]
+}

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { getAppConfig } from '../../config/config.helpers';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -30,7 +31,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
-    const isDevelopment = this.configService.get('NODE_ENV') === 'development';
+    const isDevelopment = getAppConfig(this.configService).environment === 'development';
 
     // Log the error
     this.logger.error(

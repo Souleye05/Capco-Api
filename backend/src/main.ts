@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { getAppConfig } from './config/config.helpers';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -10,13 +11,10 @@ async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
+    const appConfig = getAppConfig(configService);
 
-    // Get configuration values
-    const port = configService.get<number>('app.port');
-    const corsOrigins = configService.get<string[]>('app.corsOrigins');
-    const enableSwagger = configService.get<boolean>('app.enableSwagger');
-    const apiPrefix = configService.get<string>('app.apiPrefix');
-    const environment = configService.get<string>('app.environment');
+    // Get configuration values (typed)
+    const { port, corsOrigins, enableSwagger, apiPrefix, environment } = appConfig;
 
     // Set global prefix
     app.setGlobalPrefix(apiPrefix);
@@ -83,7 +81,8 @@ async function bootstrap() {
     
     logger.log(`🚀 CAPCO API is running on http://localhost:${port}/${apiPrefix}`);
     logger.log(`📝 Environment: ${environment}`);
-    logger.log(`🔗 CORS enabled for: ${corsOrigins.join(', ')}`);
+    // Avoid logging full CORS origins list (may contain internal URLs)
+    logger.log(`🔗 CORS origins configured: ${Array.isArray(corsOrigins) ? corsOrigins.length : 'unknown'} entries`);
     
   } catch (error) {
     logger.error('Failed to start application:', error);

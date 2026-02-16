@@ -11,4 +11,6 @@ export default registerAs('database', () => ({
   ssl: process.env.DB_SSL === 'true',
   connectionTimeout: parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) || 60000,
   maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS, 10) || 10,
+  connectRetries: parseInt(process.env.DB_CONNECT_RETRIES, 10) || 5,
+  connectBaseDelay: parseInt(process.env.DB_CONNECT_BASE_DELAY, 10) || 200,
 }));

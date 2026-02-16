@@ -8,7 +8,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   constructor(private configService: ConfigService) {
     const databaseUrl = configService.get<string>('database.url');
-    
+
     super({
       datasources: {
         db: {
@@ -19,26 +19,40 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
+    const dbUrl = this.configService.get<string>('database.url');
+
     try {
-      await this.$connect();
+      await this.connectWithRetry(dbUrl);
       this.logger.log('Successfully connected to database');
-      
+
       // Test database connection with a simple query
-      await this.healthCheck();
-      this.logger.log('Database health check passed');
-      
-      // Log connection pool information
+      const healthy = await this.healthCheck();
+      if (healthy) {
+        this.logger.log('Database health check passed');
+      } else {
+        this.logger.warn('Database health check reported issues');
+      }
+
+      // Log connection pool information (non-sensitive)
       const connectionInfo = await this.getConnectionInfo();
       this.logger.log(`Connected to database: ${connectionInfo.database} on ${connectionInfo.host}:${connectionInfo.port}`);
     } catch (error) {
-      this.logger.error('Failed to connect to database:', error);
+      this.logger.error(`Failed to connect to database: ${this.maskDatabaseUrl(dbUrl)} - ${error?.message ?? error}`);
       throw error;
     }
   }
 
   async onModuleDestroy() {
     try {
-      await this.$disconnect();
+      // attempt graceful disconnect with timeout
+      const disconnectPromise = this.$disconnect();
+      const timeout = this.configService.get<number>('database.connectionTimeout') || 5000;
+
+      await Promise.race([
+        disconnectPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Prisma disconnect timeout')), timeout)),
+      ]);
+
       this.logger.log('Disconnected from database');
     } catch (error) {
       this.logger.error('Error disconnecting from database:', error);
@@ -61,16 +75,58 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async getConnectionInfo() {
-    const databaseUrl = this.configService.get<string>('database.url');
-    const url = new URL(databaseUrl);
-    
-    return {
-      host: url.hostname,
-      port: url.port,
-      database: url.pathname.slice(1),
-      schema: url.searchParams.get('schema') || 'public',
-      ssl: url.searchParams.get('sslmode') === 'require',
-    };
+    const databaseUrl = this.configService.get<string>('database.url') || '';
+    try {
+      const url = new URL(databaseUrl);
+      return {
+        host: url.hostname,
+        port: url.port,
+        database: url.pathname.slice(1),
+        schema: url.searchParams.get('schema') || 'public',
+        ssl: url.searchParams.get('sslmode') === 'require',
+      };
+    } catch (error) {
+      this.logger.warn('Unable to parse database URL for connection info');
+      return { host: 'unknown', port: '', database: 'unknown', schema: 'public', ssl: false };
+    }
+  }
+
+  private maskDatabaseUrl(databaseUrl: string | undefined): string {
+    if (!databaseUrl) return 'not-set';
+    try {
+      const url = new URL(databaseUrl);
+      if (url.password) url.password = '****';
+      return url.toString();
+    } catch (e) {
+      return 'invalid-url';
+    }
+  }
+
+  private async connectWithRetry(databaseUrl: string | undefined) {
+    const maxAttempts = this.configService.get<number>('database.connectRetries') ?? 5;
+    const baseDelay = this.configService.get<number>('database.connectBaseDelay') ?? 200; // ms
+
+    let attempt = 0;
+    let lastError: any;
+
+    while (attempt < maxAttempts) {
+      attempt += 1;
+      try {
+        await this.$connect();
+        return;
+      } catch (error) {
+        lastError = error;
+        const isRetryable = this.isRetryableError(error);
+        if (!isRetryable || attempt >= maxAttempts) break;
+
+        const delay = Math.pow(2, attempt) * baseDelay;
+        this.logger.warn(`Database connect attempt ${attempt} failed, retrying in ${delay}ms...`);
+        await new Promise((res) => setTimeout(res, delay));
+      }
+    }
+
+    this.logger.error(`Unable to connect to database after ${attempt} attempts: ${lastError?.message ?? lastError}`);
+    throw lastError;
   }
 
   async getConnectionStats() {

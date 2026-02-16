@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { getAppConfig, getDatabaseConfig, getJwtConfig } from './config.helpers';
 import { PrismaService } from '../common/services/prisma.service';
 import { ConfigModule } from './config.module';
 import { CommonModule } from '../common/common.module';
@@ -25,31 +26,35 @@ describe('Configuration Integration', () => {
   describe('Configuration Loading', () => {
     it('should load all required configuration sections', () => {
       // Test database configuration
-      expect(configService.get('database.url')).toBeDefined();
-      expect(configService.get('database.host')).toBeDefined();
-      expect(configService.get('database.port')).toBeDefined();
+      const dbCfg = getDatabaseConfig(configService);
+      expect(dbCfg.url).toBeDefined();
+      expect(dbCfg.host).toBeDefined();
+      expect(dbCfg.port).toBeDefined();
 
       // Test JWT configuration
-      expect(configService.get('jwt.secret')).toBeDefined();
-      expect(configService.get('jwt.expiresIn')).toBeDefined();
-      expect(configService.get('jwt.issuer')).toBeDefined();
+      const jwtCfg = getJwtConfig(configService);
+      expect(jwtCfg.secret).toBeDefined();
+      expect(jwtCfg.expiresIn).toBeDefined();
+      expect(jwtCfg.issuer).toBeDefined();
 
       // Test app configuration
-      expect(configService.get('app.port')).toBeDefined();
-      expect(configService.get('app.environment')).toBeDefined();
-      expect(configService.get('app.corsOrigins')).toBeDefined();
+      const appCfg = getAppConfig(configService);
+      expect(appCfg.port).toBeDefined();
+      expect(appCfg.environment).toBeDefined();
+      expect(appCfg.corsOrigins).toBeDefined();
     });
 
     it('should have valid configuration types', () => {
-      expect(typeof configService.get<number>('app.port')).toBe('number');
-      expect(typeof configService.get<string>('app.environment')).toBe('string');
-      expect(Array.isArray(configService.get<string[]>('app.corsOrigins'))).toBe(true);
-      expect(typeof configService.get<boolean>('app.enableSwagger')).toBe('boolean');
+      const appCfg = getAppConfig(configService);
+      expect(typeof appCfg.port).toBe('number');
+      expect(typeof appCfg.environment).toBe('string');
+      expect(Array.isArray(appCfg.corsOrigins)).toBe(true);
+      expect(typeof appCfg.enableSwagger).toBe('boolean');
     });
 
     it('should validate JWT secret length', () => {
-      const jwtSecret = configService.get<string>('jwt.secret');
-      expect(jwtSecret.length).toBeGreaterThanOrEqual(32);
+      const jwtCfg2 = getJwtConfig(configService);
+      expect(jwtCfg2.secret.length).toBeGreaterThanOrEqual(32);
     });
   });
 
@@ -62,9 +67,10 @@ describe('Configuration Integration', () => {
       const connectionInfo = await prismaService.getConnectionInfo();
       
       expect(connectionInfo).toBeDefined();
-      expect(connectionInfo.host).toBe(configService.get('database.host'));
-      expect(connectionInfo.port).toBe(configService.get('database.port').toString());
-      expect(connectionInfo.database).toBe(configService.get('database.database'));
+      const dbCfg2 = getDatabaseConfig(configService);
+      expect(connectionInfo.host).toBe(dbCfg2.host);
+      expect(connectionInfo.port).toBe(dbCfg2.port.toString());
+      expect(connectionInfo.database).toBe(dbCfg2.database);
     });
 
     it('should perform health check', async () => {
@@ -87,11 +93,10 @@ describe('Configuration Integration', () => {
     });
 
     it('should apply default values for optional configs', () => {
-      const port = configService.get<number>('app.port');
-      const environment = configService.get<string>('app.environment');
-      
-      expect(port).toBe(3001); // Default value
-      expect(['development', 'production', 'test']).toContain(environment);
+      const appCfg2 = getAppConfig(configService);
+
+      expect(appCfg2.port).toBe(3001); // Default value
+      expect(['development', 'production', 'test']).toContain(appCfg2.environment);
     });
   });
 });

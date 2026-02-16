@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/services/prisma.service';
+import { getAppConfig, getDatabaseConfig } from '../config/config.helpers';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Health')
@@ -16,22 +17,25 @@ export class HealthController {
   @ApiResponse({ status: 200, description: 'Service is healthy' })
   async healthCheck() {
     const dbHealthy = await this.prismaService.healthCheck();
-    const connectionInfo = await this.prismaService.getConnectionInfo();
-    
+    const connectionStats = await this.prismaService.getConnectionStats();
+    const appCfg = getAppConfig(this.configService);
+
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      environment: this.configService.get<string>('app.environment'),
+      environment: appCfg.environment,
       database: {
         healthy: dbHealthy,
-        connection: connectionInfo,
+        // non-sensitive runtime stats only
+        connectionStats,
       },
       configuration: {
-        port: this.configService.get<number>('app.port'),
-        apiPrefix: this.configService.get<string>('app.apiPrefix'),
-        corsOrigins: this.configService.get<string[]>('app.corsOrigins'),
-        enableSwagger: this.configService.get<boolean>('app.enableSwagger'),
-        enableAudit: this.configService.get<boolean>('app.enableAudit'),
+        port: appCfg.port,
+        apiPrefix: appCfg.apiPrefix,
+        // do not expose full CORS origins list in health endpoint
+        corsOriginsCount: (appCfg.corsOrigins || []).length,
+        enableSwagger: appCfg.enableSwagger,
+        enableAudit: appCfg.enableAudit,
       },
     };
   }
@@ -40,15 +44,18 @@ export class HealthController {
   @ApiOperation({ summary: 'Configuration validation check' })
   @ApiResponse({ status: 200, description: 'Configuration is valid' })
   async configCheck() {
+    const dbCfg = getDatabaseConfig(this.configService);
+    const appCfg = getAppConfig(this.configService);
+
     return {
       status: 'ok',
       message: 'Configuration validation passed',
       configs: {
         database: {
-          host: this.configService.get<string>('database.host'),
-          port: this.configService.get<number>('database.port'),
-          database: this.configService.get<string>('database.database'),
-          schema: this.configService.get<string>('database.schema'),
+          // only expose presence of database URL and non-sensitive numeric settings
+          urlSet: !!dbCfg.url,
+          maxConnections: dbCfg.maxConnections,
+          connectionTimeout: dbCfg.connectionTimeout,
         },
         jwt: {
           issuer: this.configService.get<string>('jwt.issuer'),
@@ -56,9 +63,9 @@ export class HealthController {
           expiresIn: this.configService.get<string>('jwt.expiresIn'),
         },
         app: {
-          environment: this.configService.get<string>('app.environment'),
-          port: this.configService.get<number>('app.port'),
-          logLevel: this.configService.get<string>('app.logLevel'),
+          environment: appCfg.environment,
+          port: appCfg.port,
+          logLevel: appCfg.logLevel,
         },
       },
     };

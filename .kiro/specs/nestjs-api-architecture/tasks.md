@@ -32,7 +32,7 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - Ajouter les health checks de base de données
     - _Exigences: 9.1, 9.3, 9.5_
 
-  - [ ]* 2.4 Écrire les tests de propriété pour PrismaService
+  - [x] 2.4 Écrire les tests de propriété pour PrismaService
     - **Propriété 20: Opérations de base de données type-safe**
     - **Valide: Exigences 9.2**
 

@@ -35,14 +35,25 @@ export class AuthService {
       return null;
     }
 
+    let isPasswordValid = false;
+
     // Vérifier si l'utilisateur a un token de reset actif (mot de passe temporaire)
     if (user.resetToken && user.resetExpiry && user.resetExpiry > new Date()) {
       this.logger.warn(`User ${email} attempting login with temporary password`);
-      // Pour les utilisateurs migrés avec mot de passe temporaire, 
-      // on peut permettre la connexion mais forcer le changement de mot de passe
+      
+      // Pour les utilisateurs migrés, permettre la connexion avec le mot de passe par défaut
+      if ((user.migrationSource === 'supabase' || user.migrationSource === 'lovable_cloud') && password === 'Passer1234') {
+        isPasswordValid = true;
+        this.logger.log(`User ${email} authenticated with default migration password`);
+      } else {
+        // Sinon, vérifier le mot de passe normal
+        isPasswordValid = await bcrypt.compare(password, user.password);
+      }
+    } else {
+      // Utilisateur normal, vérifier le mot de passe haché
+      isPasswordValid = await bcrypt.compare(password, user.password);
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return null;
     }

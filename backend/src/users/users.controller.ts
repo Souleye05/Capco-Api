@@ -12,9 +12,9 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuditLog } from '../common/decorators/audit-log.decorator';
 import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
@@ -198,7 +198,9 @@ export class UsersController {
   private buildSecurityContext(user: AuthenticatedUser): SecurityContext {
     return {
       userId: user.id,
-      roles: user.roles.map(r => r.role),
+      roles: Array.isArray(user.roles) 
+        ? user.roles.map(r => typeof r === 'string' ? r : r.role)
+        : [],
       cabinetId: user.cabinetId,
     };
   }

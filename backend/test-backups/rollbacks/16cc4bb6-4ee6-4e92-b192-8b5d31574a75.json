@@ -1,0 +1,8 @@
+{
+  "id": "16cc4bb6-4ee6-4e92-b192-8b5d31574a75",
+  "backupId": "awSUtshodXHaaydZ4aQh",
+  "timestamp": "2026-02-16T14:56:08.325Z",
+  "status": "FAILED",
+  "duration": 20,
+  "error": "Backup awSUtshodXHaaydZ4aQh is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
+}

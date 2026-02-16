@@ -3,12 +3,16 @@ import {
   Body, 
   UseGuards,
   HttpException,
-  HttpStatus
+  HttpStatus,
+  Get,
+  Post,
+  Param,
+  Query
 } from '@nestjs/common';
-import { BaseController } from '../common/controllers/base.controller';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { PrismaService } from '../common/services/prisma.service';
 
 /**
@@ -39,28 +43,155 @@ export interface UpdateAffaireDto {
 
 @Controller('affaires')
 @UseGuards(JwtAuthGuard, RolesGuard)
-export class AffairesController extends BaseController {
-  protected modelName = 'affaires';
-  protected searchFields = ['reference', 'intitule', 'juridiction', 'chambre'];
+export class AffairesController {
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(prisma: PrismaService) {
-    super(prisma);
+  @Get()
+  @Roles('admin', 'collaborateur')
+  async findAll(
+    @CurrentUser() user: any,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
+    @Query('search') search?: string,
+    @Query('statut') statut?: string
+  ) {
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: any = {};
+    
+    if (statut) {
+      where.statut = statut;
+    }
+    
+    if (search) {
+      where.OR = [
+        { reference: { contains: search, mode: 'insensitive' } },
+        { intitule: { contains: search, mode: 'insensitive' } },
+        { juridiction: { contains: search, mode: 'insensitive' } },
+        { chambre: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    try {
+      const [affaires, total] = await Promise.all([
+        this.prisma.affaires.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limitNum,
+          include: {
+            audienceses: {
+              orderBy: { date: 'desc' },
+              take: 5
+            },
+            honorairesContentieuxes: true,
+            depensesAffaireses: {
+              orderBy: { date: 'desc' },
+              take: 10
+            }
+          }
+        }),
+        this.prisma.affaires.count({ where })
+      ]);
+
+      return {
+        data: affaires.map(this.transformResponse),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum)
+        }
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Erreur lors de la récupération des affaires: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 
-  /**
-   * Conditions de sécurité équivalentes aux RLS Supabase
-   * Tous les utilisateurs authentifiés peuvent voir toutes les affaires
-   */
-  protected buildSecurityConditions(user: any): any {
-    // Pour les affaires, tous les utilisateurs authentifiés ont accès
-    // (équivalent à la politique RLS Supabase)
-    return {};
+  @Get(':id')
+  @Roles('admin', 'collaborateur')
+  async findOne(
+    @CurrentUser() user: any,
+    @Param('id') id: string
+  ) {
+    try {
+      const affaire = await this.prisma.affaires.findUnique({
+        where: { id },
+        include: {
+          audienceses: {
+            orderBy: { date: 'desc' }
+          },
+          honorairesContentieuxes: true,
+          depensesAffaireses: {
+            orderBy: { date: 'desc' }
+          }
+        }
+      });
+
+      if (!affaire) {
+        throw new HttpException(
+          `Affaire avec l'ID ${id} non trouvée`,
+          HttpStatus.NOT_FOUND
+        );
+      }
+
+      return {
+        data: this.transformResponse(affaire)
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      
+      throw new HttpException(
+        `Erreur lors de la récupération de l'affaire: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  @Post()
+  @Roles('admin', 'collaborateur')
+  async create(
+    @CurrentUser() user: any,
+    @Body() createDto: CreateAffaireDto
+  ) {
+    const validatedData = this.validateCreateData(createDto, user);
+
+    try {
+      const affaire = await this.prisma.affaires.create({
+        data: {
+          ...validatedData,
+          createdBy: user.id,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        include: {
+          audienceses: true,
+          honorairesContentieuxes: true,
+          depensesAffaireses: true
+        }
+      });
+
+      return {
+        data: this.transformResponse(affaire),
+        message: 'Affaire créée avec succès'
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Erreur lors de la création de l'affaire: ${error.message}`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
   }
 
   /**
    * Validation des données de création
    */
-  protected validateCreateData(data: CreateAffaireDto, user: any): any {
+  private validateCreateData(data: CreateAffaireDto, user: any): any {
     if (!data.reference || !data.intitule || !data.juridiction || !data.chambre) {
       throw new HttpException(
         'Les champs reference, intitule, juridiction et chambre sont obligatoires',
@@ -81,98 +212,9 @@ export class AffairesController extends BaseController {
   }
 
   /**
-   * Validation des données de mise à jour
-   */
-  protected validateUpdateData(data: UpdateAffaireDto, user: any, existing: any): any {
-    const updateData: any = {};
-
-    if (data.reference !== undefined) {
-      if (!data.reference.trim()) {
-        throw new HttpException('La référence ne peut pas être vide', HttpStatus.BAD_REQUEST);
-      }
-      updateData.reference = data.reference.trim();
-    }
-
-    if (data.intitule !== undefined) {
-      if (!data.intitule.trim()) {
-        throw new HttpException('L\'intitulé ne peut pas être vide', HttpStatus.BAD_REQUEST);
-      }
-      updateData.intitule = data.intitule.trim();
-    }
-
-    if (data.demandeurs !== undefined) {
-      updateData.demandeurs = data.demandeurs;
-    }
-
-    if (data.defendeurs !== undefined) {
-      updateData.defendeurs = data.defendeurs;
-    }
-
-    if (data.juridiction !== undefined) {
-      if (!data.juridiction.trim()) {
-        throw new HttpException('La juridiction ne peut pas être vide', HttpStatus.BAD_REQUEST);
-      }
-      updateData.juridiction = data.juridiction.trim();
-    }
-
-    if (data.chambre !== undefined) {
-      if (!data.chambre.trim()) {
-        throw new HttpException('La chambre ne peut pas être vide', HttpStatus.BAD_REQUEST);
-      }
-      updateData.chambre = data.chambre.trim();
-    }
-
-    if (data.statut !== undefined) {
-      if (!['ACTIVE', 'CLOTUREE', 'RADIEE'].includes(data.statut)) {
-        throw new HttpException('Statut invalide', HttpStatus.BAD_REQUEST);
-      }
-      updateData.statut = data.statut;
-    }
-
-    if (data.notes !== undefined) {
-      updateData.notes = data.notes?.trim() || null;
-    }
-
-    return updateData;
-  }
-
-  /**
-   * Validation des permissions de suppression
-   */
-  protected validateDeletePermissions(user: any, item: any): void {
-    // Seuls les admins peuvent supprimer des affaires
-    if (!user.roles.includes('admin')) {
-      throw new HttpException(
-        'Seuls les administrateurs peuvent supprimer des affaires',
-        HttpStatus.FORBIDDEN
-      );
-    }
-
-    // Ne pas permettre la suppression d'affaires avec des audiences
-    // Cette vérification sera faite au niveau de la base de données via les contraintes
-  }
-
-  /**
-   * Relations à inclure dans les réponses
-   */
-  protected getIncludeRelations(): any {
-    return {
-      audienceses: {
-        orderBy: { date: 'desc' },
-        take: 5 // Limiter aux 5 dernières audiences
-      },
-      honorairesContentieuxes: true,
-      depensesAffaireses: {
-        orderBy: { date: 'desc' },
-        take: 10 // Limiter aux 10 dernières dépenses
-      }
-    };
-  }
-
-  /**
    * Transformation de la réponse pour maintenir la compatibilité Supabase
    */
-  protected transformResponse(item: any): any {
+  private transformResponse(item: any): any {
     return {
       id: item.id,
       reference: item.reference,

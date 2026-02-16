@@ -90,7 +90,7 @@ export class AffairesService extends BaseCrudService<
     }
 
     // Vérifier qu'il n'y a pas d'audiences liées
-    const audiencesCount = await this.prisma.audience.count({
+    const audiencesCount = await this.prisma.audiences.count({
       where: { affaireId: item.id },
     });
 
@@ -144,7 +144,7 @@ export class AffairesService extends BaseCrudService<
   // Méthodes métier spécifiques
   private async generateReference(): Promise<string> {
     const year = new Date().getFullYear();
-    const count = await this.prisma.affaire.count({
+    const count = await this.prisma.affaires.count({
       where: {
         reference: {
           startsWith: `AFF-${year}-`,
@@ -164,7 +164,7 @@ export class AffairesService extends BaseCrudService<
       ...this.buildSecurityConditions(context),
     };
 
-    const item = await this.prisma.affaire.findFirst({
+    const item = await this.prisma.affaires.findFirst({
       where,
       include: this.getIncludeRelations(),
     });
@@ -176,10 +176,10 @@ export class AffairesService extends BaseCrudService<
     const where = this.buildSecurityConditions(context);
 
     const [total, enCours, terminees, enAttente] = await Promise.all([
-      this.prisma.affaire.count({ where }),
-      this.prisma.affaire.count({ where: { ...where, statut: 'EN_COURS' } }),
-      this.prisma.affaire.count({ where: { ...where, statut: 'TERMINEE' } }),
-      this.prisma.affaire.count({ where: { ...where, statut: 'EN_ATTENTE' } }),
+      this.prisma.affaires.count({ where }),
+      this.prisma.affaires.count({ where: { ...where, statut: 'EN_COURS' } }),
+      this.prisma.affaires.count({ where: { ...where, statut: 'TERMINEE' } }),
+      this.prisma.affaires.count({ where: { ...where, statut: 'EN_ATTENTE' } }),
     ]);
 
     return {

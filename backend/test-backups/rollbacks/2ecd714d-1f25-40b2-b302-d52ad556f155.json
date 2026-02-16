@@ -1,8 +1,0 @@
-{
-  "id": "2ecd714d-1f25-40b2-b302-d52ad556f155",
-  "backupId": "l2DaUarEa",
-  "timestamp": "2026-02-13T07:21:50.865Z",
-  "status": "FAILED",
-  "duration": 7,
-  "error": "Backup l2DaUarEa is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
-}

@@ -28,11 +28,11 @@ export class ConseilController {
    */
   @Get('clients')
   async getClientsConseil(
+    @CurrentUser() user: any,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
     @Query('statut') statut?: string,
-    @Query('search') search?: string,
-    @CurrentUser() user: any
+    @Query('search') search?: string
   ) {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
@@ -74,8 +74,10 @@ export class ConseilController {
               }
             },
             _count: {
-              tachesConseils: true,
-              facturesConseils: true
+              select: {
+                tachesConseils: true,
+                facturesConseils: true
+              }
             }
           }
         }),
@@ -150,8 +152,8 @@ export class ConseilController {
    */
   @Get('clients/:id')
   async getClientConseil(
-    @Param('id') id: string,
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
+    @Param('id') id: string
   ) {
     try {
       const client = await this.prisma.clientsConseil.findUnique({
@@ -224,6 +226,7 @@ export class ConseilController {
    */
   @Post('clients')
   async createClientConseil(
+    @CurrentUser() user: any,
     @Body() createDto: {
       reference: string;
       nom: string;
@@ -234,8 +237,7 @@ export class ConseilController {
       honoraireMensuel: number;
       jourFacturation?: number;
       notes?: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     // Validation
     if (!createDto.reference || !createDto.nom || createDto.honoraireMensuel < 0) {
@@ -295,6 +297,7 @@ export class ConseilController {
    */
   @Post('clients/:id/taches')
   async addTacheConseil(
+    @CurrentUser() user: any,
     @Param('id') clientId: string,
     @Body() tacheDto: {
       date: string;
@@ -302,8 +305,7 @@ export class ConseilController {
       description: string;
       dureeMinutes?: number;
       moisConcerne: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     try {
       // Vérifier que le client existe
@@ -356,6 +358,7 @@ export class ConseilController {
    */
   @Post('clients/:id/factures')
   async createFactureConseil(
+    @CurrentUser() user: any,
     @Param('id') clientId: string,
     @Body() factureDto: {
       reference: string;
@@ -365,8 +368,7 @@ export class ConseilController {
       dateEmission: string;
       dateEcheance: string;
       notes?: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     if (factureDto.montantHt <= 0) {
       throw new HttpException(
@@ -439,6 +441,7 @@ export class ConseilController {
    */
   @Post('factures/:id/paiements')
   async addPaiementFacture(
+    @CurrentUser() user: any,
     @Param('id') factureId: string,
     @Body() paiementDto: {
       date: string;
@@ -446,8 +449,7 @@ export class ConseilController {
       mode: string;
       reference?: string;
       commentaire?: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     if (paiementDto.montant <= 0) {
       throw new HttpException(

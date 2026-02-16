@@ -1,8 +1,0 @@
-{
-  "id": "36f154d5-8d86-4580-8f6e-8e6127e7fca3",
-  "backupId": "l8DaaarDa",
-  "timestamp": "2026-02-13T07:21:55.912Z",
-  "status": "FAILED",
-  "duration": 2,
-  "error": "Backup l8DaaarDa is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
-}

@@ -1,0 +1,8 @@
+{
+  "id": "5503e1b9-f30c-4656-acab-f18f2fae1471",
+  "backupId": "aaaaa4ar",
+  "timestamp": "2026-02-16T14:56:19.679Z",
+  "status": "FAILED",
+  "duration": 14,
+  "error": "Backup aaaaa4ar is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
+}

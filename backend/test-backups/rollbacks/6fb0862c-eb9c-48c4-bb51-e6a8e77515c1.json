@@ -1,0 +1,8 @@
+{
+  "id": "6fb0862c-eb9c-48c4-bb51-e6a8e77515c1",
+  "backupId": "aaaIa6ar",
+  "timestamp": "2026-02-16T14:56:08.029Z",
+  "status": "FAILED",
+  "duration": 32,
+  "error": "Backup aaaIa6ar is corrupted: Backup metadata not found, Database backup not found, Users backup not found, Storage backup manifest not found"
+}

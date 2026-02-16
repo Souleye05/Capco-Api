@@ -1,8 +1,0 @@
-{
-  "id": "d1262d25-c6cd-4a48-8148-4bf49fc0e812",
-  "backupId": "c8DaUarEa",
-  "timestamp": "2026-02-13T07:21:48.628Z",
-  "status": "FAILED",
-  "duration": 16,
-  "error": "Backup c8DaUarEa is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
-}

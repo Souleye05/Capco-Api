@@ -3,6 +3,7 @@ import { ConfigModule } from './config';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { ApiModule } from './api/api.module';
 import { AffairesModule } from './affaires/affaires.module';
 import { RecouvrementModule } from './recouvrement/recouvrement.module';
@@ -15,6 +16,7 @@ import { ConseilModule } from './conseil/conseil.module';
     CommonModule,
     HealthModule,
     AuthModule,
+    UsersModule,
     ApiModule,
     AffairesModule,
     RecouvrementModule,

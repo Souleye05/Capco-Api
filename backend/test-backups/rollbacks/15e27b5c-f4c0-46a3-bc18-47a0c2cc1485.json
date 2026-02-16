@@ -1,0 +1,8 @@
+{
+  "id": "15e27b5c-f4c0-46a3-bc18-47a0c2cc1485",
+  "backupId": "aaaaa6aa",
+  "timestamp": "2026-02-16T14:56:19.871Z",
+  "status": "FAILED",
+  "duration": 13,
+  "error": "Backup aaaaa6aa is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
+}

@@ -52,9 +52,9 @@ describe('HealthController', () => {
     const result = await controller.configCheck();
     
     // Verify database config
-    expect(result.configs.database.host).toBeDefined();
-    expect(result.configs.database.port).toBeGreaterThan(0);
-    expect(result.configs.database.database).toBeDefined();
+    expect(result.configs.database.urlSet).toBeDefined();
+    expect(result.configs.database.maxConnections).toBeGreaterThan(0);
+    expect(result.configs.database.connectionTimeout).toBeGreaterThan(0);
     
     // Verify JWT config
     expect(result.configs.jwt.issuer).toBeDefined();

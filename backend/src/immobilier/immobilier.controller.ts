@@ -28,10 +28,10 @@ export class ImmobilierController {
    */
   @Get('proprietaires')
   async getProprietaires(
+    @CurrentUser() user: any,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
-    @Query('search') search?: string,
-    @CurrentUser() user: any
+    @Query('search') search?: string
   ) {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
@@ -134,11 +134,11 @@ export class ImmobilierController {
    */
   @Get('immeubles')
   async getImmeubles(
+    @CurrentUser() user: any,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
     @Query('proprietaire') proprietaireId?: string,
-    @Query('search') search?: string,
-    @CurrentUser() user: any
+    @Query('search') search?: string
   ) {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
@@ -264,10 +264,10 @@ export class ImmobilierController {
    */
   @Get('locataires')
   async getLocataires(
+    @CurrentUser() user: any,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
-    @Query('search') search?: string,
-    @CurrentUser() user: any
+    @Query('search') search?: string
   ) {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
@@ -390,14 +390,14 @@ export class ImmobilierController {
    */
   @Get('encaissements')
   async getEncaissements(
+    @CurrentUser() user: any,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
     @Query('mois') mois?: string,
     @Query('immeuble') immeubleId?: string,
     @Query('proprietaire') proprietaireId?: string,
     @Query('dateDebut') dateDebut?: string,
-    @Query('dateFin') dateFin?: string,
-    @CurrentUser() user: any
+    @Query('dateFin') dateFin?: string
   ) {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
@@ -521,6 +521,7 @@ export class ImmobilierController {
    */
   @Post('encaissements')
   async createEncaissement(
+    @CurrentUser() user: any,
     @Body() createDto: {
       lotId: string;
       moisConcerne: string;
@@ -528,8 +529,7 @@ export class ImmobilierController {
       montantEncaisse: number;
       modePaiement: string;
       observation?: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     if (createDto.montantEncaisse <= 0) {
       throw new HttpException(

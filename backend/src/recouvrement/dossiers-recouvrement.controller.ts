@@ -28,13 +28,13 @@ export class DossiersRecouvrementController {
    */
   @Get()
   async getDossiers(
+    @CurrentUser() user: any,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
     @Query('statut') statut?: string,
     @Query('creancier') creancier?: string,
     @Query('debiteur') debiteur?: string,
-    @Query('search') search?: string,
-    @CurrentUser() user: any
+    @Query('search') search?: string
   ) {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
@@ -95,9 +95,11 @@ export class DossiersRecouvrementController {
               }
             },
             _count: {
-              actionsRecouvrements: true,
-              paiementsRecouvrements: true,
-              depensesDossiers: true
+              select: {
+                actionsRecouvrements: true,
+                paiementsRecouvrements: true,
+                depensesDossiers: true
+              }
             }
           }
         }),
@@ -168,8 +170,8 @@ export class DossiersRecouvrementController {
    */
   @Get(':id')
   async getDossier(
-    @Param('id') id: string,
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
+    @Param('id') id: string
   ) {
     try {
       const dossier = await this.prisma.dossiersRecouvrement.findUnique({
@@ -246,6 +248,7 @@ export class DossiersRecouvrementController {
    */
   @Post()
   async createDossier(
+    @CurrentUser() user: any,
     @Body() createDto: {
       reference: string;
       creancierNom: string;
@@ -258,8 +261,7 @@ export class DossiersRecouvrementController {
       montantPrincipal: number;
       penalitesInterets?: number;
       notes?: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     // Validation
     if (!createDto.reference || !createDto.creancierNom || !createDto.debiteurNom || !createDto.montantPrincipal) {
@@ -332,6 +334,7 @@ export class DossiersRecouvrementController {
    */
   @Post(':id/actions')
   async addAction(
+    @CurrentUser() user: any,
     @Param('id') dossierId: string,
     @Body() actionDto: {
       date: string;
@@ -340,8 +343,7 @@ export class DossiersRecouvrementController {
       prochaineEtape?: string;
       echeanceProchaineEtape?: string;
       pieceJointe?: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     try {
       // Vérifier que le dossier existe
@@ -397,6 +399,7 @@ export class DossiersRecouvrementController {
    */
   @Post(':id/paiements')
   async addPaiement(
+    @CurrentUser() user: any,
     @Param('id') dossierId: string,
     @Body() paiementDto: {
       date: string;
@@ -404,8 +407,7 @@ export class DossiersRecouvrementController {
       mode: string;
       reference?: string;
       commentaire?: string;
-    },
-    @CurrentUser() user: any
+    }
   ) {
     if (paiementDto.montant <= 0) {
       throw new HttpException(

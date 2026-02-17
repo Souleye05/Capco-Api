@@ -5,6 +5,7 @@ export * from './interceptors';
 export * from './pipes';
 export * from './filters';
 export * from './services/prisma.service';
+export * from './services/reference-generator.service';
 export * from './services/base-crud.service';
 export * from './controllers/base-crud.controller';
 export * from './utils/security.utils';

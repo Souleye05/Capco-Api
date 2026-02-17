@@ -264,6 +264,7 @@ docker-compose.override.yml
 # Kiro specific (keep specs but ignore temp files)
 .kiro/temp/
 .kiro/cache/
+.kiro/specs
 
 # Documentation
 docs/

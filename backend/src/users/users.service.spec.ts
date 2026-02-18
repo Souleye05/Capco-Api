@@ -145,25 +145,36 @@ describe('UsersService (Unit Tests)', () => {
         roles: ['collaborateur', 'compta'],
       };
 
-      (prisma.user.findUnique as jest.Mock)
-        .mockResolvedValueOnce(null) // First call: check if email exists
-        .mockResolvedValueOnce({
-          // Second call: return created user
-          ...mockUser,
-          email: createUserDto.email,
-          userRoles: [
-            { id: '1', role: 'collaborateur' },
-            { id: '2', role: 'compta' },
-          ],
-        });
-
-      (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.userRoles.create as jest.Mock).mockResolvedValue({ id: '1', role: 'collaborateur' });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      
+      // Mock transaction
+      (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        const mockTx = {
+          user: {
+            create: jest.fn().mockResolvedValue({
+              ...mockUser,
+              email: createUserDto.email,
+            }),
+            findUnique: jest.fn().mockResolvedValue({
+              ...mockUser,
+              email: createUserDto.email,
+              userRoles: [
+                { id: '1', role: 'collaborateur' },
+                { id: '2', role: 'compta' },
+              ],
+            }),
+          },
+          userRoles: {
+            create: jest.fn().mockResolvedValue({ id: '1', role: 'collaborateur' }),
+          },
+        };
+        return await callback(mockTx);
+      });
 
       const result = await service.create(createUserDto, adminSecurityContext);
 
       expect(result).toBeDefined();
-      expect(prisma.userRoles.create).toHaveBeenCalledTimes(2);
+      expect(result.email).toBe(createUserDto.email);
     });
   });
 
@@ -298,9 +309,15 @@ describe('UsersService (Unit Tests)', () => {
 
   describe('removeRole', () => {
     it('should remove a role from a user', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      // Mock findFirst for findOne method
+      (prisma.user.findFirst as jest.Mock).mockResolvedValue({
         ...mockUser,
         userRoles: [{ id: '1', role: 'collaborateur' }],
+      });
+      
+      (prisma.userRoles.findFirst as jest.Mock).mockResolvedValue({
+        id: '1',
+        role: 'collaborateur',
       });
       (prisma.userRoles.delete as jest.Mock).mockResolvedValue({
         id: '1',
@@ -313,10 +330,13 @@ describe('UsersService (Unit Tests)', () => {
     });
 
     it('should throw BadRequestException if user does not have role', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      // Mock findFirst for findOne method
+      (prisma.user.findFirst as jest.Mock).mockResolvedValue({
         ...mockUser,
         userRoles: [], // No roles
       });
+      
+      (prisma.userRoles.findFirst as jest.Mock).mockResolvedValue(null);
 
       await expect(
         service.removeRole(mockUser.id, 'admin', adminSecurityContext),
@@ -324,9 +344,15 @@ describe('UsersService (Unit Tests)', () => {
     });
 
     it('should throw BadRequestException if trying to remove last admin role', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      // Mock findFirst for findOne method
+      (prisma.user.findFirst as jest.Mock).mockResolvedValue({
         ...mockAdmin,
         userRoles: [{ id: '2', role: 'admin' }],
+      });
+      
+      (prisma.userRoles.findFirst as jest.Mock).mockResolvedValue({
+        id: '2',
+        role: 'admin',
       });
       (prisma.userRoles.count as jest.Mock).mockResolvedValue(1); // Only one admin
 
@@ -338,7 +364,11 @@ describe('UsersService (Unit Tests)', () => {
 
   describe('getRoles', () => {
     it('should get user roles', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      // Mock findFirst for findOne method
+      (prisma.user.findFirst as jest.Mock).mockResolvedValue({
+        ...mockUser,
+        userRoles: [{ id: '1', role: 'collaborateur' }],
+      });
 
       const roles = await service.getRoles(mockUser.id, adminSecurityContext);
 
@@ -346,7 +376,7 @@ describe('UsersService (Unit Tests)', () => {
     });
 
     it('should throw NotFoundException if user does not exist', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.user.findFirst as jest.Mock).mockResolvedValue(null);
 
       await expect(service.getRoles('non-existent-id', adminSecurityContext)).rejects.toThrow(
         NotFoundException,

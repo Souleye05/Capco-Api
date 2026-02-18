@@ -6,10 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ApiModule } from './api/api.module';
 import { AuditModule } from './audit/audit.module';
-import { AffairesModule } from './affaires/affaires.module';
-import { RecouvrementModule } from './recouvrement/recouvrement.module';
-import { ImmobilierModule } from './immobilier/immobilier.module';
 import { ConseilModule } from './conseil/conseil.module';
+import { ContentieuxModule } from './contentieux/contentieux.module';
 
 @Module({
   imports: [
@@ -20,10 +18,8 @@ import { ConseilModule } from './conseil/conseil.module';
     UsersModule,
     ApiModule,
     AuditModule,
-    AffairesModule,
-    RecouvrementModule,
-    ImmobilierModule,
     ConseilModule,
+    ContentieuxModule,
   ],
 })
 export class AppModule {}

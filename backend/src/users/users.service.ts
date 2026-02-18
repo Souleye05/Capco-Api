@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../common/services/prisma.service';
+import { PaginationService } from '../common/services/pagination.service';
 import { BaseCrudService, SecurityContext } from '../common/services/base-crud.service';
 import { PaginatedResponse } from '../common/dto/pagination.dto';
 import { User, AppRole } from '@prisma/client';
@@ -29,8 +30,11 @@ export class UsersService extends BaseCrudService<
   protected modelName = 'user';
   protected searchFields = ['email'];
 
-  constructor(protected readonly prisma: PrismaService) {
-    super(prisma);
+  constructor(
+    protected readonly prisma: PrismaService,
+    protected readonly paginationService: PaginationService,
+  ) {
+    super(prisma, paginationService);
   }
 
   // Override findAll to add admin permission check and role filtering

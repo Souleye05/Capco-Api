@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './services/prisma.service';
 import { ReferenceGeneratorService } from './services/reference-generator.service';
+import { PaginationService } from './services/pagination.service';
 import { AuditService } from '../audit/audit.service';
 
 // Guards
@@ -22,6 +23,7 @@ import { AllExceptionsFilter, PrismaExceptionFilter } from './filters';
   providers: [
     PrismaService,
     ReferenceGeneratorService,
+    PaginationService,
     AuditService,
     // Guards
     JwtAuthGuard,
@@ -40,6 +42,7 @@ import { AllExceptionsFilter, PrismaExceptionFilter } from './filters';
   exports: [
     PrismaService,
     ReferenceGeneratorService,
+    PaginationService,
     AuditService,
     // Guards
     JwtAuthGuard,

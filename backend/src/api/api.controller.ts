@@ -163,7 +163,7 @@ export class ApiController {
       const affaire = await this.prisma.affaires.findUnique({
         where: { id },
         include: {
-          audienceses: {
+          audiences: {
             orderBy: { date: 'desc' },
             take: 5
           }
@@ -191,11 +191,11 @@ export class ApiController {
           created_at: affaire.createdAt,
           updated_at: affaire.updatedAt,
           created_by: affaire.createdBy,
-          audiences: affaire.audienceses.map(audience => ({
+          audiences: affaire.audiences.map(audience => ({
             id: audience.id,
             date: audience.date,
             heure: audience.heure,
-            objet: audience.objet,
+            type: audience.type,
             statut: audience.statut,
             notes_preparation: audience.notesPreparation,
             created_at: audience.createdAt

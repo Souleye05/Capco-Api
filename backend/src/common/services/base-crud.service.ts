@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { PaginationService } from './pagination.service';
 import { PaginationQueryDto, PaginatedResponse, PaginationMeta } from '../dto/pagination.dto';
 
 export interface CrudEntity {
@@ -27,55 +28,45 @@ export abstract class BaseCrudService<
   protected defaultLimit = 20;
   protected maxLimit = 100;
 
-  constructor(protected readonly prisma: PrismaService) {}
+  constructor(
+    protected readonly prisma: PrismaService,
+    protected readonly paginationService: PaginationService,
+  ) {}
 
   /**
    * Récupérer tous les enregistrements avec pagination
+   * Utilise maintenant le PaginationService centralisé
    */
   async findAll(
     query: TQueryDto,
     securityContext: SecurityContext,
   ): Promise<PaginatedResponse<TEntity>> {
-    const page = Math.max(1, query.page || 1);
-    const limit = Math.min(
-      this.maxLimit,
-      Math.max(1, query.limit || this.defaultLimit),
-    );
-    const skip = (page - 1) * limit;
-
-    // Construction des conditions
-    const where = {
-      ...this.buildSearchConditions(query.search),
-      ...this.buildSecurityConditions(securityContext),
-      ...this.buildCustomFilters(query),
+    // Construction des conditions de sécurité et filtres personnalisés
+    const securityConditions = this.buildSecurityConditions(securityContext);
+    const customFilters = this.buildCustomFilters(query);
+    
+    // Combinaison des conditions where
+    const whereConditions = {
+      ...securityConditions,
+      ...customFilters,
     };
 
-    const orderBy = this.buildOrderBy(query.sortBy, query.sortOrder);
-
-    // Exécution des requêtes
-    const [data, total] = await Promise.all([
-      (this.prisma as any)[this.modelName].findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
+    // Utilisation du PaginationService centralisé
+    const result = await this.paginationService.paginate<TEntity>(
+      (this.prisma as any)[this.modelName],
+      query,
+      {
+        where: whereConditions,
         include: this.getIncludeRelations(),
-      }),
-      (this.prisma as any)[this.modelName].count({ where }),
-    ]);
+        searchFields: this.searchFields,
+        defaultSortBy: this.getDefaultSortBy(),
+      }
+    );
 
-    const totalPages = Math.ceil(total / limit);
-
+    // Transformation des données si nécessaire
     return {
-      data: data.map((item: any) => this.transformResponse(item)),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      ...result,
+      data: result.data.map((item: any) => this.transformResponse(item)),
     };
   }
 
@@ -182,6 +173,43 @@ export abstract class BaseCrudService<
     return { message: `${this.modelName} supprimé avec succès` };
   }
 
+  /**
+   * Recherche rapide pour autocomplete
+   * Utilise la méthode searchOnly du PaginationService
+   */
+  async search(
+    search: string,
+    securityContext: SecurityContext,
+    limit: number = 10,
+  ): Promise<TEntity[]> {
+    const securityConditions = this.buildSecurityConditions(securityContext);
+    
+    // Si on a des conditions de sécurité, on utilise la pagination normale avec une limite
+    if (Object.keys(securityConditions).length > 0) {
+      const result = await this.paginationService.paginate<TEntity>(
+        (this.prisma as any)[this.modelName],
+        { search, limit, page: 1 },
+        {
+          where: securityConditions,
+          include: this.getIncludeRelations(),
+          searchFields: this.searchFields,
+          defaultSortBy: this.getDefaultSortBy(),
+        }
+      );
+      return result.data.map((item: any) => this.transformResponse(item));
+    }
+
+    // Sinon, on utilise searchOnly pour plus d'efficacité
+    const results = await this.paginationService.searchOnly<TEntity>(
+      (this.prisma as any)[this.modelName],
+      search,
+      this.searchFields,
+      limit
+    );
+
+    return results.map((item: any) => this.transformResponse(item));
+  }
+
   // Méthodes abstraites à implémenter
   protected abstract buildSecurityConditions(context: SecurityContext): any;
   protected abstract validateCreateData(
@@ -199,31 +227,6 @@ export abstract class BaseCrudService<
   ): Promise<void>;
 
   // Méthodes avec implémentation par défaut (surchargeable)
-  protected buildSearchConditions(search?: string): any {
-    if (!search || this.searchFields.length === 0) {
-      return {};
-    }
-
-    return {
-      OR: this.searchFields.map((field) => ({
-        [field]: {
-          contains: search,
-          mode: 'insensitive',
-        },
-      })),
-    };
-  }
-
-  protected buildOrderBy(
-    sortBy?: string,
-    sortOrder: 'asc' | 'desc' = 'desc',
-  ): any {
-    if (!sortBy) {
-      return { createdAt: 'desc' };
-    }
-    return { [sortBy]: sortOrder };
-  }
-
   protected buildCustomFilters(query: TQueryDto): any {
     // Implémentation par défaut vide
     // À surcharger dans les services enfants
@@ -232,6 +235,10 @@ export abstract class BaseCrudService<
 
   protected getIncludeRelations(): any {
     return {};
+  }
+
+  protected getDefaultSortBy(): string {
+    return 'createdAt';
   }
 
   protected transformResponse(item: any): TEntity {

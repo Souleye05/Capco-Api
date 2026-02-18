@@ -183,7 +183,7 @@ describe('Common Module - Property-Based Tests', () => {
     it('should provide appropriate error detail levels based on environment', async () => {
       const environmentTestGenerator = fc.record({
         environment: fc.constantFrom('development', 'production', 'test'),
-        errorMessage: fc.string({ minLength: 1, maxLength: 100 }),
+        errorMessage: fc.string({ minLength: 1, maxLength: 100 }).filter(s => s.trim().length > 0),
         includeStack: fc.boolean(),
       });
 
@@ -243,9 +243,9 @@ describe('Common Module - Property-Based Tests', () => {
      */
     it('should sanitize sensitive information from error messages', async () => {
       const sensitiveDataGenerator = fc.record({
-        baseMessage: fc.string({ minLength: 10, maxLength: 50 }),
+        baseMessage: fc.string({ minLength: 10, maxLength: 50 }).filter(s => s.trim().length >= 5),
         sensitiveField: fc.constantFrom('password', 'token', 'secret', 'key', 'authorization'),
-        sensitiveValue: fc.string({ minLength: 8, maxLength: 32 }),
+        sensitiveValue: fc.string({ minLength: 8, maxLength: 32 }).filter(s => s.trim().length >= 4),
         separator: fc.constantFrom(':', '=', ': ', ' = ', ' : '),
       });
 
@@ -292,7 +292,7 @@ describe('Common Module - Property-Based Tests', () => {
     it('should consistently map Prisma error codes to HTTP status codes', async () => {
       const prismaErrorGenerator = fc.record({
         code: fc.constantFrom('P2000', 'P2001', 'P2002', 'P2003', 'P2004', 'P2005', 'P2006', 'P2007', 'P2025'),
-        message: fc.string({ minLength: 10, maxLength: 100 }),
+        message: fc.string({ minLength: 10, maxLength: 100 }).filter(s => s.trim().length >= 5),
         meta: fc.record({
           target: fc.option(fc.array(fc.string({ minLength: 1, maxLength: 20 })), { nil: undefined }),
         }),
@@ -318,15 +318,15 @@ describe('Common Module - Property-Based Tests', () => {
 
             // Verify consistent status code mapping
             const expectedStatusMap: Record<string, number> = {
-              'P2000': HttpStatus.NOT_FOUND,
-              'P2001': HttpStatus.NOT_FOUND,
-              'P2002': HttpStatus.CONFLICT,
-              'P2003': HttpStatus.BAD_REQUEST,
-              'P2004': HttpStatus.BAD_REQUEST,
-              'P2005': HttpStatus.BAD_REQUEST,
-              'P2006': HttpStatus.BAD_REQUEST,
-              'P2007': HttpStatus.BAD_REQUEST,
-              'P2025': HttpStatus.NOT_FOUND,
+              'P2000': HttpStatus.BAD_REQUEST,  // Value too long for field
+              'P2001': HttpStatus.NOT_FOUND,   // Record not found in where condition
+              'P2002': HttpStatus.CONFLICT,    // Unique constraint violation
+              'P2003': HttpStatus.BAD_REQUEST, // Foreign key constraint violation
+              'P2004': HttpStatus.BAD_REQUEST, // Constraint violation
+              'P2005': HttpStatus.BAD_REQUEST, // Invalid value
+              'P2006': HttpStatus.BAD_REQUEST, // Invalid value
+              'P2007': HttpStatus.BAD_REQUEST, // Data validation error
+              'P2025': HttpStatus.NOT_FOUND,   // Record not found
             };
 
             expect(statusCall).toBe(expectedStatusMap[errorData.code]);

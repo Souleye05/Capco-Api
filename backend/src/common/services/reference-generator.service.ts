@@ -140,26 +140,26 @@ export class ReferenceGeneratorService {
     prefix: string,
     existsChecker: (reference: string) => Promise<boolean>
   ): Promise<string> {
-    const maxAttempts = 100; // Prevent infinite loops
-    let attempt = 0;
+    const maxAttempts = 1000; // Increased limit for better scalability
 
     return this.prisma.executeTransaction(async (tx) => {
-      while (attempt < maxAttempts) {
-        attempt++;
-        
-        // Generate sequential number
-        const sequence = String(attempt).padStart(3, '0');
-        const reference = `${prefix}-${sequence}`;
+      // Start from sequence 1 and increment until we find an available reference
+      let sequence = 1;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const paddedSequence = String(sequence).padStart(3, '0');
+        const reference = `${prefix}-${paddedSequence}`;
 
         // Check if reference already exists
         const exists = await existsChecker(reference);
-        
+
         if (!exists) {
           this.logger.debug(`Generated unique reference: ${reference}`);
           return reference;
         }
 
         this.logger.debug(`Reference ${reference} already exists, trying next sequence`);
+        sequence++;
       }
 
       // If we reach here, we couldn't generate a unique reference
@@ -168,6 +168,7 @@ export class ReferenceGeneratorService {
       throw new Error(error);
     });
   }
+
 
   /**
    * Validate reference format for a given domain

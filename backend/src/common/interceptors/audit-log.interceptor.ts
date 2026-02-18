@@ -7,13 +7,13 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { PrismaService } from '../services/prisma.service';
+import { AuditService } from '../../audit/audit.service';
 import { AUDIT_LOG_KEY, AuditLogOptions } from '../decorators/audit-log.decorator';
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
     private readonly reflector: Reflector,
   ) {}
 
@@ -39,8 +39,6 @@ export class AuditLogInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const startTime = Date.now();
-
     return next.handle().pipe(
       tap({
         next: (response) => {
@@ -51,7 +49,6 @@ export class AuditLogInterceptor implements NestInterceptor {
             body,
             response,
             auditOptions,
-            duration: Date.now() - startTime,
             success: true,
           });
         },
@@ -63,7 +60,6 @@ export class AuditLogInterceptor implements NestInterceptor {
             body,
             error: error.message,
             auditOptions,
-            duration: Date.now() - startTime,
             success: false,
           });
         },
@@ -79,7 +75,6 @@ export class AuditLogInterceptor implements NestInterceptor {
     response?: any;
     error?: string;
     auditOptions?: AuditLogOptions;
-    duration: number;
     success: boolean;
   }) {
     try {
@@ -89,10 +84,7 @@ export class AuditLogInterceptor implements NestInterceptor {
         url,
         body,
         response,
-        error,
         auditOptions,
-        duration,
-        success,
       } = data;
 
       // Extract entity information from response or body
@@ -134,16 +126,15 @@ export class AuditLogInterceptor implements NestInterceptor {
       // Extract module from URL or use custom module
       const module = auditOptions?.module || this.extractModuleFromUrl(url);
 
-      await this.prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          userEmail: user.email,
-          action,
-          module,
-          entityType,
-          entityId,
-          entityReference: response?.reference || null,
-        },
+      // Use the AuditService to log the entry
+      await this.auditService.log({
+        userId: user.id,
+        userEmail: user.email,
+        action,
+        module,
+        entityType: entityType || 'unknown',
+        entityId,
+        entityReference: response?.reference || null,
       });
     } catch (auditError) {
       // Log audit errors but don't fail the request
@@ -154,28 +145,5 @@ export class AuditLogInterceptor implements NestInterceptor {
   private extractModuleFromUrl(url: string): string {
     const pathSegments = url.split('/').filter(Boolean);
     return pathSegments[0] || 'unknown';
-  }
-
-  private extractIpAddress(request: any): string {
-    return request.ip || 
-           request.connection?.remoteAddress || 
-           request.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-           '127.0.0.1';
-  }
-
-  private sanitizeData(data: any): any {
-    if (!data) return null;
-    
-    // Remove sensitive fields
-    const sensitiveFields = ['password', 'token', 'secret', 'key'];
-    const sanitized = { ...data };
-    
-    for (const field of sensitiveFields) {
-      if (sanitized[field]) {
-        sanitized[field] = '[REDACTED]';
-      }
-    }
-    
-    return sanitized;
   }
 }

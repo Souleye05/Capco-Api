@@ -11,16 +11,48 @@ import {
   AuthResponse,
   UserProfile,
   PasswordResetRequestDto,
+  RefreshTokenDto,
+  TokenPair,
 } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private refreshTokens = new Map<string, { userId: string; expiresAt: Date }>(); // In-memory store
 
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
+
+  /**
+   * Génère une paire de tokens (access + refresh) pour un utilisateur
+   */
+  async generateTokens(user: any): Promise<TokenPair> {
+    const payload = { 
+      email: user.email, 
+      sub: user.id,
+      roles: user.userRoles?.map(role => role.role) || [],
+      migrationSource: user.migrationSource,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    
+    // Générer un refresh token sécurisé
+    const refreshToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+    
+    // Stocker le refresh token
+    this.refreshTokens.set(refreshToken, {
+      userId: user.id,
+      expiresAt,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
 
   /**
    * Valide les credentials d'un utilisateur (incluant les utilisateurs migrés)
@@ -81,17 +113,11 @@ export class AuthService {
     // Vérifier si l'utilisateur nécessite un reset de mot de passe
     const requiresPasswordReset = !!(user.resetToken && user.resetExpiry && user.resetExpiry > new Date());
 
-    const payload = { 
-      email: user.email, 
-      sub: user.id,
-      roles: user.userRoles.map(role => role.role),
-      migrationSource: user.migrationSource,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
+    const tokens = await this.generateTokens(user);
 
     return {
-      access_token: accessToken,
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -140,19 +166,36 @@ export class AuthService {
           role: registerDto.role,
         },
       });
+      
+      // Recharger l'utilisateur avec les rôles
+      const userWithRoles = await this.prisma.user.findUnique({
+        where: { id: user.id },
+        include: { userRoles: true },
+      });
+      
+      const tokens = await this.generateTokens(userWithRoles);
+
+      return {
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+        user: {
+          id: userWithRoles.id,
+          email: userWithRoles.email,
+          emailVerified: userWithRoles.emailVerified,
+          roles: userWithRoles.userRoles.map(role => role.role),
+          migrationSource: userWithRoles.migrationSource,
+          requiresPasswordReset: false,
+          lastSignIn: userWithRoles.lastSignIn,
+        },
+        requiresPasswordReset: false,
+      };
     }
 
-    const payload = { 
-      email: user.email, 
-      sub: user.id,
-      roles: user.userRoles.map(role => role.role),
-      migrationSource: user.migrationSource,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
+    const tokens = await this.generateTokens(user);
 
     return {
-      access_token: accessToken,
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -360,5 +403,80 @@ export class AuthService {
       usersRequiringPasswordReset,
       lastMigrationDate: lastMigratedUser?.createdAt,
     };
+  }
+
+  /**
+   * Rafraîchir un token d'accès avec un refresh token
+   */
+  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<AuthResponse> {
+    const { refreshToken } = refreshTokenDto;
+    
+    // Vérifier si le refresh token existe et est valide
+    const tokenData = this.refreshTokens.get(refreshToken);
+    if (!tokenData) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    // Vérifier si le token n'a pas expiré
+    if (tokenData.expiresAt < new Date()) {
+      this.refreshTokens.delete(refreshToken);
+      throw new UnauthorizedException('Refresh token expired');
+    }
+
+    // Récupérer l'utilisateur
+    const user = await this.prisma.user.findUnique({
+      where: { id: tokenData.userId },
+      include: { userRoles: true },
+    });
+
+    if (!user) {
+      this.refreshTokens.delete(refreshToken);
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Supprimer l'ancien refresh token
+    this.refreshTokens.delete(refreshToken);
+
+    // Générer de nouveaux tokens
+    const tokens = await this.generateTokens(user);
+
+    return {
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        roles: user.userRoles.map(role => role.role),
+        migrationSource: user.migrationSource,
+        requiresPasswordReset: !!(user.resetToken && user.resetExpiry && user.resetExpiry > new Date()),
+        lastSignIn: user.lastSignIn,
+      },
+      requiresPasswordReset: !!(user.resetToken && user.resetExpiry && user.resetExpiry > new Date()),
+    };
+  }
+
+  /**
+   * Déconnexion - invalider le refresh token
+   */
+  async logout(refreshToken: string): Promise<{ message: string }> {
+    if (refreshToken && this.refreshTokens.has(refreshToken)) {
+      this.refreshTokens.delete(refreshToken);
+      this.logger.log('User logged out successfully');
+    }
+    
+    return { message: 'Logged out successfully' };
+  }
+
+  /**
+   * Nettoyer les refresh tokens expirés (méthode utilitaire)
+   */
+  private cleanupExpiredTokens(): void {
+    const now = new Date();
+    for (const [token, data] of this.refreshTokens.entries()) {
+      if (data.expiresAt < now) {
+        this.refreshTokens.delete(token);
+      }
+    }
   }
 }

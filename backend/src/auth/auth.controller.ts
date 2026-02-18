@@ -18,6 +18,7 @@ import {
   ResetPasswordDto,
   ChangePasswordDto,
   PasswordResetRequestDto,
+  RefreshTokenDto,
   AuthResponse,
   UserProfile,
 } from './dto/auth.dto';
@@ -43,6 +44,23 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<AuthResponse> {
     return this.authService.register(registerDto);
+  }
+
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<AuthResponse> {
+    return this.authService.refreshToken(refreshTokenDto);
+  }
+
+  @ApiOperation({ summary: 'Logout user and invalidate refresh token' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Body() body: { refreshToken?: string }): Promise<{ message: string }> {
+    return this.authService.logout(body.refreshToken);
   }
 
   @ApiOperation({ summary: 'Request password reset (especially for migrated users)' })

@@ -57,6 +57,17 @@ export class ChangePasswordDto {
   newPassword: string;
 }
 
+export class RefreshTokenDto {
+  @ApiProperty({ example: 'refresh-token-here' })
+  @IsString()
+  refreshToken: string;
+}
+
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -71,6 +82,7 @@ export interface UserProfile {
 
 export interface AuthResponse {
   access_token: string;
+  refresh_token: string;
   user: {
     id: string;
     email: string;

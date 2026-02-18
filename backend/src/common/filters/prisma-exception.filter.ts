@@ -60,8 +60,9 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     exception: PrismaClientKnownRequestError,
   ): HttpStatus {
     switch (exception.code) {
-      case 'P2000': // Value too long
-      case 'P2001': // Record not found
+      case 'P2000': // Value too long for field
+        return HttpStatus.BAD_REQUEST;
+      case 'P2001': // Record not found in where condition
         return HttpStatus.NOT_FOUND;
       case 'P2002': // Unique constraint violation
         return HttpStatus.CONFLICT;
@@ -87,6 +88,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       case 'P2000':
         return 'The provided value is too long for the field';
       case 'P2001':
+        return 'The requested record was not found';
       case 'P2025':
         return 'The requested record was not found';
       case 'P2002':

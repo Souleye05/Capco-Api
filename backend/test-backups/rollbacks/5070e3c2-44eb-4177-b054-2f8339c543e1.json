@@ -1,8 +1,0 @@
-{
-  "id": "5070e3c2-44eb-4177-b054-2f8339c543e1",
-  "backupId": "YxaxgxGBq91awaMOkaaHBaS",
-  "timestamp": "2026-02-16T14:56:08.201Z",
-  "status": "FAILED",
-  "duration": 44,
-  "error": "Backup YxaxgxGBq91awaMOkaaHBaS is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
-}

@@ -31,7 +31,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
-    const isDevelopment = getAppConfig(this.configService).environment === 'development';
+    const isDevelopment = this.configService.get('NODE_ENV') === 'development';
 
     // Log the error
     this.logger.error(
@@ -47,7 +47,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       method: request.method,
       message: typeof message === 'string' ? message : (message as any).message,
       ...(isDevelopment && {
-        error: exception instanceof Error ? exception.message : exception,
+        error: exception instanceof Error ? exception.message : String(exception),
         stack: exception instanceof Error ? exception.stack : undefined,
       }),
     };
@@ -66,7 +66,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     
     if (errorResponse.message && typeof errorResponse.message === 'string') {
       sensitiveFields.forEach(field => {
-        const regex = new RegExp(`${field}[\\s]*[:=][\\s]*[^\\s,}]+`, 'gi');
+        // Match field name followed by colon/equals and value, with word boundaries
+        const regex = new RegExp(`\\b${field}\\s*[:=]\\s*[^\\s,}]+`, 'gi');
         errorResponse.message = errorResponse.message.replace(regex, `${field}: [REDACTED]`);
       });
     }

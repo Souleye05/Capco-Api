@@ -63,7 +63,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       case 'P2000': // Value too long for field
         return HttpStatus.BAD_REQUEST;
       case 'P2001': // Record not found in where condition
-        return HttpStatus.NOT_FOUND;
+        return HttpStatus.BAD_REQUEST;
       case 'P2002': // Unique constraint violation
         return HttpStatus.CONFLICT;
       case 'P2003': // Foreign key constraint violation

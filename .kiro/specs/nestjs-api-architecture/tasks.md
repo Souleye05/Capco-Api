@@ -37,7 +37,7 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - **Valide: Exigences 9.2**
 
 - [ ] 3. Système d'authentification et utilisateurs
-  - [ ] 3.1 Créer le module Auth
+  - [x] 3.1 Créer le module Auth
     - Implémenter AuthService avec login, validation, génération de tokens
     - Créer AuthController avec endpoints de connexion/déconnexion
     - Configurer les stratégies Passport (JwtStrategy, LocalStrategy)
@@ -59,33 +59,33 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - **Propriété 4: Protection des endpoints par rôles**
     - **Valide: Exigences 2.4, 2.5**
 
-- [ ] 4. Service de génération de références
-  - [ ] 4.1 Implémenter ReferenceGeneratorService
+- [x] 4. Service de génération de références
+  - [x] 4.1 Implémenter ReferenceGeneratorService
     - Créer la logique de génération de références par domaine
     - Implémenter la vérification d'unicité
     - Gérer la concurrence et les conditions de course
     - _Exigences: 6.1, 6.4, 6.5_
 
-  - [ ]* 4.2 Écrire les tests de propriété pour la génération de références
+  - [x] 4.2 Écrire les tests de propriété pour la génération de références
     - **Propriété 12: Unicité globale des références**
     - **Propriété 13: Génération atomique des références**
     - **Valide: Exigences 6.2, 6.3, 6.4, 6.5**
 
 - [ ] 5. Système d'audit
-  - [ ] 5.1 Créer le module Audit
+  - [x] 5.1 Créer le module Audit
     - Implémenter AuditService pour la gestion des logs
     - Créer AuditController pour la consultation des logs
     - Configurer l'AuditLogInterceptor global
     - Créer les DTOs d'audit (CreateAuditLogDto, AuditQueryDto)
     - _Exigences: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ]* 5.2 Écrire les tests de propriété pour l'audit automatique
+  - [x] 5.2 Écrire les tests de propriété pour l'audit automatique
     - **Propriété 5: Audit automatique des actions**
     - **Propriété 6: Génération automatique de références d'audit**
     - **Propriété 7: Application globale de l'audit**
     - **Valide: Exigences 3.1, 3.2, 3.3, 3.4, 3.5**
 
-- [ ] 6. Checkpoint - Infrastructure de base
+- [x] 6. Checkpoint - Infrastructure de base
   - S'assurer que tous les tests passent, demander à l'utilisateur si des questions se posent.
 
 - [ ] 7. Module Contentieux

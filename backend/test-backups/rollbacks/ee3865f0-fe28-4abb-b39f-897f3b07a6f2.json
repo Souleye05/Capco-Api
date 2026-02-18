@@ -1,8 +1,0 @@
-{
-  "id": "ee3865f0-fe28-4abb-b39f-897f3b07a6f2",
-  "backupId": "aaYyaalaaPDazDN",
-  "timestamp": "2026-02-16T14:56:07.921Z",
-  "status": "FAILED",
-  "duration": 130,
-  "error": "Backup aaYyaalaaPDazDN is corrupted: Database backup not found, Users backup not found, Storage backup manifest not found"
-}

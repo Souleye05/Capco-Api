@@ -319,14 +319,14 @@ describe('Common Module - Property-Based Tests', () => {
             // Verify consistent status code mapping
             const expectedStatusMap: Record<string, number> = {
               'P2000': HttpStatus.BAD_REQUEST,  // Value too long for field
-              'P2001': HttpStatus.NOT_FOUND,   // Record not found in where condition
+              'P2001': HttpStatus.BAD_REQUEST,  // Record not found in where condition (query issue)
               'P2002': HttpStatus.CONFLICT,    // Unique constraint violation
               'P2003': HttpStatus.BAD_REQUEST, // Foreign key constraint violation
               'P2004': HttpStatus.BAD_REQUEST, // Constraint violation
               'P2005': HttpStatus.BAD_REQUEST, // Invalid value
               'P2006': HttpStatus.BAD_REQUEST, // Invalid value
               'P2007': HttpStatus.BAD_REQUEST, // Data validation error
-              'P2025': HttpStatus.NOT_FOUND,   // Record not found
+              'P2025': HttpStatus.NOT_FOUND,   // Record not found (actual resource not found)
             };
 
             expect(statusCall).toBe(expectedStatusMap[errorData.code]);

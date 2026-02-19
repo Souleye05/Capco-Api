@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TypeResultat } from '@prisma/client';
+import { TypeResultat } from '../../../types/prisma-enums';
 
 export class ResultatAudienceResponseDto {
   @ApiProperty({ description: 'ID unique du résultat' })

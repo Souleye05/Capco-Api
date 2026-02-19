@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsUUID, IsEnum, IsDateString, IsNotEmpty, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TypeAudience, StatutAudience } from '@prisma/client';
+import { TypeAudience, StatutAudience } from '../../../types/prisma-enums';
 
 export class CreateAudienceDto {
   @ApiProperty({ description: 'ID de l\'affaire' })

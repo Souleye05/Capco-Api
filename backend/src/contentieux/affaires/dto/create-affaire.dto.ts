@@ -1,15 +1,9 @@
 import { IsString, IsOptional, IsEnum, IsArray, ValidateNested, IsNotEmpty, IsEmail } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { StatutAffaire } from '@prisma/client';
+import { StatutAffaire, RolePartie } from '../../../types/prisma-enums';
 
-export enum RolePartie {
-  DEMANDEUR = 'DEMANDEUR',
-  DEFENDEUR = 'DEFENDEUR',
-  CONSEIL_ADVERSE = 'CONSEIL_ADVERSE'
-}
-
-class PartieDto {
+export class PartieDto {
   @ApiProperty({ description: 'Nom de la partie' })
   @IsString()
   @IsNotEmpty()
@@ -64,5 +58,3 @@ export class CreateAffaireDto {
   @IsString()
   observations?: string;
 }
-
-export { PartieDto };

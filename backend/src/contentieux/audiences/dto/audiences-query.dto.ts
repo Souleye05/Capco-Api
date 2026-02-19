@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsUUID, IsDateString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { TypeAudience, StatutAudience } from '@prisma/client';
+import { TypeAudience, StatutAudience } from '../../../types/prisma-enums';
 import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
 
 export class AudiencesQueryDto extends PaginationQueryDto {

@@ -14,7 +14,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { AppRole } from '@prisma/client';
+import { AppRole } from '../../types/prisma-enums';
 import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 
 export class CreateUserDto {

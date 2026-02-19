@@ -21,7 +21,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuditLog } from '../../common/decorators/audit-log.decorator';
-import { AppRole } from '@prisma/client';
+import { AppRole } from '../../types/prisma-enums';
 
 @ApiTags('Audiences')
 @ApiBearerAuth()

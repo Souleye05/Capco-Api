@@ -9,7 +9,7 @@ import { PrismaService } from '../common/services/prisma.service';
 import { PaginationService } from '../common/services/pagination.service';
 import { BaseCrudService, SecurityContext } from '../common/services/base-crud.service';
 import { PaginatedResponse } from '../common/dto/pagination.dto';
-import { User, AppRole } from '@prisma/client';
+import { AppRole } from '../types/prisma-enums';
 import {
   CreateUserDto,
   UpdateUserDto,

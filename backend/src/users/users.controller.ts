@@ -28,7 +28,7 @@ import {
   UserRoleDto,
 } from './dto/users.dto';
 import { PaginatedResponse } from '../common/dto/pagination.dto';
-import { AppRole } from '@prisma/client';
+import { AppRole } from '../types/prisma-enums';
 import { SecurityContext } from '../common/services/base-crud.service';
 
 interface AuthenticatedUser {

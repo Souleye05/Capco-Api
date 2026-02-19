@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": false
   },
   "exclude": [
-    "src/migration/**/*"
+    "src/migration/**/*",
+    "scripts/**/*"
   ]
 }

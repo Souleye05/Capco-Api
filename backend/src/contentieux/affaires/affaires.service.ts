@@ -36,8 +36,6 @@ export class AffairesService {
           // Conserver les champs JSON existants pour compatibilité
           demandeurs: [],
           defendeurs: [],
-          juridiction: '', // Sera géré via les audiences
-          chambre: '', // Sera géré via les audiences
         },
       });
 

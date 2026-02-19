@@ -115,11 +115,18 @@ export class ApiController {
             id: true,
             reference: true,
             intitule: true,
-            juridiction: true,
-            chambre: true,
             statut: true,
             createdAt: true,
-            createdBy: true
+            createdBy: true,
+            audiences: {
+              orderBy: { date: 'desc' },
+              take: 1,
+              select: {
+                juridiction: true,
+                chambre: true,
+                ville: true
+              }
+            }
           }
         }),
         this.prisma.affaires.count()
@@ -130,8 +137,8 @@ export class ApiController {
           id: affaire.id,
           reference: affaire.reference,
           intitule: affaire.intitule,
-          juridiction: affaire.juridiction,
-          chambre: affaire.chambre,
+          juridiction: affaire.audiences[0]?.juridiction || '',
+          chambre: affaire.audiences[0]?.chambre || '',
           statut: affaire.statut,
           created_at: affaire.createdAt,
           created_by: affaire.createdBy
@@ -184,8 +191,8 @@ export class ApiController {
           intitule: affaire.intitule,
           demandeurs: affaire.demandeurs,
           defendeurs: affaire.defendeurs,
-          juridiction: affaire.juridiction,
-          chambre: affaire.chambre,
+          juridiction: affaire.audiences[0]?.juridiction || '',
+          chambre: affaire.audiences[0]?.chambre || '',
           statut: affaire.statut,
           notes: affaire.notes,
           created_at: affaire.createdAt,
@@ -229,9 +236,9 @@ export class ApiController {
     @CurrentUser() user: any
   ) {
     // Validation simple
-    if (!createDto.reference || !createDto.intitule || !createDto.juridiction || !createDto.chambre) {
+    if (!createDto.reference || !createDto.intitule) {
       throw new HttpException(
-        'Les champs reference, intitule, juridiction et chambre sont obligatoires',
+        'Les champs reference et intitule sont obligatoires',
         HttpStatus.BAD_REQUEST
       );
     }
@@ -243,8 +250,6 @@ export class ApiController {
           intitule: createDto.intitule.trim(),
           demandeurs: createDto.demandeurs || [],
           defendeurs: createDto.defendeurs || [],
-          juridiction: createDto.juridiction.trim(),
-          chambre: createDto.chambre.trim(),
           statut: 'ACTIVE',
           notes: createDto.notes?.trim() || null,
           createdBy: user.id,
@@ -260,8 +265,8 @@ export class ApiController {
           intitule: affaire.intitule,
           demandeurs: affaire.demandeurs,
           defendeurs: affaire.defendeurs,
-          juridiction: affaire.juridiction,
-          chambre: affaire.chambre,
+          juridiction: '', // Sera défini lors de la création d'une audience
+          chambre: '', // Sera défini lors de la création d'une audience
           statut: affaire.statut,
           notes: affaire.notes,
           created_at: affaire.createdAt,

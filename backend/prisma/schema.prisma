@@ -74,14 +74,14 @@ model Affaires {
   intitule                String
   demandeurs              Json                    @default("[]")
   defendeurs              Json                    @default("[]")
-  juridiction             String
-  chambre                 String
   statut                  StatutAffaire           @default(ACTIVE)
   notes                   String?
+  observations            String?
+
   createdAt               DateTime                @default(now()) @map("created_at")
   updatedAt               DateTime                @default(now()) @updatedAt @map("updated_at")
   createdBy               String                  @map("created_by")
-  observations            String?
+
   audiences               Audiences[]
   depensesAffaireses      DepensesAffaires[]
   honorairesContentieuxes HonorairesContentieux[]
@@ -92,27 +92,35 @@ model Affaires {
 
 model Audiences {
   id                     String               @id @default(uuid())
-  affaireId              String               @map("affaire_id")
   date                   DateTime
   heure                  String?
   type                   TypeAudience         @default(MISE_EN_ETAT)
+  juridiction            String         // Juridiction de l'audience (obligatoire)
+  chambre                String?        // Chambre de l'audience (optionnel)
+  ville                  String?        // Ville de l'audience (optionnel)
   statut                 StatutAudience       @default(A_VENIR)
   notesPreparation       String?              @map("notes_preparation")
-  createdAt              DateTime             @default(now()) @map("created_at")
-  createdBy              String               @map("created_by")
-  ville                  String?
   est_preparee           Boolean?             @default(false)
+
   rappel_enrolement      Boolean?             @default(false)
   date_rappel_enrolement DateTime?            @db.Timestamp(6)
   enrolement_effectue    Boolean?             @default(false)
+
+  createdAt              DateTime             @default(now()) @map("created_at")
+  createdBy              String               @map("created_by")
   updated_at             DateTime?            @default(now()) @db.Timestamp(6)
+
+  affaireId              String               @map("affaire_id")
   affaire                Affaires             @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
   resultat               ResultatsAudiences[]
 
+  @@map("audiences")
   @@index([affaireId])
   @@index([date])
   @@index([statut])
-  @@map("audiences")
+  @@index([juridiction])
+  @@index([rappel_enrolement, date_rappel_enrolement])
 }
 
 model ResultatsAudiences {
@@ -512,6 +520,7 @@ model juridictions {
   description String?
   ordre       Int?      @default(0)
   est_actif   Boolean?  @default(true)
+
   created_at  DateTime? @default(now()) @db.Timestamp(6)
   updated_at  DateTime? @default(now()) @db.Timestamp(6)
 

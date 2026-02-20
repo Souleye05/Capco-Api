@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsers, useCreateUser, useDeleteUser, useAssignRole } from '@/hooks/useUsers';
 
 // New specialized components
 import { UserStatsGrid } from '@/components/users/UserStatsGrid';
@@ -23,12 +23,16 @@ const INITIAL_QUERY = {
 
 export default function UsersPage() {
   const [query, setQuery] = useState(INITIAL_QUERY);
-  const { data: usersData, loading, createUser, deleteUser, assignRole } = useUsers(query);
+  
+  // Use React Query hooks
+  const { data: usersData, isLoading: loading, error } = useUsers(query);
+  const createUserMutation = useCreateUser();
+  const deleteUserMutation = useDeleteUser();
+  const assignRoleMutation = useAssignRole();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [creating, setCreating] = useState(false);
 
   const users = usersData?.users || [];
   const meta = usersData?.meta;
@@ -50,24 +54,15 @@ export default function UsersPage() {
   const handleAction = async (userId: string, action: string) => {
     try {
       if (action === 'delete') {
-        const result = await deleteUser(userId);
-        if (result.error) {
-          toast.error(result.error);
-        } else {
-          toast.success('Utilisateur supprimé');
-        }
+        await deleteUserMutation.mutateAsync(userId);
         return;
       }
       
       const role = action === 'admin' ? 'admin' : action === 'collab' ? 'collaborateur' : 'compta';
-      const result = await assignRole(userId, role);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success('Rôle mis à jour');
-      }
-    } catch (e) {
-      toast.error('Une erreur est survenue');
+      await assignRoleMutation.mutateAsync({ userId, role });
+    } catch (error: any) {
+      // Error handling is done in the mutation hooks
+      console.error('Action failed:', error);
     }
   };
 
@@ -76,21 +71,32 @@ export default function UsersPage() {
       toast.error('Remplissez les champs obligatoires');
       return;
     }
-    setCreating(true);
+    
     try {
-      const result = await createUser(userData);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success('Utilisateur créé avec succès');
-        setCreateOpen(false);
-      }
-    } catch (e: any) {
-      toast.error(e.message || 'Erreur lors de la création');
-    } finally {
-      setCreating(false);
+      await createUserMutation.mutateAsync(userData);
+      setCreateOpen(false);
+    } catch (error: any) {
+      // Error handling is done in the mutation hook
+      console.error('Create failed:', error);
     }
   };
+
+  // Show error if query failed
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <PageHeader
+          title="Gestion des Utilisateurs"
+          description="Administrez les accès et permissions de votre cabinet"
+        />
+        <Card className="p-6">
+          <div className="text-center text-red-600">
+            Erreur lors du chargement des utilisateurs: {error.message}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -134,7 +140,7 @@ export default function UsersPage() {
         setEditOpen={setEditOpen}
         selectedUser={selectedUser}
         onCreate={handleCreate}
-        creating={creating}
+        creating={createUserMutation.isPending}
       />
     </div>
   );

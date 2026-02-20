@@ -6,6 +6,7 @@ import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { AudienceResponseDto } from './dto/audience-response.dto';
 import { AudiencesQueryDto } from './dto/audiences-query.dto';
 import { CreateResultatAudienceDto } from './dto/create-resultat-audience.dto';
+import { UpdateResultatAudienceDto } from './dto/update-resultat-audience.dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -190,7 +191,7 @@ export class AudiencesService {
       data: {
         audienceId,
         type: createResultatDto.type,
-        nouvelleDate: createResultatDto.nouvelleDate,
+        nouvelleDate: createResultatDto.nouvelleDate ? new Date(createResultatDto.nouvelleDate) : null,
         motifRenvoi: createResultatDto.motifRenvoi,
         motifRadiation: createResultatDto.motifRadiation,
         texteDelibere: createResultatDto.texteDelibere,
@@ -316,6 +317,88 @@ export class AudiencesService {
       createdAt: audience.createdAt,
       updatedAt: audience.updated_at,
     };
+  }
+
+  /**
+   * Récupérer le résultat d'une audience
+   */
+  async getResultat(audienceId: string) {
+    // Vérifier que l'audience existe
+    await this.findOne(audienceId);
+
+    const resultat = await this.prisma.resultatsAudiences.findFirst({
+      where: { audienceId },
+    });
+
+    if (!resultat) {
+      throw new NotFoundException('Aucun résultat trouvé pour cette audience');
+    }
+
+    return resultat;
+  }
+
+  /**
+   * Mettre à jour le résultat d'une audience
+   */
+  async updateResultat(audienceId: string, updateResultatDto: UpdateResultatAudienceDto, userId: string) {
+    // Vérifier que l'audience existe
+    await this.findOne(audienceId);
+
+    // Vérifier que le résultat existe
+    const existingResultat = await this.prisma.resultatsAudiences.findFirst({
+      where: { audienceId },
+    });
+
+    if (!existingResultat) {
+      throw new NotFoundException('Aucun résultat trouvé pour cette audience');
+    }
+
+    const resultat = await this.prisma.resultatsAudiences.update({
+      where: { id: existingResultat.id },
+      data: {
+        type: updateResultatDto.type,
+        nouvelleDate: updateResultatDto.nouvelleDate ? new Date(updateResultatDto.nouvelleDate) : undefined,
+        motifRenvoi: updateResultatDto.motifRenvoi,
+        motifRadiation: updateResultatDto.motifRadiation,
+        texteDelibere: updateResultatDto.texteDelibere,
+        // Note: createdBy reste inchangé, on ne met pas à jour le créateur
+      },
+    });
+
+    return resultat;
+  }
+
+  /**
+   * Supprimer le résultat d'une audience
+   */
+  async removeResultat(audienceId: string) {
+    // Vérifier que l'audience existe
+    await this.findOne(audienceId);
+
+    // Vérifier que le résultat existe
+    const existingResultat = await this.prisma.resultatsAudiences.findFirst({
+      where: { audienceId },
+    });
+
+    if (!existingResultat) {
+      throw new NotFoundException('Aucun résultat trouvé pour cette audience');
+    }
+
+    await this.prisma.resultatsAudiences.delete({
+      where: { id: existingResultat.id },
+    });
+
+    // Remettre le statut de l'audience à "PASSEE_NON_RENSEIGNEE" si la date est passée
+    const audience = await this.prisma.audiences.findUnique({
+      where: { id: audienceId },
+    });
+
+    if (audience && new Date(audience.date) < new Date()) {
+      await this.prisma.audiences.update({
+        where: { id: audienceId },
+        data: { statut: 'PASSEE_NON_RENSEIGNEE' },
+      });
+    }
   }
 
   /**

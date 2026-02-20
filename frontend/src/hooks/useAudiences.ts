@@ -10,6 +10,7 @@ export interface AudienceDB {
     id: string;
     reference: string;
     intitule: string;
+    statut?: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
     parties: Array<{
       id: string;
       nom: string;
@@ -22,7 +23,7 @@ export interface AudienceDB {
   juridiction: string;
   chambre?: string;
   ville?: string;
-  statut: 'A_VENIR' | 'TENUE' | 'NON_RENSEIGNEE';
+  statut: 'A_VENIR' | 'PASSEE_NON_RENSEIGNEE' | 'RENSEIGNEE';
   notesPreparation?: string;
   estPrepare: boolean;
   rappelEnrolement?: boolean;
@@ -49,7 +50,7 @@ export interface CreateAudienceData {
   juridiction: string;
   chambre?: string;
   ville?: string;
-  statut?: 'A_VENIR' | 'TENUE' | 'NON_RENSEIGNEE';
+  statut?: 'A_VENIR' | 'PASSEE_NON_RENSEIGNEE' | 'RENSEIGNEE';
   notesPreparation?: string;
   estPrepare?: boolean;
   rappelEnrolement?: boolean;
@@ -62,7 +63,7 @@ export interface UpdateAudienceData {
   juridiction?: string;
   chambre?: string;
   ville?: string;
-  statut?: 'A_VENIR' | 'TENUE' | 'NON_RENSEIGNEE';
+  statut?: 'A_VENIR' | 'PASSEE_NON_RENSEIGNEE' | 'RENSEIGNEE';
   notesPreparation?: string;
   estPrepare?: boolean;
 }

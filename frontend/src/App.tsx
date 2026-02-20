@@ -12,6 +12,7 @@ import AgendaPage from "@/pages/AgendaPage";
 import AffairesPage from "@/pages/contentieux/AffairesPage";
 import AffaireDetailPage from "@/pages/contentieux/AffaireDetailPage";
 import AudiencesPage from "@/pages/contentieux/AudiencesPage";
+import { AudienceDetailsPage } from "@/pages/contentieux/AudienceDetailsPage";
 import DossiersPage from "@/pages/recouvrement/DossiersPage";
 import DossierDetailPage from "@/pages/recouvrement/DossierDetailPage";
 import PaiementsPage from "@/pages/recouvrement/PaiementsPage";
@@ -30,6 +31,7 @@ import NestJSLogin from "@/pages/NestJSLogin";
 import ChangePassword from "@/pages/ChangePassword";
 import SignUpPage from "@/pages/auth/SignUpPage";
 import UsersPage from "@/pages/admin/UsersPage";
+import JuridictionsPage from "@/pages/admin/JuridictionsPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +69,7 @@ const App = () => (
               <Route path="/contentieux/affaires" element={<AffairesPage />} />
               <Route path="/contentieux/affaires/:id" element={<AffaireDetailPage />} />
               <Route path="/contentieux/audiences" element={<AudiencesPage />} />
+              <Route path="/contentieux/audiences/:id" element={<AudienceDetailsPage />} />
               
               {/* Recouvrement */}
               <Route path="/recouvrement" element={<Navigate to="/recouvrement/dossiers" replace />} />
@@ -95,6 +98,11 @@ const App = () => (
               <Route path="/utilisateurs" element={
                 <ProtectedRoute requiredRole="admin">
                   <UsersPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/juridictions" element={
+                <ProtectedRoute requiredRole="admin">
+                  <JuridictionsPage />
                 </ProtectedRoute>
               } />
               <Route path="/parametres" element={<Dashboard />} />

@@ -365,13 +365,6 @@ class NestJSApiClient {
     });
   }
 
-  async createResultatAudience(audienceId: string, data: any) {
-    return this.request(`/contentieux/audiences/${audienceId}/resultat`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   async marquerEnrolementEffectue(audienceId: string) {
     return this.request(`/contentieux/audiences/${audienceId}/enrolement`, {
       method: 'PATCH',
@@ -506,6 +499,32 @@ class NestJSApiClient {
 
   async getDepensesStats() {
     return this.request('/contentieux/depenses/statistics');
+  }
+
+  // === RÉSULTATS D'AUDIENCES ===
+
+  async getResultatAudience(audienceId: string) {
+    return this.request(`/contentieux/audiences/${audienceId}/resultat`);
+  }
+
+  async createResultatAudience(audienceId: string, data: any) {
+    return this.request(`/contentieux/audiences/${audienceId}/resultat`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateResultatAudience(audienceId: string, data: any) {
+    return this.request(`/contentieux/audiences/${audienceId}/resultat`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteResultatAudience(audienceId: string) {
+    return this.request(`/contentieux/audiences/${audienceId}/resultat`, {
+      method: 'DELETE',
+    });
   }
 }
 

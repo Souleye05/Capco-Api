@@ -1,13 +1,8 @@
-import { IsUUID, IsEnum, IsOptional, IsDateString, IsString, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsOptional, IsDateString, IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TypeResultat } from '@prisma/client';
 
 export class CreateResultatAudienceDto {
-  @ApiProperty({ description: 'ID de l\'audience' })
-  @IsUUID()
-  @IsNotEmpty()
-  audienceId: string;
-
   @ApiProperty({ enum: TypeResultat, description: 'Type de résultat' })
   @IsEnum(TypeResultat)
   @IsNotEmpty()

@@ -29,13 +29,6 @@ const statutLabels = {
   RENSEIGNEE: { label: 'Renseignée', className: 'bg-success/10 text-success border-success/20' }
 };
 
-const objetLabels = {
-  MISE_EN_ETAT: 'Mise en état',
-  PLAIDOIRIE: 'Plaidoirie',
-  REFERE: 'Référé',
-  AUTRE: 'Autre'
-};
-
 export default function AudiencesPage() {
   const navigate = useNavigate();
   const [view, setView] = useState<'list' | 'calendar'>('list');
@@ -46,9 +39,9 @@ export default function AudiencesPage() {
 
   const { data: audiences = [], isLoading } = useAudiences();
 
-  const audiencesNonRenseignees = audiences.filter(a => a.statut === 'PASSEE_NON_RENSEIGNEE');
-  const audiencesAVenir = audiences.filter(a => a.statut === 'A_VENIR');
-  const audiencesRenseignees = audiences.filter(a => a.statut === 'RENSEIGNEE');
+  const audiencesNonRenseignees = audiences.filter((a: AudienceDB) => a.statut === 'PASSEE_NON_RENSEIGNEE');
+  const audiencesAVenir = audiences.filter((a: AudienceDB) => a.statut === 'A_VENIR');
+  const audiencesRenseignees = audiences.filter((a: AudienceDB) => a.statut === 'RENSEIGNEE');
 
   const handleSaisirResultat = (audience: AudienceDB) => {
     setSelectedAudience(audience);
@@ -70,7 +63,7 @@ export default function AudiencesPage() {
   const today = new Date();
 
   const getAudiencesForDay = (day: number) => {
-    return audiences.filter(a => {
+    return audiences.filter((a: AudienceDB) => {
       const d = new Date(a.date);
       return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
     });
@@ -105,7 +98,18 @@ export default function AudiencesPage() {
       />
 
       <NouvelleAudienceDialog open={showNouvelleAudience} onOpenChange={setShowNouvelleAudience} />
-      <ResultatAudienceDialog open={showResultatAudience} onOpenChange={setShowResultatAudience} audience={selectedAudience} />
+      <ResultatAudienceDialog 
+        open={showResultatAudience} 
+        onOpenChange={setShowResultatAudience} 
+        audienceId={selectedAudience?.id} 
+        audienceInfo={selectedAudience ? {
+          reference: selectedAudience.affaire?.reference || 'N/A',
+          intitule: selectedAudience.affaire?.intitule || 'N/A',
+          date: selectedAudience.date,
+          juridiction: selectedAudience.juridiction
+        } : undefined}
+        mode="create"
+      />
 
       <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
         {/* Stats */}
@@ -181,8 +185,8 @@ export default function AudiencesPage() {
               {audiencesAVenir.length === 0 ? (
                 <EmptyState message="Aucune audience à venir" />
               ) : (
-                audiencesAVenir.map((a) => (
-                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/affaires/${id}`)} />
+                audiencesAVenir.map((a: AudienceDB) => (
+                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/audiences/${id}`)} />
                 ))
               )}
             </TabsContent>
@@ -190,8 +194,8 @@ export default function AudiencesPage() {
               {audiencesNonRenseignees.length === 0 ? (
                 <EmptyState message="Aucune audience à régulariser" />
               ) : (
-                audiencesNonRenseignees.map((a) => (
-                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/affaires/${id}`)} />
+                audiencesNonRenseignees.map((a: AudienceDB) => (
+                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/audiences/${id}`)} />
                 ))
               )}
             </TabsContent>
@@ -199,8 +203,8 @@ export default function AudiencesPage() {
               {audiences.length === 0 ? (
                 <EmptyState message="Aucune audience" />
               ) : (
-                audiences.map((a) => (
-                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/affaires/${id}`)} />
+                audiences.map((a: AudienceDB) => (
+                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/audiences/${id}`)} />
                 ))
               )}
             </TabsContent>
@@ -243,12 +247,12 @@ export default function AudiencesPage() {
                     <div key={day} className={cn('h-20 bg-card p-1 transition-colors hover:bg-muted/30', isToday && 'bg-primary/5 ring-1 ring-primary/20')}>
                       <div className={cn('text-xs font-medium mb-0.5', isToday && 'text-primary')}>{day}</div>
                       <div className="space-y-0.5">
-                        {dayAudiences.slice(0, 2).map((a) => (
+                        {dayAudiences.slice(0, 2).map((a: AudienceDB) => (
                           <div key={a.id} className={cn(
                             'text-[10px] px-1 py-0.5 rounded truncate cursor-pointer',
                             a.statut === 'PASSEE_NON_RENSEIGNEE' ? 'bg-destructive text-destructive-foreground' : 'bg-info/10 text-info'
                           )}>
-                            {a.heure && `${a.heure} `}{a.affaires?.reference}
+                            {a.heure && `${a.heure} `}{a.affaire?.reference}
                           </div>
                         ))}
                         {dayAudiences.length > 2 && (
@@ -293,12 +297,12 @@ function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: {
                 {statutLabels[audience.statut].label}
               </Badge>
               <Badge variant="secondary" className="text-[11px]">
-                {objetLabels[audience.objet]}
+                {audience.type}
               </Badge>
             </div>
             
             <p className="font-medium text-sm text-foreground">
-              {audience.affaires?.reference} — {audience.affaires?.intitule}
+              {audience.affaire?.reference} — {audience.affaire?.intitule}
             </p>
             
             <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
@@ -314,13 +318,13 @@ function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: {
               )}
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
-                {audience.affaires?.juridiction}
+                {audience.juridiction}
               </span>
             </div>
 
-            {audience.notes_preparation && (
+            {audience.notesPreparation && (
               <p className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded line-clamp-2">
-                {audience.notes_preparation}
+                {audience.notesPreparation}
               </p>
             )}
           </div>
@@ -331,7 +335,7 @@ function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: {
                 Saisir résultat
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onVoirDetails(audience.affaire_id)}>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onVoirDetails(audience.id)}>
               Détails
             </Button>
           </div>

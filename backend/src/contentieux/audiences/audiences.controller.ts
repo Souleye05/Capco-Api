@@ -16,6 +16,7 @@ import { CreateAudienceDto } from './dto/create-audience.dto';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { AudienceResponseDto } from './dto/audience-response.dto';
 import { AudiencesQueryDto } from './dto/audiences-query.dto';
+import { CreateResultatAudienceDto, UpdateResultatAudienceDto, ResultatAudienceResponseDto } from './dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -85,5 +86,56 @@ export class AudiencesController {
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string}> {
     await this.audiencesService.remove(id);
     return { message: 'Audience supprimée avec succès' };
+  }
+
+  // === ENDPOINTS POUR LES RÉSULTATS D'AUDIENCES ===
+
+  @Post(':id/resultat')
+  @Roles(AppRole.admin, AppRole.collaborateur)
+  @AuditLog({ action: 'CREATE_RESULTAT_AUDIENCE', module: 'CONTENTIEUX' })
+  @ApiOperation({ summary: 'Créer un résultat pour une audience' })
+  @ApiResponse({ status: 201, description: 'Résultat créé avec succès', type: ResultatAudienceResponseDto })
+  @ApiResponse({ status: 400, description: 'Cette audience a déjà un résultat' })
+  @ApiResponse({ status: 404, description: 'Audience non trouvée' })
+  async createResultat(
+    @Param('id', ParseUUIDPipe) audienceId: string,
+    @Body() createResultatDto: CreateResultatAudienceDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<ResultatAudienceResponseDto> {
+    return this.audiencesService.createResultat(audienceId, createResultatDto, userId);
+  }
+
+  @Get(':id/resultat')
+  @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+  @ApiOperation({ summary: 'Récupérer le résultat d\'une audience' })
+  @ApiResponse({ status: 200, description: 'Résultat récupéré avec succès', type: ResultatAudienceResponseDto })
+  @ApiResponse({ status: 404, description: 'Audience ou résultat non trouvé' })
+  async getResultat(@Param('id', ParseUUIDPipe) audienceId: string): Promise<ResultatAudienceResponseDto> {
+    return this.audiencesService.getResultat(audienceId);
+  }
+
+  @Patch(':id/resultat')
+  @Roles(AppRole.admin, AppRole.collaborateur)
+  @AuditLog({ action: 'UPDATE_RESULTAT_AUDIENCE', module: 'CONTENTIEUX' })
+  @ApiOperation({ summary: 'Mettre à jour le résultat d\'une audience' })
+  @ApiResponse({ status: 200, description: 'Résultat mis à jour avec succès', type: ResultatAudienceResponseDto })
+  @ApiResponse({ status: 404, description: 'Audience ou résultat non trouvé' })
+  async updateResultat(
+    @Param('id', ParseUUIDPipe) audienceId: string,
+    @Body() updateResultatDto: UpdateResultatAudienceDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<ResultatAudienceResponseDto> {
+    return this.audiencesService.updateResultat(audienceId, updateResultatDto, userId);
+  }
+
+  @Delete(':id/resultat')
+  @Roles(AppRole.admin)
+  @AuditLog({ action: 'DELETE_RESULTAT_AUDIENCE', module: 'CONTENTIEUX' })
+  @ApiOperation({ summary: 'Supprimer le résultat d\'une audience' })
+  @ApiResponse({ status: 200, description: 'Résultat supprimé avec succès' })
+  @ApiResponse({ status: 404, description: 'Audience ou résultat non trouvé' })
+  async removeResultat(@Param('id', ParseUUIDPipe) audienceId: string): Promise<{ message: string }> {
+    await this.audiencesService.removeResultat(audienceId);
+    return { message: 'Résultat supprimé avec succès' };
   }
 }

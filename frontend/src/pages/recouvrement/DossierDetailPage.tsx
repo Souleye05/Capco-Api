@@ -70,7 +70,7 @@ import {
   useDepensesDossier,
   useCreateDepenseDossier,
   useUpdateHonorairesRecouvrement
-} from '@/hooks/useHonorairesDepenses';
+} from '@/hooks/useHonorairesRecouvrement';
 import { generateRapportActionsPDF } from '@/utils/generateRapportActionsPDF';
 
 const formatDate = (dateStr: string) => {

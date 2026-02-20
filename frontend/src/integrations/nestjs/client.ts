@@ -224,6 +224,31 @@ class NestJSApiClient {
     });
   }
 
+  // Méthode générique publique pour les hooks
+  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint);
+  }
+
+  async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+    });
+  }
+
   // Méthodes utilitaires
   setToken(token: string): void {
     this.token = token;
@@ -236,6 +261,251 @@ class NestJSApiClient {
 
   isAuthenticated(): boolean {
     return !!this.token;
+  }
+
+  // ===== CONTENTIEUX MODULE =====
+
+  // Affaires
+  async getAffaires(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    statut?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/contentieux/affaires?${queryString}` : '/contentieux/affaires';
+    
+    return this.request(endpoint);
+  }
+
+  async getAffaire(id: string) {
+    return this.request(`/contentieux/affaires/${id}`);
+  }
+
+  async createAffaire(data: any) {
+    return this.request('/contentieux/affaires', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAffaire(id: string, data: any) {
+    return this.request(`/contentieux/affaires/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAffaire(id: string) {
+    return this.request(`/contentieux/affaires/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Audiences
+  async getAudiences(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    affaireId?: string;
+    statut?: string;
+    type?: string;
+    dateDebut?: string;
+    dateFin?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/contentieux/audiences?${queryString}` : '/contentieux/audiences';
+    
+    return this.request(endpoint);
+  }
+
+  async getAudience(id: string) {
+    return this.request(`/contentieux/audiences/${id}`);
+  }
+
+  async createAudience(data: any) {
+    return this.request('/contentieux/audiences', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAudience(id: string, data: any) {
+    return this.request(`/contentieux/audiences/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAudience(id: string) {
+    return this.request(`/contentieux/audiences/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createResultatAudience(audienceId: string, data: any) {
+    return this.request(`/contentieux/audiences/${audienceId}/resultat`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async marquerEnrolementEffectue(audienceId: string) {
+    return this.request(`/contentieux/audiences/${audienceId}/enrolement`, {
+      method: 'PATCH',
+    });
+  }
+
+  async getAudiencesRappelEnrolement() {
+    return this.request('/contentieux/audiences/rappel-enrolement');
+  }
+
+  // Honoraires
+  async getHonoraires(params?: {
+    page?: number;
+    limit?: number;
+    affaireId?: string;
+    dateDebutFacturation?: string;
+    dateFinFacturation?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/contentieux/honoraires?${queryString}` : '/contentieux/honoraires';
+    
+    return this.request(endpoint);
+  }
+
+  async getHonoraire(id: string) {
+    return this.request(`/contentieux/honoraires/${id}`);
+  }
+
+  async createHonoraire(data: any) {
+    return this.request('/contentieux/honoraires', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateHonoraire(id: string, data: any) {
+    return this.request(`/contentieux/honoraires/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteHonoraire(id: string) {
+    return this.request(`/contentieux/honoraires/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Paiements d'honoraires
+  async getPaiementsHonoraires(honorairesId: string) {
+    return this.request(`/contentieux/honoraires/${honorairesId}/paiements`);
+  }
+
+  async createPaiementHonoraires(honorairesId: string, data: any) {
+    return this.request(`/contentieux/honoraires/${honorairesId}/paiements`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Dépenses
+  async getDepenses(params?: {
+    page?: number;
+    limit?: number;
+    affaireId?: string;
+    typeDepense?: string;
+    dateDebut?: string;
+    dateFin?: string;
+    montantMin?: number;
+    montantMax?: number;
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/contentieux/depenses?${queryString}` : '/contentieux/depenses';
+    
+    return this.request(endpoint);
+  }
+
+  async getDepense(id: string) {
+    return this.request(`/contentieux/depenses/${id}`);
+  }
+
+  async createDepense(data: any) {
+    return this.request('/contentieux/depenses', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateDepense(id: string, data: any) {
+    return this.request(`/contentieux/depenses/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDepense(id: string) {
+    return this.request(`/contentieux/depenses/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Statistiques
+  async getAffairesStats() {
+    return this.request('/contentieux/affaires/statistics');
+  }
+
+  async getAudiencesStats() {
+    return this.request('/contentieux/audiences/statistics');
+  }
+
+  async getHonorairesStats() {
+    return this.request('/contentieux/honoraires/statistics');
+  }
+
+  async getDepensesStats() {
+    return this.request('/contentieux/depenses/statistics');
   }
 }
 

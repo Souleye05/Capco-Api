@@ -48,7 +48,7 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - **Propriété 3: Authentification JWT round-trip**
     - **Valide: Exigences 2.1, 2.2**
 
-  - [ ] 3.3 Créer le module Users
+  - [x] 3.3 Créer le module Users
     - Implémenter UsersService avec CRUD complet
     - Créer UsersController avec endpoints de gestion des utilisateurs
     - Implémenter la gestion des rôles (assignation, suppression)
@@ -88,8 +88,8 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
 - [x] 6. Checkpoint - Infrastructure de base
   - S'assurer que tous les tests passent, demander à l'utilisateur si des questions se posent.
 
-- [ ] 7. Module Contentieux
-  - [ ] 7.1 Créer les entités et DTOs du contentieux
+- [-] 7. Module Contentieux
+  - [x] 7.1 Créer les entités et DTOs du contentieux
     - Créer les DTOs pour Affaires (CreateAffaireDto, UpdateAffaireDto, AffaireResponseDto)
     - Créer les DTOs pour Audiences (CreateAudienceDto, UpdateAudienceDto, etc.)
     - Créer les DTOs pour HonorairesContentieux et DepensesAffaires

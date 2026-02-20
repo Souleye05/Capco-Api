@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Types temporaires pour le recouvrement (en attendant l'implémentation backend)
 export interface DossierRecouvrementDB {
   id: string;
   reference: string;
@@ -24,17 +24,15 @@ export interface DossierRecouvrementDB {
   created_by: string;
 }
 
+// Hooks temporaires qui retournent des données vides
+// Ces hooks seront remplacés quand le module recouvrement sera implémenté dans le backend
+
 export function useDossiersRecouvrement() {
   return useQuery({
     queryKey: ['dossiers-recouvrement'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dossiers_recouvrement')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as DossierRecouvrementDB[];
+    queryFn: async (): Promise<DossierRecouvrementDB[]> => {
+      // Retourner un tableau vide en attendant l'implémentation
+      return [];
     },
   });
 }
@@ -42,15 +40,9 @@ export function useDossiersRecouvrement() {
 export function useDossierRecouvrement(id: string) {
   return useQuery({
     queryKey: ['dossiers-recouvrement', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dossiers_recouvrement')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data as DossierRecouvrementDB | null;
+    queryFn: async (): Promise<DossierRecouvrementDB | null> => {
+      // Retourner null en attendant l'implémentation
+      return null;
     },
     enabled: !!id,
   });
@@ -61,21 +53,15 @@ export function useCreateDossierRecouvrement() {
   
   return useMutation({
     mutationFn: async (dossier: Omit<DossierRecouvrementDB, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase
-        .from('dossiers_recouvrement')
-        .insert(dossier)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      // Simuler la création
+      toast.info('Module recouvrement en cours de développement');
+      throw new Error('Module recouvrement pas encore implémenté');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dossiers-recouvrement'] });
-      toast.success('Dossier créé avec succès');
     },
     onError: (error) => {
-      toast.error('Erreur lors de la création: ' + error.message);
+      // Ne pas afficher d'erreur pour l'instant
     },
   });
 }
@@ -85,23 +71,14 @@ export function useUpdateDossierRecouvrement() {
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<DossierRecouvrementDB> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('dossiers_recouvrement')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      toast.info('Module recouvrement en cours de développement');
+      throw new Error('Module recouvrement pas encore implémenté');
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dossiers-recouvrement'] });
-      queryClient.invalidateQueries({ queryKey: ['dossiers-recouvrement', data.id] });
-      toast.success('Dossier mis à jour');
     },
-    onError: (error) => {
-      toast.error('Erreur lors de la mise à jour: ' + error.message);
+    onError: () => {
+      // Ne pas afficher d'erreur pour l'instant
     },
   });
 }
@@ -127,22 +104,8 @@ export interface ActionRecouvrementWithDossierDB extends ActionRecouvrementDB {
 export function useActionsRecouvrement(dossierId?: string) {
   return useQuery({
     queryKey: ['actions-recouvrement', dossierId],
-    queryFn: async () => {
-      let query = supabase
-        .from('actions_recouvrement')
-        .select(`
-          *,
-          dossiers_recouvrement (*)
-        `)
-        .order('date', { ascending: false });
-      
-      if (dossierId) {
-        query = query.eq('dossier_id', dossierId);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as ActionRecouvrementWithDossierDB[];
+    queryFn: async (): Promise<ActionRecouvrementWithDossierDB[]> => {
+      return [];
     },
     enabled: dossierId ? !!dossierId : true,
   });
@@ -153,21 +116,14 @@ export function useCreateActionRecouvrement() {
   
   return useMutation({
     mutationFn: async (action: Omit<ActionRecouvrementDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('actions_recouvrement')
-        .insert([action])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      toast.info('Module recouvrement en cours de développement');
+      throw new Error('Module recouvrement pas encore implémenté');
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['actions-recouvrement', data.dossier_id] });
-      toast.success('Action enregistrée');
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['actions-recouvrement'] });
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
+    onError: () => {
+      // Ne pas afficher d'erreur pour l'instant
     },
   });
 }
@@ -189,22 +145,8 @@ export interface PaiementRecouvrementDB {
 export function usePaiementsRecouvrement(dossierId?: string) {
   return useQuery({
     queryKey: ['paiements-recouvrement', dossierId],
-    queryFn: async () => {
-      let query = supabase
-        .from('paiements_recouvrement')
-        .select(`
-          *,
-          dossiers_recouvrement (*)
-        `)
-        .order('date', { ascending: false });
-      
-      if (dossierId) {
-        query = query.eq('dossier_id', dossierId);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as PaiementRecouvrementDB[];
+    queryFn: async (): Promise<PaiementRecouvrementDB[]> => {
+      return [];
     },
   });
 }
@@ -214,22 +156,14 @@ export function useCreatePaiementRecouvrement() {
   
   return useMutation({
     mutationFn: async (paiement: Omit<PaiementRecouvrementDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('paiements_recouvrement')
-        .insert(paiement)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      toast.info('Module recouvrement en cours de développement');
+      throw new Error('Module recouvrement pas encore implémenté');
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['paiements-recouvrement', data.dossier_id] });
-      queryClient.invalidateQueries({ queryKey: ['dossiers-recouvrement'] });
-      toast.success('Paiement enregistré');
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paiements-recouvrement'] });
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
+    onError: () => {
+      // Ne pas afficher d'erreur pour l'instant
     },
   });
 }

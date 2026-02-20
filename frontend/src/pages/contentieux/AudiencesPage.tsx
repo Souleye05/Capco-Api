@@ -15,6 +15,7 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NouvelleAudienceDialog } from '@/components/dialogs/NouvelleAudienceDialog';
@@ -23,9 +24,9 @@ import { useAudiences, AudienceDB } from '@/hooks/useAudiences';
 import { cn } from '@/lib/utils';
 
 const statutLabels = {
-  A_VENIR: { label: 'À venir', color: 'bg-info/10 text-info' },
-  PASSEE_NON_RENSEIGNEE: { label: 'Non renseignée', color: 'bg-destructive/10 text-destructive' },
-  RENSEIGNEE: { label: 'Renseignée', color: 'bg-success/10 text-success' }
+  A_VENIR: { label: 'À venir', className: 'bg-info/10 text-info border-info/20' },
+  PASSEE_NON_RENSEIGNEE: { label: 'Non renseignée', className: 'bg-destructive/10 text-destructive border-destructive/20' },
+  RENSEIGNEE: { label: 'Renseignée', className: 'bg-success/10 text-success border-success/20' }
 };
 
 const objetLabels = {
@@ -47,6 +48,7 @@ export default function AudiencesPage() {
 
   const audiencesNonRenseignees = audiences.filter(a => a.statut === 'PASSEE_NON_RENSEIGNEE');
   const audiencesAVenir = audiences.filter(a => a.statut === 'A_VENIR');
+  const audiencesRenseignees = audiences.filter(a => a.statut === 'RENSEIGNEE');
 
   const handleSaisirResultat = (audience: AudienceDB) => {
     setSelectedAudience(audience);
@@ -61,7 +63,6 @@ export default function AudiencesPage() {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-    
     return { daysInMonth, startingDayOfWeek, year, month };
   };
 
@@ -70,21 +71,17 @@ export default function AudiencesPage() {
 
   const getAudiencesForDay = (day: number) => {
     return audiences.filter(a => {
-      const audienceDate = new Date(a.date);
-      return audienceDate.getDate() === day && 
-             audienceDate.getMonth() === month && 
-             audienceDate.getFullYear() === year;
+      const d = new Date(a.date);
+      return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
     });
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <Header title="Audiences" subtitle="Chargement..." />
-        <div className="p-6 space-y-4">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-32 w-full" />
-          ))}
+        <Header title="Audiences" subtitle="Chargement..." breadcrumbs={[{ label: 'Contentieux' }, { label: 'Audiences' }]} />
+        <div className="p-6 lg:p-8 space-y-4">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full rounded-lg" />)}
         </div>
       </div>
     );
@@ -94,295 +91,252 @@ export default function AudiencesPage() {
     <div className="min-h-screen">
       <Header 
         title="Audiences" 
-        subtitle={`${audiencesNonRenseignees.length} à régulariser`}
+        subtitle={`${audiences.length} audiences • ${audiencesNonRenseignees.length} à régulariser`}
+        breadcrumbs={[
+          { label: 'Contentieux', href: '/contentieux/affaires' },
+          { label: 'Audiences' },
+        ]}
         actions={
-          <Button className="gap-2" onClick={() => setShowNouvelleAudience(true)}>
+          <Button size="sm" className="gap-1.5" onClick={() => setShowNouvelleAudience(true)}>
             <Plus className="h-4 w-4" />
             Nouvelle audience
           </Button>
         }
       />
 
-      <NouvelleAudienceDialog 
-        open={showNouvelleAudience} 
-        onOpenChange={setShowNouvelleAudience} 
-      />
+      <NouvelleAudienceDialog open={showNouvelleAudience} onOpenChange={setShowNouvelleAudience} />
+      <ResultatAudienceDialog open={showResultatAudience} onOpenChange={setShowResultatAudience} audience={selectedAudience} />
 
-      <ResultatAudienceDialog 
-        open={showResultatAudience} 
-        onOpenChange={setShowResultatAudience}
-        audience={selectedAudience}
-      />
+      <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="border-border/50">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">À venir</p>
+              <p className="text-2xl font-semibold text-info mt-1">{audiencesAVenir.length}</p>
+            </CardContent>
+          </Card>
+          <Card className={cn("border-border/50", audiencesNonRenseignees.length > 0 && "border-destructive/30 bg-destructive/5")}>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Non renseignées</p>
+              <p className="text-2xl font-semibold text-destructive mt-1">{audiencesNonRenseignees.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Renseignées</p>
+              <p className="text-2xl font-semibold text-success mt-1">{audiencesRenseignees.length}</p>
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className="p-6 animate-fade-in">
-        {/* Alert for non-renseignées */}
+        {/* Alert */}
         {audiencesNonRenseignees.length > 0 && (
-          <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              <span className="font-medium text-destructive">
-                {audiencesNonRenseignees.length} audience(s) passée(s) non renseignée(s)
-              </span>
+          <div className="flex items-start gap-3 bg-destructive/5 border border-destructive/20 rounded-lg p-4">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-destructive text-sm">
+                {audiencesNonRenseignees.length} audience(s) nécessitant un résultat
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Saisissez le résultat pour régulariser ces audiences.
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground mt-1 ml-7">
-              Veuillez saisir le résultat de ces audiences pour les régulariser.
-            </p>
           </div>
         )}
 
-        {/* View toggle */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Filters + View toggle */}
+        <div className="flex items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Rechercher une audience..."
-              className="pl-9"
-            />
+            <Input type="search" placeholder="Rechercher..." className="pl-9 h-9" />
           </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant={view === 'list' ? 'secondary' : 'ghost'} 
-              size="icon"
-              onClick={() => setView('list')}
-            >
-              <List className="h-4 w-4" />
+          <div className="flex items-center gap-1 bg-muted rounded-md p-0.5">
+            <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setView('list')}>
+              <List className="h-3.5 w-3.5" />
             </Button>
-            <Button 
-              variant={view === 'calendar' ? 'secondary' : 'ghost'} 
-              size="icon"
-              onClick={() => setView('calendar')}
-            >
-              <CalendarIcon className="h-4 w-4" />
+            <Button variant={view === 'calendar' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setView('calendar')}>
+              <CalendarIcon className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
 
         {view === 'list' ? (
-          <Tabs defaultValue="a-venir" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="a-venir" className="gap-2">
+          <Tabs defaultValue={audiencesNonRenseignees.length > 0 ? 'non-renseignees' : 'a-venir'} className="space-y-4">
+            <TabsList className="h-9">
+              <TabsTrigger value="a-venir" className="text-xs gap-1.5">
                 À venir
-                <Badge variant="secondary" className="ml-1">{audiencesAVenir.length}</Badge>
+                <Badge variant="secondary" className="h-4 min-w-4 px-1 text-[10px]">{audiencesAVenir.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="non-renseignees" className="gap-2">
+              <TabsTrigger value="non-renseignees" className="text-xs gap-1.5">
                 Non renseignées
                 {audiencesNonRenseignees.length > 0 && (
-                  <Badge variant="destructive" className="ml-1">{audiencesNonRenseignees.length}</Badge>
+                  <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[10px]">{audiencesNonRenseignees.length}</Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="toutes">Toutes</TabsTrigger>
+              <TabsTrigger value="toutes" className="text-xs">Toutes</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="a-venir" className="space-y-4">
+            <TabsContent value="a-venir" className="space-y-3">
               {audiencesAVenir.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Aucune audience à venir</p>
+                <EmptyState message="Aucune audience à venir" />
               ) : (
-                audiencesAVenir.map((audience) => (
-                  <AudienceCard 
-                    key={audience.id} 
-                    audience={audience} 
-                    onSaisirResultat={handleSaisirResultat}
-                    onVoirDetails={(affaireId) => navigate(`/contentieux/affaires/${affaireId}`)}
-                  />
+                audiencesAVenir.map((a) => (
+                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/affaires/${id}`)} />
                 ))
               )}
             </TabsContent>
-
-            <TabsContent value="non-renseignees" className="space-y-4">
+            <TabsContent value="non-renseignees" className="space-y-3">
               {audiencesNonRenseignees.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Aucune audience à régulariser</p>
+                <EmptyState message="Aucune audience à régulariser" />
               ) : (
-                audiencesNonRenseignees.map((audience) => (
-                  <AudienceCard 
-                    key={audience.id} 
-                    audience={audience} 
-                    onSaisirResultat={handleSaisirResultat}
-                    onVoirDetails={(affaireId) => navigate(`/contentieux/affaires/${affaireId}`)}
-                  />
+                audiencesNonRenseignees.map((a) => (
+                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/affaires/${id}`)} />
                 ))
               )}
             </TabsContent>
-
-            <TabsContent value="toutes" className="space-y-4">
+            <TabsContent value="toutes" className="space-y-3">
               {audiences.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Aucune audience</p>
+                <EmptyState message="Aucune audience" />
               ) : (
-                audiences.map((audience) => (
-                  <AudienceCard 
-                    key={audience.id} 
-                    audience={audience} 
-                    onSaisirResultat={handleSaisirResultat}
-                    onVoirDetails={(affaireId) => navigate(`/contentieux/affaires/${affaireId}`)}
-                  />
+                audiences.map((a) => (
+                  <AudienceCard key={a.id} audience={a} onSaisirResultat={handleSaisirResultat} onVoirDetails={(id) => navigate(`/contentieux/affaires/${id}`)} />
                 ))
               )}
             </TabsContent>
           </Tabs>
         ) : (
-          /* Calendar View */
-          <div className="bg-card rounded-lg border p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-display font-semibold">
-                {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-              </h3>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setCurrentMonth(new Date())}
-                >
-                  Aujourd'hui
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-              {/* Header */}
-              {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
-                <div key={day} className="bg-muted/50 py-2 text-center text-sm font-medium text-muted-foreground">
-                  {day}
+          <Card className="border-border/50">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold capitalize">
+                  {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                </h3>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}>
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setCurrentMonth(new Date())}>
+                    Aujourd'hui
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-              ))}
-              
-              {/* Empty cells before first day */}
-              {Array.from({ length: startingDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="calendar-day bg-muted/20" />
-              ))}
-              
-              {/* Days */}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1;
-                const dayAudiences = getAudiencesForDay(day);
-                const isToday = today.getDate() === day && 
-                               today.getMonth() === month && 
-                               today.getFullYear() === year;
-                
-                return (
-                  <div 
-                    key={day} 
-                    className={cn('calendar-day bg-card', isToday && 'calendar-day-today')}
-                  >
-                    <div className={cn(
-                      'text-sm font-medium mb-1',
-                      isToday && 'text-primary'
-                    )}>
-                      {day}
-                    </div>
-                    <div className="space-y-0.5">
-                      {dayAudiences.slice(0, 2).map((audience) => (
-                        <div 
-                          key={audience.id}
-                          className={cn(
-                            'calendar-event',
-                            audience.statut === 'PASSEE_NON_RENSEIGNEE' 
-                              ? 'bg-destructive text-destructive-foreground' 
-                              : 'calendar-event-audience'
-                          )}
-                        >
-                          {audience.heure && `${audience.heure} - `}{audience.affaires?.reference}
-                        </div>
-                      ))}
-                      {dayAudiences.length > 2 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{dayAudiences.length - 2} autre(s)
-                        </div>
-                      )}
-                    </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
+                {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
+                  <div key={day} className="bg-muted/50 py-2 text-center text-[11px] font-medium text-muted-foreground">
+                    {day}
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                ))}
+                {Array.from({ length: startingDayOfWeek }).map((_, i) => (
+                  <div key={`e-${i}`} className="h-20 bg-muted/10" />
+                ))}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const dayAudiences = getAudiencesForDay(day);
+                  const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+                  
+                  return (
+                    <div key={day} className={cn('h-20 bg-card p-1 transition-colors hover:bg-muted/30', isToday && 'bg-primary/5 ring-1 ring-primary/20')}>
+                      <div className={cn('text-xs font-medium mb-0.5', isToday && 'text-primary')}>{day}</div>
+                      <div className="space-y-0.5">
+                        {dayAudiences.slice(0, 2).map((a) => (
+                          <div key={a.id} className={cn(
+                            'text-[10px] px-1 py-0.5 rounded truncate cursor-pointer',
+                            a.statut === 'PASSEE_NON_RENSEIGNEE' ? 'bg-destructive text-destructive-foreground' : 'bg-info/10 text-info'
+                          )}>
+                            {a.heure && `${a.heure} `}{a.affaires?.reference}
+                          </div>
+                        ))}
+                        {dayAudiences.length > 2 && (
+                          <div className="text-[10px] text-muted-foreground">+{dayAudiences.length - 2}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
   );
 }
 
-interface AudienceCardProps {
-  audience: AudienceDB;
-  onSaisirResultat: (audience: AudienceDB) => void;
-  onVoirDetails: (affaireId: string) => void;
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="text-center py-12">
+      <CalendarIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
+  );
 }
 
-function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: AudienceCardProps) {
+function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: {
+  audience: AudienceDB;
+  onSaisirResultat: (a: AudienceDB) => void;
+  onVoirDetails: (id: string) => void;
+}) {
   const isUrgent = audience.statut === 'PASSEE_NON_RENSEIGNEE';
   
   return (
-    <div className={cn(
-      'p-4 rounded-lg border bg-card transition-all hover:shadow-md',
-      isUrgent && 'border-destructive/50 bg-destructive/5'
-    )}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Badge className={statutLabels[audience.statut].color}>
-              {statutLabels[audience.statut].label}
-            </Badge>
-            <span className="module-badge module-badge-contentieux">
-              {objetLabels[audience.objet]}
-            </span>
-          </div>
-          
-          <h3 className="font-medium text-foreground">
-            {audience.affaires?.reference} - {audience.affaires?.intitule}
-          </h3>
-          
-          <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <CalendarIcon className="h-4 w-4" />
-              {new Date(audience.date).toLocaleDateString('fr-FR', { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long' 
-              })}
-            </span>
-            {audience.heure && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {audience.heure}
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              {audience.affaires?.juridiction} - {audience.affaires?.chambre}
-            </span>
-          </div>
-          
-          {audience.notes_preparation && (
-            <p className="mt-3 text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-              <span className="font-medium">Notes:</span> {audience.notes_preparation}
+    <Card className={cn('border-border/50 transition-all hover:shadow-sm', isUrgent && 'border-destructive/30')}>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <Badge variant="outline" className={cn('text-[11px]', statutLabels[audience.statut].className)}>
+                {statutLabels[audience.statut].label}
+              </Badge>
+              <Badge variant="secondary" className="text-[11px]">
+                {objetLabels[audience.objet]}
+              </Badge>
+            </div>
+            
+            <p className="font-medium text-sm text-foreground">
+              {audience.affaires?.reference} — {audience.affaires?.intitule}
             </p>
-          )}
-        </div>
-        
-        <div className="flex gap-2">
-          {isUrgent && (
-            <Button variant="destructive" size="sm" onClick={() => onSaisirResultat(audience)}>
-              Saisir résultat
+            
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                {new Date(audience.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+              </span>
+              {audience.heure && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  {audience.heure}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                {audience.affaires?.juridiction}
+              </span>
+            </div>
+
+            {audience.notes_preparation && (
+              <p className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded line-clamp-2">
+                {audience.notes_preparation}
+              </p>
+            )}
+          </div>
+          
+          <div className="flex gap-1.5 shrink-0">
+            {isUrgent && (
+              <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={() => onSaisirResultat(audience)}>
+                Saisir résultat
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onVoirDetails(audience.affaire_id)}>
+              Détails
             </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={() => onVoirDetails(audience.affaire_id)}>
-            Voir détails
-          </Button>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -289,7 +289,8 @@ export class DepensesService {
       nombreDepenses: depenses.length,
       parType: Object.entries(parType).map(([type, stats]) => ({
         type,
-        ...stats,
+        montant: (stats as { montant: number; nombre: number }).montant,
+        nombre: (stats as { montant: number; nombre: number }).nombre,
       })),
       depenses: depenses.map(depense => this.mapToResponseDto(depense)),
     };

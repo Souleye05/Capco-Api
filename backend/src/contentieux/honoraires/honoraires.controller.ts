@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { AppRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuditLog } from '../../common/decorators/audit-log.decorator';
 import { HonorairesService } from './honoraires.service';
@@ -28,7 +29,7 @@ export class HonorairesController {
   constructor(private readonly honorairesService: HonorairesService) {}
 
   @Post()
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @AuditLog({ action: 'CREATION', entityType: 'HONORAIRES_CONTENTIEUX' })
   @ApiOperation({ summary: 'Créer un nouvel honoraire' })
   @ApiResponse({ status: 201, description: 'Honoraire créé avec succès' })
@@ -40,7 +41,7 @@ export class HonorairesController {
   }
 
   @Get()
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Récupérer tous les honoraires avec pagination' })
   @ApiResponse({ status: 200, description: 'Liste des honoraires récupérée avec succès' })
   async findAll(@Query() query: HonorairesQueryDto) {
@@ -48,7 +49,7 @@ export class HonorairesController {
   }
 
   @Get('statistiques')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Obtenir les statistiques des honoraires' })
   @ApiResponse({ status: 200, description: 'Statistiques récupérées avec succès' })
   async getStatistics() {
@@ -56,7 +57,7 @@ export class HonorairesController {
   }
 
   @Get('affaire/:affaireId')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Récupérer les honoraires d\'une affaire' })
   @ApiResponse({ status: 200, description: 'Honoraires de l\'affaire récupérés avec succès' })
   async findByAffaire(@Param('affaireId') affaireId: string) {
@@ -64,7 +65,7 @@ export class HonorairesController {
   }
 
   @Get(':id')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Récupérer un honoraire par ID' })
   @ApiResponse({ status: 200, description: 'Honoraire récupéré avec succès' })
   @ApiResponse({ status: 404, description: 'Honoraire non trouvé' })
@@ -73,7 +74,7 @@ export class HonorairesController {
   }
 
   @Patch(':id')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @AuditLog({ action: 'MODIFICATION', entityType: 'HONORAIRES_CONTENTIEUX' })
   @ApiOperation({ summary: 'Mettre à jour un honoraire' })
   @ApiResponse({ status: 200, description: 'Honoraire mis à jour avec succès' })
@@ -86,7 +87,7 @@ export class HonorairesController {
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @AuditLog({ action: 'SUPPRESSION', entityType: 'HONORAIRES_CONTENTIEUX' })
   @ApiOperation({ summary: 'Supprimer un honoraire' })
   @ApiResponse({ status: 200, description: 'Honoraire supprimé avec succès' })

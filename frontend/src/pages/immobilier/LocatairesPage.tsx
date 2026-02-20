@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import { useLocataires, useCreateLocataire, useLots } from '@/hooks/useImmobilier';
-import { 
-  useUpdateLocataire, 
-  useBauxByLocataire, 
+import { useCreateLocataire, useLots } from '@/hooks/useImmobilier';
+import {
+  useUpdateLocataire,
+  useLocatairesComplete as useLocatairesHook, // Import correct hook
+  useBauxByLocataire,
   useEncaissementsByLocataire,
   useDossiersRecouvrementByLocataire,
   useActionsRecouvrementByLocataire,
   useLinkLocataireToDossier,
   useUnlinkLocataireFromDossier,
   type LocataireComplete,
-  type DocumentLocataire 
+  type DocumentLocataire
 } from '@/hooks/useLocataires';
 import { useDossiersRecouvrement } from '@/hooks/useDossiersRecouvrement';
-import { supabase } from '@/integrations/supabase/client';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,8 +46,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { 
-  Plus, Search, User, FileText, Upload, Eye, Trash2, Download, 
+import {
+  Plus, Search, User, FileText, Upload, Eye, Trash2, Download,
   Edit, Calendar, CreditCard, AlertTriangle, Scale, Home, Phone, Mail,
   MapPin, Briefcase, Heart, Shield, Link2, Unlink
 } from 'lucide-react';
@@ -83,7 +83,7 @@ const TYPE_ACTION_LABELS: Record<string, string> = {
 };
 
 export default function LocatairesPage() {
-  const { data: locatairesData, isLoading, refetch } = useLocataires();
+  const { data: locatairesData, isLoading, refetch } = useLocatairesHook();
   const { data: lots } = useLots();
   const { data: allDossiers } = useDossiersRecouvrement();
   const { user } = useNestJSAuth();
@@ -91,9 +91,9 @@ export default function LocatairesPage() {
   const updateLocataire = useUpdateLocataire();
   const linkToDossier = useLinkLocataireToDossier();
   const unlinkFromDossier = useUnlinkLocataireFromDossier();
-  
+
   const locataires = locatairesData as unknown as LocataireComplete[] | undefined;
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -101,7 +101,7 @@ export default function LocatairesPage() {
   const [linkDossierDialogOpen, setLinkDossierDialogOpen] = useState(false);
   const [selectedLocataire, setSelectedLocataire] = useState<LocataireComplete | null>(null);
   const [selectedTab, setSelectedTab] = useState('info');
-  
+
   // Form state for new locataire
   const [formData, setFormData] = useState({
     nom: '',
@@ -119,16 +119,16 @@ export default function LocatairesPage() {
     situation_familiale: '',
     notes: '',
   });
-  
+
   // Edit form state
   const [editFormData, setEditFormData] = useState({ ...formData });
-  
+
   // Link dossier state
   const [selectedDossierId, setSelectedDossierId] = useState('');
-  
+
   // Document upload
   const [uploading, setUploading] = useState(false);
-  
+
   // Hooks for selected locataire data
   const { data: bauxData } = useBauxByLocataire(selectedLocataire?.id || '');
   const { data: encaissementsData } = useEncaissementsByLocataire(selectedLocataire?.id || '');
@@ -144,16 +144,16 @@ export default function LocatairesPage() {
   const getLocataireLots = (locataireId: string) => {
     return lots?.filter(lot => lot.locataire_id === locataireId) || [];
   };
-  
+
   // Get first bail date (entry date)
   const getDateEntree = () => {
     if (!bauxData || bauxData.length === 0) return null;
-    const sortedBaux = [...bauxData].sort((a, b) => 
+    const sortedBaux = [...bauxData].sort((a, b) =>
       new Date(a.date_debut).getTime() - new Date(b.date_debut).getTime()
     );
     return sortedBaux[0].date_debut;
   };
-  
+
   // Filter mises en demeure from actions
   const getMisesEnDemeure = () => {
     return actionsData?.filter(a => a.type_action === 'MISE_EN_DEMEURE') || [];
@@ -191,7 +191,7 @@ export default function LocatairesPage() {
         email: formData.email || null,
         created_by: user?.id || null,
       });
-      
+
       toast.success('Locataire créé avec succès');
       setNewDialogOpen(false);
       resetFormData();
@@ -199,7 +199,7 @@ export default function LocatairesPage() {
       toast.error('Erreur lors de la création du locataire');
     }
   };
-  
+
   const handleUpdateLocataire = async () => {
     if (!selectedLocataire) return;
     if (!editFormData.nom.trim()) {
@@ -208,7 +208,7 @@ export default function LocatairesPage() {
     }
 
     try {
-      await updateLocataire.mutateAsync({
+      const updated = await updateLocataire.mutateAsync({
         id: selectedLocataire.id,
         nom: editFormData.nom,
         telephone: editFormData.telephone || null,
@@ -225,21 +225,16 @@ export default function LocatairesPage() {
         situation_familiale: editFormData.situation_familiale || null,
         notes: editFormData.notes || null,
       });
-      
+
       setEditDialogOpen(false);
-      // Refresh selected locataire
-      const { data: updated } = await supabase
-        .from('locataires')
-        .select('*')
-        .eq('id', selectedLocataire.id)
-        .single();
+      // Refresh selected locataire data from mutation result
       if (updated) setSelectedLocataire(updated as unknown as LocataireComplete);
       refetch();
     } catch (error) {
       toast.error('Erreur lors de la mise à jour');
     }
   };
-  
+
   const openEditDialog = () => {
     if (!selectedLocataire) return;
     setEditFormData({
@@ -260,10 +255,10 @@ export default function LocatairesPage() {
     });
     setEditDialogOpen(true);
   };
-  
+
   const handleLinkDossier = async () => {
     if (!selectedLocataire || !selectedDossierId) return;
-    
+
     try {
       await linkToDossier.mutateAsync({
         locataireId: selectedLocataire.id,
@@ -276,10 +271,10 @@ export default function LocatairesPage() {
       // Error handled in hook
     }
   };
-  
+
   const handleUnlinkDossier = async (dossierId: string) => {
     if (!selectedLocataire) return;
-    
+
     try {
       await unlinkFromDossier.mutateAsync({
         locataireId: selectedLocataire.id,
@@ -295,51 +290,11 @@ export default function LocatairesPage() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${selectedLocataire.id}/${type}_${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('locataires-documents')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      if (type === 'piece_identite') {
-        await supabase
-          .from('locataires')
-          .update({ piece_identite_url: fileName })
-          .eq('id', selectedLocataire.id);
-      } else if (type === 'contrat') {
-        await supabase
-          .from('locataires')
-          .update({ contrat_url: fileName })
-          .eq('id', selectedLocataire.id);
-      } else {
-        const currentDocs = ((selectedLocataire.documents as unknown) as DocumentLocataire[] || []);
-        const newDoc = {
-          name: file.name,
-          url: fileName,
-          type: file.type,
-          uploadedAt: new Date().toISOString()
-        };
-        await supabase
-          .from('locataires')
-          .update({ documents: JSON.parse(JSON.stringify([...currentDocs, newDoc])) })
-          .eq('id', selectedLocataire.id);
-      }
-
-      toast.success('Document téléchargé avec succès');
-      refetch();
-      
-      const { data: updated } = await supabase
-        .from('locataires')
-        .select('*')
-        .eq('id', selectedLocataire.id)
-        .single();
-      if (updated) setSelectedLocataire(updated as unknown as LocataireComplete);
+      // Fonctionnalité temporairement désactivée - Module immobilier en développement
+      toast.info('Fonctionnalité de gestion des documents en cours de développement');
+      throw new Error('Module immobilier pas encore implémenté');
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Erreur lors du téléchargement');
+      toast.error('Fonctionnalité en cours de développement');
     } finally {
       setUploading(false);
     }
@@ -347,20 +302,9 @@ export default function LocatairesPage() {
 
   const handleDownloadDocument = async (filePath: string, fileName: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('locataires-documents')
-        .download(filePath);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(url);
+      toast.info('Fonctionnalité de téléchargement en cours de développement');
     } catch (error) {
-      toast.error('Erreur lors du téléchargement');
+      toast.error('Fonctionnalité en cours de développement');
     }
   };
 
@@ -368,57 +312,22 @@ export default function LocatairesPage() {
     if (!selectedLocataire) return;
 
     try {
-      await supabase.storage
-        .from('locataires-documents')
-        .remove([filePath]);
-
-      if (type === 'piece_identite') {
-        await supabase
-          .from('locataires')
-          .update({ piece_identite_url: null })
-          .eq('id', selectedLocataire.id);
-      } else if (type === 'contrat') {
-        await supabase
-          .from('locataires')
-          .update({ contrat_url: null })
-          .eq('id', selectedLocataire.id);
-      } else if (docIndex !== undefined) {
-        const currentDocs = ((selectedLocataire.documents as unknown) as DocumentLocataire[] || []);
-        const newDocs = currentDocs.filter((_, i) => i !== docIndex);
-        await supabase
-          .from('locataires')
-          .update({ documents: JSON.parse(JSON.stringify(newDocs)) })
-          .eq('id', selectedLocataire.id);
-      }
-
-      toast.success('Document supprimé');
-      refetch();
-      
-      const { data: updated } = await supabase
-        .from('locataires')
-        .select('*')
-        .eq('id', selectedLocataire.id)
-        .single();
-      if (updated) setSelectedLocataire(updated as unknown as LocataireComplete);
+      // Fonctionnalité temporairement désactivée - Module immobilier en développement
+      toast.info('Fonctionnalité de suppression en cours de développement');
     } catch (error) {
       toast.error('Erreur lors de la suppression');
     }
   };
 
-  const openDetailDialog = async (locataire: LocataireComplete) => {
-    const { data } = await supabase
-      .from('locataires')
-      .select('*')
-      .eq('id', locataire.id)
-      .single();
-    setSelectedLocataire((data as unknown as LocataireComplete) || locataire);
+  const openDetailDialog = (locataire: LocataireComplete) => {
+    setSelectedLocataire(locataire);
     setSelectedTab('info');
     setDetailDialogOpen(true);
   };
 
   // Calculate total payments
   const totalPaiements = encaissementsData?.reduce((sum, e) => sum + (e.montant_encaisse || 0), 0) || 0;
-  
+
   // Available dossiers to link (exclude already linked)
   const linkedDossierIds = dossiersData?.map(d => d.id) || [];
   const availableDossiers = allDossiers?.filter(d => !linkedDossierIds.includes(d.id)) || [];
@@ -523,12 +432,12 @@ export default function LocatairesPage() {
               ) : (
                 filteredLocataires.map((locataire) => {
                   const locataireLots = getLocataireLots(locataire.id);
-                  const hasDocuments = locataire.piece_identite_url || locataire.contrat_url || 
+                  const hasDocuments = locataire.piece_identite_url || locataire.contrat_url ||
                     ((locataire.documents as unknown as DocumentLocataire[])?.length > 0);
-                  
+
                   return (
-                    <TableRow 
-                      key={locataire.id} 
+                    <TableRow
+                      key={locataire.id}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => openDetailDialog(locataire)}
                     >
@@ -564,8 +473,8 @@ export default function LocatairesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -648,8 +557,8 @@ export default function LocatairesPage() {
             </div>
             <div>
               <Label htmlFor="type_piece_identite">Type de pièce d'identité</Label>
-              <Select 
-                value={formData.type_piece_identite} 
+              <Select
+                value={formData.type_piece_identite}
                 onValueChange={(v) => setFormData({ ...formData, type_piece_identite: v })}
               >
                 <SelectTrigger>
@@ -691,8 +600,8 @@ export default function LocatairesPage() {
             </div>
             <div>
               <Label htmlFor="situation_familiale">Situation familiale</Label>
-              <Select 
-                value={formData.situation_familiale} 
+              <Select
+                value={formData.situation_familiale}
                 onValueChange={(v) => setFormData({ ...formData, situation_familiale: v })}
               >
                 <SelectTrigger>
@@ -760,7 +669,7 @@ export default function LocatairesPage() {
               </Button>
             </div>
           </DialogHeader>
-          
+
           {selectedLocataire && (
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="flex-1 flex flex-col overflow-hidden">
               <TabsList className="grid grid-cols-5">
@@ -785,7 +694,7 @@ export default function LocatairesPage() {
                   Documents
                 </TabsTrigger>
               </TabsList>
-              
+
               <ScrollArea className="flex-1 mt-4">
                 {/* Info Tab */}
                 <TabsContent value="info" className="space-y-4 m-0">
@@ -812,9 +721,9 @@ export default function LocatairesPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <Briefcase className="h-4 w-4 text-muted-foreground" />
@@ -828,9 +737,9 @@ export default function LocatairesPage() {
                       <p className="font-medium">{selectedLocataire.lieu_travail || '-'}</p>
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
@@ -849,7 +758,7 @@ export default function LocatairesPage() {
                     <div>
                       <Label className="text-muted-foreground text-xs">Date de naissance</Label>
                       <p className="font-medium">
-                        {selectedLocataire.date_naissance 
+                        {selectedLocataire.date_naissance
                           ? format(new Date(selectedLocataire.date_naissance), 'dd MMMM yyyy', { locale: fr })
                           : '-'}
                       </p>
@@ -864,9 +773,9 @@ export default function LocatairesPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-muted-foreground text-xs">Contact d'urgence</Label>
@@ -877,7 +786,7 @@ export default function LocatairesPage() {
                       <p className="font-medium">{selectedLocataire.telephone_urgence || '-'}</p>
                     </div>
                   </div>
-                  
+
                   {selectedLocataire.notes && (
                     <>
                       <Separator />
@@ -888,7 +797,7 @@ export default function LocatairesPage() {
                     </>
                   )}
                 </TabsContent>
-                
+
                 {/* Situation Tab */}
                 <TabsContent value="situation" className="space-y-4 m-0">
                   {/* Date d'entrée */}
@@ -901,13 +810,13 @@ export default function LocatairesPage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-lg font-semibold">
-                        {getDateEntree() 
+                        {getDateEntree()
                           ? format(new Date(getDateEntree()!), 'dd MMMM yyyy', { locale: fr })
                           : 'Non renseignée'}
                       </p>
                     </CardContent>
                   </Card>
-                  
+
                   {/* Lots occupés */}
                   <Card>
                     <CardHeader className="pb-2">
@@ -939,7 +848,7 @@ export default function LocatairesPage() {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   {/* Baux */}
                   {bauxData && bauxData.length > 0 && (
                     <Card>
@@ -967,7 +876,7 @@ export default function LocatairesPage() {
                     </Card>
                   )}
                 </TabsContent>
-                
+
                 {/* Paiements Tab */}
                 <TabsContent value="paiements" className="space-y-4 m-0">
                   <Card>
@@ -982,7 +891,7 @@ export default function LocatairesPage() {
                       <p className="text-sm text-muted-foreground">{encaissementsData?.length || 0} paiement(s)</p>
                     </CardContent>
                   </Card>
-                  
+
                   {encaissementsData && encaissementsData.length > 0 ? (
                     <Card>
                       <CardHeader className="pb-2">
@@ -1029,7 +938,7 @@ export default function LocatairesPage() {
                     </Card>
                   )}
                 </TabsContent>
-                
+
                 {/* Contentieux Tab */}
                 <TabsContent value="contentieux" className="space-y-4 m-0">
                   {/* Link dossier button */}
@@ -1039,7 +948,7 @@ export default function LocatairesPage() {
                       Lier un dossier
                     </Button>
                   </div>
-                  
+
                   {/* Mises en demeure */}
                   <Card>
                     <CardHeader className="pb-2">
@@ -1068,7 +977,7 @@ export default function LocatairesPage() {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   {/* Dossiers de recouvrement */}
                   <Card>
                     <CardHeader className="pb-2">
@@ -1095,8 +1004,8 @@ export default function LocatairesPage() {
                                     {dossier.statut}
                                   </Badge>
                                 </div>
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="sm"
                                   onClick={() => handleUnlinkDossier(dossier.id)}
                                 >
@@ -1111,7 +1020,7 @@ export default function LocatairesPage() {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   {/* Actions de recouvrement */}
                   {actionsData && actionsData.length > 0 && (
                     <Card>
@@ -1149,7 +1058,7 @@ export default function LocatairesPage() {
                     </Card>
                   )}
                 </TabsContent>
-                
+
                 {/* Documents Tab */}
                 <TabsContent value="documents" className="space-y-4 m-0">
                   {/* Pièce d'identité */}
@@ -1293,7 +1202,7 @@ export default function LocatairesPage() {
                         </Button>
                       </label>
                     </div>
-                    
+
                     {(((selectedLocataire.documents as unknown) as DocumentLocataire[]) || []).length > 0 ? (
                       <div className="space-y-2">
                         {(((selectedLocataire.documents as unknown) as DocumentLocataire[]) || []).map((doc, index) => (
@@ -1335,7 +1244,7 @@ export default function LocatairesPage() {
           )}
         </DialogContent>
       </Dialog>
-      
+
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -1394,8 +1303,8 @@ export default function LocatairesPage() {
             </div>
             <div>
               <Label htmlFor="edit-type_piece_identite">Type de pièce d'identité</Label>
-              <Select 
-                value={editFormData.type_piece_identite} 
+              <Select
+                value={editFormData.type_piece_identite}
                 onValueChange={(v) => setEditFormData({ ...editFormData, type_piece_identite: v })}
               >
                 <SelectTrigger>
@@ -1435,8 +1344,8 @@ export default function LocatairesPage() {
             </div>
             <div>
               <Label htmlFor="edit-situation_familiale">Situation familiale</Label>
-              <Select 
-                value={editFormData.situation_familiale} 
+              <Select
+                value={editFormData.situation_familiale}
                 onValueChange={(v) => setEditFormData({ ...editFormData, situation_familiale: v })}
               >
                 <SelectTrigger>
@@ -1485,7 +1394,7 @@ export default function LocatairesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Link Dossier Dialog */}
       <Dialog open={linkDossierDialogOpen} onOpenChange={setLinkDossierDialogOpen}>
         <DialogContent>

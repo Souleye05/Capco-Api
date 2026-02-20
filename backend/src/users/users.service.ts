@@ -9,7 +9,7 @@ import { PrismaService } from '../common/services/prisma.service';
 import { PaginationService } from '../common/services/pagination.service';
 import { BaseCrudService, SecurityContext } from '../common/services/base-crud.service';
 import { PaginatedResponse } from '../common/dto/pagination.dto';
-import { AppRole } from '../types/prisma-enums';
+import { AppRole, User } from '@prisma/client';
 import {
   CreateUserDto,
   UpdateUserDto,
@@ -17,6 +17,10 @@ import {
 } from './dto/users.dto';
 
 export interface UserWithRoles extends User {
+  id: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
   userRoles: Array<{ id: string; role: AppRole }>;
 }
 
@@ -159,7 +163,7 @@ export class UsersService extends BaseCrudService<
     const userRoles = user.userRoles.map((ur) => ur.role);
 
     // Prevent deleting last admin
-    if (userRoles.includes('admin')) {
+    if (userRoles.includes(AppRole.admin)) {
       const adminCount = await this.prisma.userRoles.count({
         where: { role: 'admin' },
       });

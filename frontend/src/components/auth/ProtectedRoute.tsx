@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, roles, loading, isAuthenticated } = useNestJSAuth();
+  const { user, roles, loading, isAdmin } = useNestJSAuth();
   const location = useLocation();
 
   if (loading) {
@@ -19,11 +19,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     );
   }
 
-  if (!isAuthenticated || !user) {
+  if (!user) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  if (requiredRole && !roles.includes(requiredRole) && !roles.includes('admin')) {
+  if (requiredRole && !roles.includes(requiredRole) && !isAdmin) {
     return <Navigate to="/" replace />;
   }
 

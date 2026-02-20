@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength, IsOptional, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { AppRole } from '../../types/prisma-enums';
+import { AppRole } from '@prisma/client';
 
 export class LoginDto {
   @ApiProperty({ example: 'user@example.com' })

@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { StatutAffaire } from '../../../types/prisma-enums';
+import { StatutAffaire } from '@prisma/client';
 import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
 
 export class AffairesQueryDto extends PaginationQueryDto {

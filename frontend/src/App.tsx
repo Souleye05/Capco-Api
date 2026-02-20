@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { NestJSAuthProvider } from "@/contexts/NestJSAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -34,6 +34,15 @@ import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Composant wrapper pour les routes protégées avec MainLayout
+const ProtectedLayout = () => (
+  <ProtectedRoute>
+    <MainLayout>
+      <Outlet />
+    </MainLayout>
+  </ProtectedRoute>
+);
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
     <QueryClientProvider client={queryClient}>
@@ -49,11 +58,7 @@ const App = () => (
             <Route path="/change-password" element={<ChangePassword />} />
             
             {/* Protected routes */}
-            <Route element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }>
+            <Route element={<ProtectedLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/agenda" element={<AgendaPage />} />
               

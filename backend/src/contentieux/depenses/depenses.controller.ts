@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { AppRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuditLog } from '../../common/decorators/audit-log.decorator';
 import { DepensesService } from './depenses.service';
@@ -28,7 +29,7 @@ export class DepensesController {
   constructor(private readonly depensesService: DepensesService) {}
 
   @Post()
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @AuditLog({ action: 'CREATION', entityType: 'DEPENSES_AFFAIRES' })
   @ApiOperation({ summary: 'Créer une nouvelle dépense' })
   @ApiResponse({ status: 201, description: 'Dépense créée avec succès' })
@@ -40,7 +41,7 @@ export class DepensesController {
   }
 
   @Get()
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Récupérer toutes les dépenses avec pagination' })
   @ApiResponse({ status: 200, description: 'Liste des dépenses récupérée avec succès' })
   async findAll(@Query() query: DepensesQueryDto) {
@@ -48,7 +49,7 @@ export class DepensesController {
   }
 
   @Get('statistiques')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Obtenir les statistiques des dépenses' })
   @ApiResponse({ status: 200, description: 'Statistiques récupérées avec succès' })
   async getStatistics() {
@@ -56,7 +57,7 @@ export class DepensesController {
   }
 
   @Get('rapport-periode')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Obtenir le rapport des dépenses par période' })
   @ApiResponse({ status: 200, description: 'Rapport récupéré avec succès' })
   async getRapportPeriode(
@@ -67,7 +68,7 @@ export class DepensesController {
   }
 
   @Get('affaire/:affaireId')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Récupérer les dépenses d\'une affaire' })
   @ApiResponse({ status: 200, description: 'Dépenses de l\'affaire récupérées avec succès' })
   async findByAffaire(@Param('affaireId') affaireId: string) {
@@ -75,7 +76,7 @@ export class DepensesController {
   }
 
   @Get('type/:typeDepense')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Récupérer les dépenses par type' })
   @ApiResponse({ status: 200, description: 'Dépenses par type récupérées avec succès' })
   async findByType(@Param('typeDepense') typeDepense: string) {
@@ -83,7 +84,7 @@ export class DepensesController {
   }
 
   @Get(':id')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Récupérer une dépense par ID' })
   @ApiResponse({ status: 200, description: 'Dépense récupérée avec succès' })
   @ApiResponse({ status: 404, description: 'Dépense non trouvée' })
@@ -92,7 +93,7 @@ export class DepensesController {
   }
 
   @Patch(':id')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @AuditLog({ action: 'MODIFICATION', entityType: 'DEPENSES_AFFAIRES' })
   @ApiOperation({ summary: 'Mettre à jour une dépense' })
   @ApiResponse({ status: 200, description: 'Dépense mise à jour avec succès' })
@@ -105,7 +106,7 @@ export class DepensesController {
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @AuditLog({ action: 'SUPPRESSION', entityType: 'DEPENSES_AFFAIRES' })
   @ApiOperation({ summary: 'Supprimer une dépense' })
   @ApiResponse({ status: 200, description: 'Dépense supprimée avec succès' })

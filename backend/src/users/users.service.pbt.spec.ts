@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PrismaService } from '../common/services/prisma.service';
+import { AppRole } from '@prisma/client';
 
 describe('UsersService (Property-Based Tests)', () => {
   let service: UsersService;
@@ -10,7 +11,7 @@ describe('UsersService (Property-Based Tests)', () => {
 
   const adminSecurityContext = {
     userId: '123e4567-e89b-12d3-a456-426614174001',
-    roles: ['admin'],
+    roles: [AppRole.admin],
   };
 
   beforeEach(async () => {
@@ -100,7 +101,7 @@ describe('UsersService (Property-Based Tests)', () => {
         // Feature: nestjs-api-architecture, Property 2: Role Idempotence
         await fc.assert(
           fc.asyncProperty(
-            fc.constantFrom('admin' as const, 'collaborateur' as const, 'compta' as const),
+            fc.constantFrom(AppRole.collaborateur, AppRole.compta),
             fc.uuid(),
             async (role, userId) => {
               jest.clearAllMocks();
@@ -119,7 +120,7 @@ describe('UsersService (Property-Based Tests)', () => {
                 role,
               });
 
-              const appRole = role as any; // Type assertion for test purposes
+              const appRole = role; // Already typed as AppRole
               await service.assignRole(userId, appRole, adminSecurityContext);
 
               // Second attempt (should throw because already assigned)
@@ -208,14 +209,14 @@ describe('UsersService (Property-Based Tests)', () => {
         // Feature: nestjs-api-architecture, Property 4: Permission Enforcement
         await fc.assert(
           fc.asyncProperty(
-            fc.constantFrom('collaborateur' as const, 'compta' as const),
+            fc.constantFrom(AppRole.collaborateur, AppRole.compta),
             fc.string({ minLength: 8 }),
             async (nonAdminRole, password) => {
               jest.clearAllMocks();
 
               const nonAdminContext = {
                 userId: 'user-id',
-                roles: [nonAdminRole as any],
+                roles: [nonAdminRole],
               };
 
               // Non-admin cannot create users
@@ -243,12 +244,12 @@ describe('UsersService (Property-Based Tests)', () => {
 
               // Non-admin cannot assign roles
               await expect(
-                service.assignRole('user-id', 'admin', nonAdminContext),
+                service.assignRole('user-id', AppRole.admin, nonAdminContext),
               ).rejects.toThrow();
 
               // Non-admin cannot remove roles
               await expect(
-                service.removeRole('user-id', 'admin', nonAdminContext),
+                service.removeRole('user-id', AppRole.admin, nonAdminContext),
               ).rejects.toThrow();
             },
           ),

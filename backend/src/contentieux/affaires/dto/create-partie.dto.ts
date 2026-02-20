@@ -1,6 +1,6 @@
 import { IsString, IsEnum, IsNotEmpty, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { RolePartie } from '../../../types/prisma-enums';
+import { RolePartie } from '@prisma/client';
 
 export class CreatePartieDto {
   @ApiProperty({ description: 'Nom de la partie' })

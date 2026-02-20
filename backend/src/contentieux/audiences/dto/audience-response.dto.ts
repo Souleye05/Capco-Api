@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TypeAudience, StatutAudience } from '../../../types/prisma-enums';
+import { TypeAudience, StatutAudience } from '@prisma/client';
 
 class AffaireSummaryDto {
   @ApiProperty()

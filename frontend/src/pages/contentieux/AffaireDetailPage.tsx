@@ -306,18 +306,19 @@ export default function AffaireDetailPage() {
       <Header 
         title={affaire.reference}
         subtitle={affaire.intitule}
+        breadcrumbs={[
+          { label: 'Contentieux', href: '/contentieux/affaires' },
+          { label: 'Affaires', href: '/contentieux/affaires' },
+          { label: affaire.reference },
+        ]}
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/contentieux/affaires')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
-            </Button>
-            <Button variant="outline" onClick={handleGenerateCompteRendu}>
-              <FileText className="h-4 w-4 mr-2" />
+          <div className="flex gap-1.5">
+            <Button variant="outline" size="sm" onClick={handleGenerateCompteRendu}>
+              <FileText className="h-4 w-4 mr-1.5" />
               Compte rendu
             </Button>
-            <Button onClick={() => setShowNouvelleAudienceDialog(true)}>
-              <Calendar className="h-4 w-4 mr-2" />
+            <Button size="sm" onClick={() => setShowNouvelleAudienceDialog(true)}>
+              <Calendar className="h-4 w-4 mr-1.5" />
               Nouvelle audience
             </Button>
           </div>
@@ -335,7 +336,7 @@ export default function AffaireDetailPage() {
         onOpenChange={setShowNouvelleAudienceDialog}
       />
 
-      <div className="p-6 animate-fade-in space-y-6">
+      <div className="p-6 lg:p-8 animate-fade-in space-y-6">
         {/* Alert for non-renseignées */}
         {audiencesNonRenseignees.length > 0 && (
           <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4">

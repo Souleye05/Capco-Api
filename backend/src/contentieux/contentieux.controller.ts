@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { AppRole } from '@prisma/client';
 import { ContentieuxService } from './contentieux.service';
 
 @ApiTags('Contentieux')
@@ -13,7 +14,7 @@ export class ContentieuxController {
   constructor(private readonly contentieuxService: ContentieuxService) {}
 
   @Get('dashboard')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Obtenir le tableau de bord du contentieux' })
   @ApiResponse({ status: 200, description: 'Tableau de bord récupéré avec succès' })
   async getDashboard() {
@@ -21,7 +22,7 @@ export class ContentieuxController {
   }
 
   @Get('affaires/:id/resume-financier')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Obtenir le résumé financier d\'une affaire' })
   @ApiResponse({ status: 200, description: 'Résumé financier récupéré avec succès' })
   async getResumeFinancierAffaire(@Param('id') id: string) {
@@ -29,7 +30,7 @@ export class ContentieuxController {
   }
 
   @Get('planning-audiences')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Obtenir le planning des audiences' })
   @ApiResponse({ status: 200, description: 'Planning récupéré avec succès' })
   async getPlanningAudiences(
@@ -43,7 +44,7 @@ export class ContentieuxController {
   }
 
   @Get('recherche')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Recherche globale dans le contentieux' })
   @ApiResponse({ status: 200, description: 'Résultats de recherche récupérés avec succès' })
   async rechercheGlobale(@Query('terme') terme: string) {
@@ -51,7 +52,7 @@ export class ContentieuxController {
   }
 
   @Get('indicateurs-performance')
-  @Roles('admin', 'collaborateur')
+  @Roles(AppRole.admin, AppRole.collaborateur)
   @ApiOperation({ summary: 'Obtenir les indicateurs de performance' })
   @ApiResponse({ status: 200, description: 'Indicateurs récupérés avec succès' })
   async getIndicateursPerformance() {
@@ -59,7 +60,7 @@ export class ContentieuxController {
   }
 
   @Get('export')
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @ApiOperation({ summary: 'Exporter les données du contentieux' })
   @ApiResponse({ status: 200, description: 'Données exportées avec succès' })
   async exporterDonnees(

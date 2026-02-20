@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { StatutAffaire } from '../../../types/prisma-enums';
+import { StatutAffaire } from '@prisma/client';
 import { PartieDto } from './create-affaire.dto';
 
 class DerniereAudienceDto {

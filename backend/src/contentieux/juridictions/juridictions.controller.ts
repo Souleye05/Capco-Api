@@ -20,7 +20,7 @@ import {
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { AppRole } from '../../types/prisma-enums';
+import { AppRole } from '@prisma/client';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 
 @ApiTags('Juridictions')

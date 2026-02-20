@@ -1,327 +1,357 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { nestjsApi } from '@/integrations/nestjs/client';
 import { toast } from 'sonner';
 
-// ============ HONORAIRES RECOUVREMENT ============
-
-export interface HonorairesRecouvrementDB {
+// Types pour les honoraires
+export interface HonoraireDB {
   id: string;
-  dossier_id: string;
-  type: 'FORFAIT' | 'POURCENTAGE' | 'MIXTE';
-  pourcentage: number | null;
-  montant_prevu: number;
-  montant_paye: number;
-  created_at: string;
-  created_by: string;
+  affaireId: string;
+  affaire?: {
+    id: string;
+    reference: string;
+    intitule: string;
+    parties: Array<{
+      id: string;
+      nom: string;
+      role: string;
+    }>;
+  };
+  montantFacture: number;
+  montantEncaisse: number;
+  montantRestant: number;
+  dateFacturation?: string;
+  notes?: string;
+  paiements: Array<{
+    id: string;
+    date: string;
+    montant: number;
+    modePaiement: string;
+    notes?: string;
+  }>;
+  createdAt: string;
 }
 
-export function useHonorairesRecouvrement(dossierId?: string) {
-  return useQuery({
-    queryKey: ['honoraires-recouvrement', dossierId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('honoraires_recouvrement')
-        .select('*')
-        .eq('dossier_id', dossierId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data as HonorairesRecouvrementDB | null;
-    },
-    enabled: !!dossierId,
-  });
+export interface CreateHonoraireData {
+  affaireId: string;
+  montantFacture: number;
+  montantEncaisse?: number;
+  dateFacturation?: string;
+  notes?: string;
 }
 
-export function useCreateHonorairesRecouvrement() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (honoraires: Omit<HonorairesRecouvrementDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('honoraires_recouvrement')
-        .insert(honoraires)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['honoraires-recouvrement', data.dossier_id] });
-      toast.success('Honoraires enregistrés');
-    },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
+export interface UpdateHonoraireData {
+  montantFacture?: number;
+  montantEncaisse?: number;
+  dateFacturation?: string;
+  notes?: string;
 }
 
-export function useUpdateHonorairesRecouvrement() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<HonorairesRecouvrementDB> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('honoraires_recouvrement')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['honoraires-recouvrement', data.dossier_id] });
-      toast.success('Honoraires mis à jour');
-    },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
-}
-
-// ============ DEPENSES DOSSIER ============
-
-export interface DepenseDossierDB {
+// Types pour les paiements d'honoraires
+export interface PaiementHonoraireDB {
   id: string;
-  dossier_id: string;
+  honorairesId: string;
   date: string;
-  type_depense: 'FRAIS_HUISSIER' | 'FRAIS_GREFFE' | 'TIMBRES_FISCAUX' | 'FRAIS_COURRIER' | 'FRAIS_DEPLACEMENT' | 'FRAIS_EXPERTISE' | 'AUTRES';
+  montant: number;
+  modePaiement: 'VIREMENT' | 'CASH' | 'CHEQUE' | 'WAVE' | 'OM';
+  notes?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface CreatePaiementHonoraireData {
+  honorairesId: string;
+  date: string;
+  montant: number;
+  modePaiement: 'VIREMENT' | 'CASH' | 'CHEQUE' | 'WAVE' | 'OM';
+  notes?: string;
+}
+
+// Types pour les dépenses
+export interface DepenseDB {
+  id: string;
+  affaireId: string;
+  affaire?: {
+    id: string;
+    reference: string;
+    intitule: string;
+    parties: Array<{
+      id: string;
+      nom: string;
+      role: string;
+    }>;
+  };
+  date: string;
+  typeDepense: 'FRAIS_HUISSIER' | 'FRAIS_GREFFE' | 'TIMBRES_FISCAUX' | 'FRAIS_COURRIER' | 'FRAIS_DEPLACEMENT' | 'FRAIS_EXPERTISE' | 'AUTRES';
   nature: string;
   montant: number;
-  justificatif: string | null;
-  created_at: string;
-  created_by: string;
+  description?: string;
+  justificatif?: string;
+  createdAt: string;
 }
 
-export function useDepensesDossier(dossierId?: string) {
-  return useQuery({
-    queryKey: ['depenses-dossier', dossierId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('depenses_dossier')
-        .select('*')
-        .eq('dossier_id', dossierId)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      return data as DepenseDossierDB[];
-    },
-    enabled: !!dossierId,
-  });
+export interface CreateDepenseData {
+  affaireId: string;
+  date: string;
+  typeDepense: 'FRAIS_HUISSIER' | 'FRAIS_GREFFE' | 'TIMBRES_FISCAUX' | 'FRAIS_COURRIER' | 'FRAIS_DEPLACEMENT' | 'FRAIS_EXPERTISE' | 'AUTRES';
+  nature: string;
+  montant: number;
+  description?: string;
+  justificatif?: string;
 }
 
-export function useCreateDepenseDossier() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (depense: Omit<DepenseDossierDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('depenses_dossier')
-        .insert(depense)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['depenses-dossier', data.dossier_id] });
-      toast.success('Dépense enregistrée');
-    },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
-}
+// ===== HOOKS HONORAIRES =====
 
-// ============ HONORAIRES CONTENTIEUX ============
-
-export interface HonorairesContentieuxDB {
-  id: string;
-  affaire_id: string;
-  montant_facture: number;
-  montant_encaisse: number;
-  date_facturation: string | null;
-  notes: string | null;
-  created_at: string;
-  created_by: string;
-}
-
+// Hook pour récupérer les honoraires d'une affaire
 export function useHonorairesContentieux(affaireId?: string) {
   return useQuery({
-    queryKey: ['honoraires-contentieux', affaireId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('honoraires_contentieux')
-        .select('*')
-        .eq('affaire_id', affaireId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data as HonorairesContentieuxDB | null;
+    queryKey: ['honoraires', 'affaire', affaireId],
+    queryFn: async (): Promise<HonoraireDB | null> => {
+      if (!affaireId) return null;
+      const response = await nestjsApi.request<{ data: HonoraireDB[] }>(`/contentieux/honoraires?affaireId=${affaireId}`);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      // Retourner le premier honoraire trouvé (il ne devrait y en avoir qu'un par affaire)
+      return response.data?.data?.[0] || null;
     },
     enabled: !!affaireId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
+// Hook pour créer des honoraires
 export function useCreateHonorairesContentieux() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (honoraires: Omit<HonorairesContentieuxDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('honoraires_contentieux')
-        .insert(honoraires)
-        .select()
-        .single();
+    mutationFn: async (data: CreateHonoraireData): Promise<HonoraireDB> => {
+      const response = await nestjsApi.request<HonoraireDB>('/contentieux/honoraires', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
       
-      if (error) throw error;
-      return data;
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['honoraires-contentieux', data.affaire_id] });
-      toast.success('Honoraires enregistrés');
+      queryClient.invalidateQueries({ queryKey: ['honoraires'] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires', 'affaire', data.affaireId] });
+      queryClient.invalidateQueries({ queryKey: ['affaires', data.affaireId] });
+      toast.success('Honoraires créés avec succès');
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la création des honoraires: ${error.message}`);
     },
   });
 }
 
+// Hook pour mettre à jour des honoraires
 export function useUpdateHonorairesContentieux() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<HonorairesContentieuxDB> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('honoraires_contentieux')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+    mutationFn: async ({ id, data }: { id: string; data: UpdateHonoraireData }): Promise<HonoraireDB> => {
+      const response = await nestjsApi.request<HonoraireDB>(`/contentieux/honoraires/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
       
-      if (error) throw error;
-      return data;
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['honoraires-contentieux', data.affaire_id] });
-      toast.success('Honoraires mis à jour');
+      queryClient.invalidateQueries({ queryKey: ['honoraires'] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires', 'affaire', data.affaireId] });
+      queryClient.invalidateQueries({ queryKey: ['affaires', data.affaireId] });
+      toast.success('Honoraires mis à jour avec succès');
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
-}
-
-// ============ DEPENSES AFFAIRES (CONTENTIEUX) ============
-
-export interface DepenseAffaireDB {
-  id: string;
-  affaire_id: string;
-  date: string;
-  type_depense: 'FRAIS_HUISSIER' | 'FRAIS_GREFFE' | 'TIMBRES_FISCAUX' | 'FRAIS_COURRIER' | 'FRAIS_DEPLACEMENT' | 'FRAIS_EXPERTISE' | 'AUTRES';
-  nature: string;
-  montant: number;
-  description: string | null;
-  justificatif: string | null;
-  created_at: string;
-  created_by: string;
-}
-
-export function useDepensesAffaire(affaireId?: string) {
-  return useQuery({
-    queryKey: ['depenses-affaire', affaireId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('depenses_affaires')
-        .select('*')
-        .eq('affaire_id', affaireId)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      return data as DepenseAffaireDB[];
-    },
-    enabled: !!affaireId,
-  });
-}
-
-export function useCreateDepenseAffaire() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (depense: Omit<DepenseAffaireDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('depenses_affaires')
-        .insert(depense)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['depenses-affaire', data.affaire_id] });
-      toast.success('Dépense enregistrée');
-    },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la mise à jour: ${error.message}`);
     },
   });
 }
 
-// ============ PAIEMENTS HONORAIRES CONTENTIEUX ============
+// ===== HOOKS PAIEMENTS HONORAIRES =====
 
-export interface PaiementHonorairesContentieuxDB {
-  id: string;
-  honoraires_id: string;
-  date: string;
-  montant: number;
-  mode_paiement: 'VIREMENT' | 'CASH' | 'CHEQUE' | 'WAVE' | 'OM';
-  notes: string | null;
-  created_at: string;
-  created_by: string;
-}
-
+// Hook pour récupérer les paiements d'honoraires
 export function usePaiementsHonorairesContentieux(honorairesId?: string) {
   return useQuery({
-    queryKey: ['paiements-honoraires-contentieux', honorairesId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('paiements_honoraires_contentieux')
-        .select('*')
-        .eq('honoraires_id', honorairesId)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      return data as PaiementHonorairesContentieuxDB[];
+    queryKey: ['paiements-honoraires', honorairesId],
+    queryFn: async (): Promise<PaiementHonoraireDB[]> => {
+      if (!honorairesId) return [];
+      const response = await nestjsApi.request<{ data: PaiementHonoraireDB[] }>(`/contentieux/honoraires/${honorairesId}/paiements`);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data?.data || [];
     },
     enabled: !!honorairesId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
+// Hook pour créer un paiement d'honoraires
 export function useCreatePaiementHonorairesContentieux() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (paiement: Omit<PaiementHonorairesContentieuxDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('paiements_honoraires_contentieux')
-        .insert(paiement)
-        .select()
-        .single();
+    mutationFn: async (data: CreatePaiementHonoraireData): Promise<PaiementHonoraireDB> => {
+      const response = await nestjsApi.request<PaiementHonoraireDB>(`/contentieux/honoraires/${data.honorairesId}/paiements`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
       
-      if (error) throw error;
-      return data;
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['paiements-honoraires-contentieux', data.honoraires_id] });
-      queryClient.invalidateQueries({ queryKey: ['honoraires-contentieux'] });
-      toast.success('Paiement enregistré');
+      queryClient.invalidateQueries({ queryKey: ['paiements-honoraires', data.honorairesId] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires'] });
+      toast.success('Paiement enregistré avec succès');
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de l'enregistrement du paiement: ${error.message}`);
+    },
+  });
+}
+
+// ===== HOOKS DÉPENSES =====
+
+// Hook pour récupérer les dépenses d'une affaire
+export function useDepensesAffaire(affaireId?: string) {
+  return useQuery({
+    queryKey: ['depenses', 'affaire', affaireId],
+    queryFn: async (): Promise<DepenseDB[]> => {
+      if (!affaireId) return [];
+      const response = await nestjsApi.request<{ data: DepenseDB[] }>(`/contentieux/depenses?affaireId=${affaireId}`);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data?.data || [];
+    },
+    enabled: !!affaireId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Hook pour créer une dépense
+export function useCreateDepenseAffaire() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateDepenseData): Promise<DepenseDB> => {
+      const response = await nestjsApi.request<DepenseDB>('/contentieux/depenses', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['depenses'] });
+      queryClient.invalidateQueries({ queryKey: ['depenses', 'affaire', data.affaireId] });
+      queryClient.invalidateQueries({ queryKey: ['affaires', data.affaireId] });
+      toast.success('Dépense enregistrée avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de l'enregistrement de la dépense: ${error.message}`);
+    },
+  });
+}
+
+// Hook pour les statistiques des honoraires
+export function useHonorairesStats() {
+  return useQuery({
+    queryKey: ['honoraires', 'stats'],
+    queryFn: async () => {
+      const response = await nestjsApi.request<{
+        totalFacture: number;
+        totalEncaisse: number;
+        totalRestant: number;
+        nombreHonoraires: number;
+      }>('/contentieux/honoraires/statistics');
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+// Hook pour les statistiques des dépenses
+export function useDepensesStats() {
+  return useQuery({
+    queryKey: ['depenses', 'stats'],
+    queryFn: async () => {
+      const response = await nestjsApi.request<{
+        totalMontant: number;
+        nombreDepenses: number;
+        parType: Array<{
+          type: string;
+          montant: number;
+          nombre: number;
+        }>;
+      }>('/contentieux/depenses/statistics');
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+// ===== ALIASES POUR COMPATIBILITÉ RECOUVREMENT =====
+// Ces hooks sont des alias temporaires pour les modules pas encore implémentés
+
+// Alias pour les honoraires de recouvrement (temporaire)
+export function useCreateHonorairesRecouvrement() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any): Promise<any> => {
+      toast.info('Fonctionnalité en cours de développement - Module recouvrement à venir');
+      throw new Error('Module recouvrement en développement');
+    },
+    onError: (error: Error) => {
+      if (!error.message.includes('développement')) {
+        toast.error(`Erreur: ${error.message}`);
+      }
+    },
+  });
+}
+
+// Alias pour les dépenses de dossier (temporaire)
+export function useCreateDepenseDossier() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any): Promise<any> => {
+      toast.info('Fonctionnalité en cours de développement - Module recouvrement à venir');
+      throw new Error('Module recouvrement en développement');
+    },
+    onError: (error: Error) => {
+      if (!error.message.includes('développement')) {
+        toast.error(`Erreur: ${error.message}`);
+      }
     },
   });
 }

@@ -3,6 +3,7 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { UsersService } from './users.service';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
+import { AppRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 describe('UsersService (Unit Tests)', () => {
@@ -39,7 +40,7 @@ describe('UsersService (Unit Tests)', () => {
 
   const adminSecurityContext = {
     userId: mockAdmin.id,
-    roles: ['admin'],
+    roles: [AppRole.admin],
   };
 
   const userSecurityContext = {
@@ -142,7 +143,7 @@ describe('UsersService (Unit Tests)', () => {
       const createUserDto: CreateUserDto = {
         email: 'newuser@example.com',
         password: 'SecurePassword123!',
-        roles: ['collaborateur', 'compta'],
+        roles: [AppRole.collaborateur, AppRole.compta],
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
@@ -276,7 +277,7 @@ describe('UsersService (Unit Tests)', () => {
         role: 'admin',
       });
 
-      await service.assignRole(mockUser.id, 'admin', adminSecurityContext);
+      await service.assignRole(mockUser.id, AppRole.admin, adminSecurityContext);
 
       expect(prisma.userRoles.create).toHaveBeenCalledWith({
         data: { userId: mockUser.id, role: 'admin' },
@@ -296,13 +297,13 @@ describe('UsersService (Unit Tests)', () => {
       });
 
       await expect(
-        service.assignRole(mockUser.id, 'collaborateur', adminSecurityContext),
+        service.assignRole(mockUser.id, AppRole.collaborateur, adminSecurityContext),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw ForbiddenException if user is not admin', async () => {
       await expect(
-        service.assignRole(mockUser.id, 'admin', userSecurityContext),
+        service.assignRole(mockUser.id, AppRole.admin, userSecurityContext),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -324,7 +325,7 @@ describe('UsersService (Unit Tests)', () => {
         role: 'collaborateur',
       });
 
-      await service.removeRole(mockUser.id, 'collaborateur', adminSecurityContext);
+      await service.removeRole(mockUser.id, AppRole.collaborateur, adminSecurityContext);
 
       expect(prisma.userRoles.delete).toHaveBeenCalled();
     });
@@ -339,7 +340,7 @@ describe('UsersService (Unit Tests)', () => {
       (prisma.userRoles.findFirst as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        service.removeRole(mockUser.id, 'admin', adminSecurityContext),
+        service.removeRole(mockUser.id, AppRole.admin, adminSecurityContext),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -357,7 +358,7 @@ describe('UsersService (Unit Tests)', () => {
       (prisma.userRoles.count as jest.Mock).mockResolvedValue(1); // Only one admin
 
       await expect(
-        service.removeRole(mockAdmin.id, 'admin', adminSecurityContext),
+        service.removeRole(mockAdmin.id, AppRole.admin, adminSecurityContext),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -391,7 +392,7 @@ describe('UsersService (Unit Tests)', () => {
 
       const query = { page: 1, limit: 20, search: '', sortBy: undefined, sortOrder: 'desc' };
       const result = await service.getUsersByRole(
-        'collaborateur',
+        AppRole.collaborateur,
         query as any,
         adminSecurityContext,
       );
@@ -403,7 +404,7 @@ describe('UsersService (Unit Tests)', () => {
     it('should throw ForbiddenException if user is not admin', async () => {
       const query = { page: 1, limit: 20, search: '', sortBy: undefined, sortOrder: 'desc' };
       await expect(
-        service.getUsersByRole('collaborateur', query as any, userSecurityContext),
+        service.getUsersByRole(AppRole.collaborateur, query as any, userSecurityContext),
       ).rejects.toThrow(ForbiddenException);
     });
   });

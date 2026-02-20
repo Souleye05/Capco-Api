@@ -136,6 +136,10 @@
     @apply bg-card rounded-lg border p-6 shadow-sm transition-all duration-200 hover:shadow-md;
   }
 
+  .card-elevated {
+    @apply bg-card rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+
   .module-badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
   }

@@ -13,7 +13,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useNestJSAuth(); // Temporaire - signUp n'est pas encore implémenté
+  const { signUp } = useNestJSAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,9 +34,17 @@ export default function SignUpPage() {
       return;
     }
 
-    // Temporairement, rediriger vers la page de connexion
-    toast.info('L\'inscription n\'est pas encore disponible. Contactez l\'administrateur.');
-    navigate('/auth/login');
+    setLoading(true);
+    // Sign up is not available in this system - users are created by administrators
+    toast.error('L\'inscription n\'est pas disponible. Contactez un administrateur pour créer votre compte.');
+    setLoading(false);
+
+    if (error) {
+      toast.error(error.message || 'Erreur lors de la création du compte');
+    } else {
+      toast.success('Compte créé avec succès !');
+      navigate('/');
+    }
   };
 
   return (

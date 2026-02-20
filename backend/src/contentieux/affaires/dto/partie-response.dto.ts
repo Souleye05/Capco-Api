@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { RolePartie } from '../../../types/prisma-enums';
+import { RolePartie } from '@prisma/client';
 
 export class PartieResponseDto {
   @ApiProperty({ description: 'ID unique de la partie' })

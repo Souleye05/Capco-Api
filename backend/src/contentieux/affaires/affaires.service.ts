@@ -75,7 +75,7 @@ export class AffairesService {
       {
         where: query.statut ? { statut: query.statut } : {},
         include: {
-          partiesAffaires: true,
+          parties_affaires: true,
           audiences: {
             orderBy: { date: 'desc' },
             take: 1, // Dernière audience

@@ -5,7 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCreateAffaire } from '@/hooks/useAffaires';
+
+interface PartieForm {
+  nom: string;
+  role: 'DEMANDEUR' | 'DEFENDEUR';
+  adresse?: string;
+  telephone?: string;
+  email?: string;
+}
 
 interface NouvelleAffaireDialogProps {
   open: boolean;
@@ -13,116 +23,303 @@ interface NouvelleAffaireDialogProps {
 }
 
 export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDialogProps) {
+  const createAffaire = useCreateAffaire();
+  
   const [formData, setFormData] = useState({
     intitule: '',
-    demandeur: '',
-    defendeur: '',
-    juridiction: '',
-    chambre: '',
-    notes: ''
+    observations: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [demandeurs, setDemandeurs] = useState<PartieForm[]>([
+    { nom: '', role: 'DEMANDEUR' as const }
+  ]);
+
+  const [defendeurs, setDefendeurs] = useState<PartieForm[]>([
+    { nom: '', role: 'DEFENDEUR' as const }
+  ]);
+
+  const resetForm = () => {
+    setFormData({ intitule: '', observations: '' });
+    setDemandeurs([{ nom: '', role: 'DEMANDEUR' }]);
+    setDefendeurs([{ nom: '', role: 'DEFENDEUR' }]);
+  };
+
+  const addPartie = (type: 'demandeur' | 'defendeur') => {
+    if (type === 'demandeur') {
+      setDemandeurs([...demandeurs, { nom: '', role: 'DEMANDEUR' }]);
+    } else {
+      setDefendeurs([...defendeurs, { nom: '', role: 'DEFENDEUR' }]);
+    }
+  };
+
+  const removePartie = (type: 'demandeur' | 'defendeur', index: number) => {
+    if (type === 'demandeur' && demandeurs.length > 1) {
+      setDemandeurs(demandeurs.filter((_, i) => i !== index));
+    } else if (type === 'defendeur' && defendeurs.length > 1) {
+      setDefendeurs(defendeurs.filter((_, i) => i !== index));
+    }
+  };
+
+  const updatePartie = (type: 'demandeur' | 'defendeur', index: number, field: keyof PartieForm, value: string) => {
+    if (type === 'demandeur') {
+      const updated = [...demandeurs];
+      updated[index] = { ...updated[index], [field]: value };
+      setDemandeurs(updated);
+    } else {
+      const updated = [...defendeurs];
+      updated[index] = { ...updated[index], [field]: value };
+      setDefendeurs(updated);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.intitule || !formData.demandeur || !formData.defendeur || !formData.juridiction) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+    if (!formData.intitule.trim()) {
+      toast.error('Veuillez saisir l\'intitulé de l\'affaire');
       return;
     }
 
-    toast.success('Affaire créée avec succès');
-    onOpenChange(false);
-    setFormData({ intitule: '', demandeur: '', defendeur: '', juridiction: '', chambre: '', notes: '' });
+    const validDemandeurs = demandeurs.filter(d => d.nom.trim());
+    const validDefendeurs = defendeurs.filter(d => d.nom.trim());
+
+    if (validDemandeurs.length === 0) {
+      toast.error('Veuillez saisir au moins un demandeur');
+      return;
+    }
+
+    if (validDefendeurs.length === 0) {
+      toast.error('Veuillez saisir au moins un défendeur');
+      return;
+    }
+
+    try {
+      await createAffaire.mutateAsync({
+        intitule: formData.intitule.trim(),
+        demandeurs: validDemandeurs,
+        defendeurs: validDefendeurs,
+        observations: formData.observations.trim() || undefined,
+      });
+
+      onOpenChange(false);
+      resetForm();
+    } catch (error) {
+      // L'erreur est déjà gérée par le hook
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nouvelle affaire contentieuse</DialogTitle>
           <DialogDescription>
-            Créer une nouvelle affaire au contentieux
+            Créer une nouvelle affaire au contentieux avec les parties concernées
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          {/* Intitulé */}
           <div className="space-y-2">
             <Label htmlFor="intitule">Intitulé de l'affaire *</Label>
             <Input
               id="intitule"
               value={formData.intitule}
               onChange={(e) => setFormData({ ...formData, intitule: e.target.value })}
-              placeholder="Ex: SARL Durand c/ SCI Les Oliviers"
+              placeholder="Ex: SARL Durand c/ SCI Les Oliviers - Expulsion"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="demandeur">Demandeur *</Label>
-              <Input
-                id="demandeur"
-                value={formData.demandeur}
-                onChange={(e) => setFormData({ ...formData, demandeur: e.target.value })}
-                placeholder="Nom du demandeur"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="defendeur">Défendeur *</Label>
-              <Input
-                id="defendeur"
-                value={formData.defendeur}
-                onChange={(e) => setFormData({ ...formData, defendeur: e.target.value })}
-                placeholder="Nom du défendeur"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="juridiction">Juridiction *</Label>
-              <Select
-                value={formData.juridiction}
-                onValueChange={(value) => setFormData({ ...formData, juridiction: value })}
+          {/* Demandeurs */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Demandeurs *</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addPartie('demandeur')}
+                className="gap-1"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Tribunal de Commerce">Tribunal de Commerce</SelectItem>
-                  <SelectItem value="Tribunal Judiciaire">Tribunal Judiciaire</SelectItem>
-                  <SelectItem value="Tribunal Administratif">Tribunal Administratif</SelectItem>
-                  <SelectItem value="Cour d'Appel">Cour d'Appel</SelectItem>
-                  <SelectItem value="Conseil de Prud'hommes">Conseil de Prud'hommes</SelectItem>
-                </SelectContent>
-              </Select>
+                <Plus className="h-3 w-3" />
+                Ajouter
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="chambre">Chambre</Label>
-              <Input
-                id="chambre"
-                value={formData.chambre}
-                onChange={(e) => setFormData({ ...formData, chambre: e.target.value })}
-                placeholder="Ex: 3ème Chambre"
-              />
-            </div>
+            
+            {demandeurs.map((demandeur, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Demandeur {index + 1}
+                  </span>
+                  {demandeurs.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePartie('demandeur', index)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`demandeur-nom-${index}`}>Nom *</Label>
+                    <Input
+                      id={`demandeur-nom-${index}`}
+                      value={demandeur.nom}
+                      onChange={(e) => updatePartie('demandeur', index, 'nom', e.target.value)}
+                      placeholder="Nom du demandeur"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`demandeur-telephone-${index}`}>Téléphone</Label>
+                    <Input
+                      id={`demandeur-telephone-${index}`}
+                      value={demandeur.telephone || ''}
+                      onChange={(e) => updatePartie('demandeur', index, 'telephone', e.target.value)}
+                      placeholder="Numéro de téléphone"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`demandeur-email-${index}`}>Email</Label>
+                    <Input
+                      id={`demandeur-email-${index}`}
+                      type="email"
+                      value={demandeur.email || ''}
+                      onChange={(e) => updatePartie('demandeur', index, 'email', e.target.value)}
+                      placeholder="Adresse email"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`demandeur-adresse-${index}`}>Adresse</Label>
+                    <Input
+                      id={`demandeur-adresse-${index}`}
+                      value={demandeur.adresse || ''}
+                      onChange={(e) => updatePartie('demandeur', index, 'adresse', e.target.value)}
+                      placeholder="Adresse complète"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
+          {/* Défendeurs */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Défendeurs *</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addPartie('defendeur')}
+                className="gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                Ajouter
+              </Button>
+            </div>
+            
+            {defendeurs.map((defendeur, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Défendeur {index + 1}
+                  </span>
+                  {defendeurs.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePartie('defendeur', index)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`defendeur-nom-${index}`}>Nom *</Label>
+                    <Input
+                      id={`defendeur-nom-${index}`}
+                      value={defendeur.nom}
+                      onChange={(e) => updatePartie('defendeur', index, 'nom', e.target.value)}
+                      placeholder="Nom du défendeur"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`defendeur-telephone-${index}`}>Téléphone</Label>
+                    <Input
+                      id={`defendeur-telephone-${index}`}
+                      value={defendeur.telephone || ''}
+                      onChange={(e) => updatePartie('defendeur', index, 'telephone', e.target.value)}
+                      placeholder="Numéro de téléphone"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`defendeur-email-${index}`}>Email</Label>
+                    <Input
+                      id={`defendeur-email-${index}`}
+                      type="email"
+                      value={defendeur.email || ''}
+                      onChange={(e) => updatePartie('defendeur', index, 'email', e.target.value)}
+                      placeholder="Adresse email"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`defendeur-adresse-${index}`}>Adresse</Label>
+                    <Input
+                      id={`defendeur-adresse-${index}`}
+                      value={defendeur.adresse || ''}
+                      onChange={(e) => updatePartie('defendeur', index, 'adresse', e.target.value)}
+                      placeholder="Adresse complète"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Observations */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="observations">Observations</Label>
             <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Informations complémentaires..."
+              id="observations"
+              value={formData.observations}
+              onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+              placeholder="Informations complémentaires sur l'affaire..."
               rows={3}
             />
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={createAffaire.isPending}
+            >
               Annuler
             </Button>
-            <Button type="submit">Créer l'affaire</Button>
+            <Button 
+              type="submit" 
+              disabled={createAffaire.isPending}
+            >
+              {createAffaire.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Créer l'affaire
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

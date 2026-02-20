@@ -8,10 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
-import { useCreateDossierRecouvrement } from '@/hooks/useDossiersRecouvrement';
-import { useCreateHonorairesRecouvrement } from '@/hooks/useHonorairesDepenses';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
 interface NouveauDossierDialogProps {
@@ -21,7 +18,7 @@ interface NouveauDossierDialogProps {
 
 export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialogProps) {
   const { user } = useNestJSAuth();
-  const createDossier = useCreateDossierRecouvrement();
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     creancierNom: '',
@@ -70,7 +67,7 @@ export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialo
     });
   };
 
-  const createHonoraires = useCreateHonorairesRecouvrement();
+  const createHonoraires = null; // Temporairement désactivé - sera implémenté avec l'API recouvrement
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,46 +77,19 @@ export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialo
       return;
     }
 
+    setLoading(true);
+    
     try {
-      // Generate reference
-      const { data: refData } = await supabase.rpc('generate_dossier_reference');
-      const reference = refData || `REC-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
-
-      const dossier = await createDossier.mutateAsync({
-        reference,
-        creancier_nom: formData.creancierNom,
-        creancier_telephone: formData.creancierTelephone || null,
-        creancier_email: formData.creancierEmail || null,
-        creancier_id: null,
-        debiteur_nom: formData.debiteurNom,
-        debiteur_telephone: formData.debiteurTelephone || null,
-        debiteur_email: formData.debiteurEmail || null,
-        debiteur_adresse: formData.debiteurAdresse || null,
-        debiteur_id: null,
-        montant_principal: montantPrincipal,
-        penalites_interets: penalites || null,
-        total_a_recouvrer: totalARecouvrer,
-        statut: 'EN_COURS',
-        notes: formData.notes || null,
-        created_by: user.id
-      });
-
-      // Create honoraires record if amount is set
-      if (calculatedHonoraires > 0 && dossier?.id) {
-        await createHonoraires.mutateAsync({
-          dossier_id: dossier.id,
-          type: formData.honorairesType === 'POURCENTAGE' ? 'POURCENTAGE' : 'FORFAIT',
-          pourcentage: formData.honorairesType === 'POURCENTAGE' ? parseFloat(formData.honorairesPourcentage) : null,
-          montant_prevu: calculatedHonoraires,
-          montant_paye: 0,
-          created_by: user.id
-        });
-      }
-
+      // Pour l'instant, on simule la création du dossier
+      // Cette fonctionnalité sera implémentée quand le module recouvrement sera ajouté au backend
+      toast.info('Fonctionnalité en cours de développement - Module recouvrement à venir');
+      
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      // Error handled in hook
+      toast.error('Erreur lors de la création du dossier');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -307,10 +277,19 @@ export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialo
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Annuler
             </Button>
-            <Button type="submit">Créer le dossier</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Création...
+                </>
+              ) : (
+                'Créer le dossier'
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

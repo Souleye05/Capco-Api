@@ -9,6 +9,19 @@ export enum AppRole {
   compta = 'compta',
 }
 
+// Interface User de base (compatible avec Prisma)
+export interface User {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  roles: string[];
+  migrationSource?: string;
+  requiresPasswordReset: boolean;
+  lastSignIn?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export enum StatutAffaire {
   ACTIVE = 'ACTIVE',
   CLOTUREE = 'CLOTUREE',

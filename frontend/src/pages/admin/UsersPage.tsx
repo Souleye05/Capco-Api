@@ -52,11 +52,9 @@ type AppRole = 'admin' | 'collaborateur' | 'compta';
 interface UserWithRole {
   id: string;
   email: string;
-  roles: AppRole[];
+  roles: string[];
   createdAt: string;
   emailVerified: boolean;
-  lastSignIn?: string;
-  migrationSource?: string;
 }
 
 interface AuditLogEntry {
@@ -85,8 +83,9 @@ const moduleLabels: Record<string, string> = {
 };
 
 export default function UsersPage() {
-  const { user: currentUser, isAdmin } = useNestJSAuth();
-  const { data: usersData, loading, createUser, refetch } = useUsers({ limit: 100 });
+  const { user: currentUser, isAuthenticated } = useNestJSAuth();
+  const { data: usersData, loading, createUser, deleteUser, assignRole, removeRole, refetch } = useUsers();
+  
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
@@ -101,8 +100,8 @@ export default function UsersPage() {
   const users = usersData?.users || [];
 
   useEffect(() => {
-    // TODO: Implement audit logs fetching from NestJS API
-    // For now, we'll use empty array
+    // Les utilisateurs sont chargés automatiquement par le hook useUsers
+    // Charger les logs d'audit (temporairement vide)
     setAuditLogs([]);
   }, []);
 
@@ -111,9 +110,12 @@ export default function UsersPage() {
     if (!validRoles.includes(newRole as AppRole)) return;
     
     try {
-      // TODO: Implement role change via NestJS API
-      toast.success('Rôle mis à jour');
-      refetch();
+      const result = await assignRole(userId, newRole);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success('Rôle mis à jour');
+      }
     } catch (error) {
       toast.error('Erreur lors de la mise à jour du rôle');
     }
@@ -139,17 +141,16 @@ export default function UsersPage() {
       });
 
       if (result.error) {
-        throw new Error(result.error);
+        toast.error(result.error);
+      } else {
+        toast.success(`Utilisateur ${newUserEmail} créé avec succès`);
+        setCreateDialogOpen(false);
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserRole('collaborateur');
       }
-
-      toast.success(`Utilisateur ${newUserEmail} créé avec succès`);
-      setCreateDialogOpen(false);
-      setNewUserEmail('');
-      setNewUserPassword('');
-      setNewUserRole('collaborateur');
-    } catch (error: any) {
-      console.error('Error creating user:', error);
-      toast.error(error.message || 'Erreur lors de la création de l\'utilisateur');
+    } catch (error) {
+      toast.error('Erreur lors de la création de l\'utilisateur');
     } finally {
       setCreating(false);
     }
@@ -276,8 +277,8 @@ export default function UsersPage() {
                     </TableHeader>
                     <TableBody>
                       {users.map((user) => {
-                        const userRole = user.roles[0] || 'collaborateur'; // Get first role
-                        const roleInfo = roleLabels[userRole] || roleLabels.collaborateur;
+                        const primaryRole = user.roles?.[0] || 'collaborateur';
+                        const roleInfo = roleLabels[primaryRole] || roleLabels.collaborateur;
                         const RoleIcon = roleInfo.icon;
                         
                         return (
@@ -294,7 +295,7 @@ export default function UsersPage() {
                             </TableCell>
                             <TableCell>
                               <Select
-                                value={userRole}
+                                value={primaryRole}
                                 onValueChange={(value) => handleChangeRole(user.id, value)}
                                 disabled={user.id === currentUser?.id}
                               >

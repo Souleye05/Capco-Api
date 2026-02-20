@@ -28,7 +28,7 @@ import {
   UserRoleDto,
 } from './dto/users.dto';
 import { PaginatedResponse } from '../common/dto/pagination.dto';
-import { AppRole } from '../types/prisma-enums';
+import { AppRole } from '@prisma/client';
 import { SecurityContext } from '../common/services/base-crud.service';
 
 interface AuthenticatedUser {
@@ -48,7 +48,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiResponse({ status: 200, description: 'List of users' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @Get()
   @AuditLog({ action: 'LIST', module: 'users', entityType: 'User' })
   async findAll(
@@ -82,7 +82,7 @@ export class UsersController {
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid user data' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @AuditLog({ action: 'CREATE', module: 'users', entityType: 'User' })
@@ -99,7 +99,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @Put(':id')
   @AuditLog({ action: 'UPDATE', module: 'users', entityType: 'User' })
   async update(
@@ -116,7 +116,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @Delete(':id')
   @AuditLog({ action: 'DELETE', module: 'users', entityType: 'User' })
   async remove(
@@ -147,7 +147,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @Post(':id/roles')
   @HttpCode(HttpStatus.OK)
   @AuditLog({ action: 'CREATE', module: 'users', entityType: 'UserRoles' })
@@ -166,7 +166,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @Delete(':id/roles/:role')
   @AuditLog({ action: 'DELETE', module: 'users', entityType: 'UserRoles' })
   async removeRole(
@@ -183,7 +183,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'List of users with the specified role' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   @ApiParam({ name: 'role', description: 'Role name', enum: AppRole })
-  @Roles('admin')
+  @Roles(AppRole.admin)
   @Get('role/:role')
   @AuditLog({ action: 'READ', module: 'users', entityType: 'User' })
   async getUsersByRole(

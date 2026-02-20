@@ -5,6 +5,7 @@ import { AuthService } from '../../src/auth/auth.service';
 import { UsersService } from '../../src/users/users.service';
 import { PrismaService } from '../../src/common/services/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { AppRole } from '@prisma/client';
 
 describe('Auth & Users Integration (E2E)', () => {
   let app: INestApplication;
@@ -99,7 +100,7 @@ describe('Auth & Users Integration (E2E)', () => {
         {
           email: testUsers.admin.email,
           password: testUsers.admin.password,
-          roles: ['admin'],
+          roles: [AppRole.admin],
         },
         adminSecurityContext,
       );
@@ -161,7 +162,7 @@ describe('Auth & Users Integration (E2E)', () => {
         role: 'compta',
       });
 
-      await usersService.assignRole('collab-id-456', 'compta', adminSecurityContext);
+      await usersService.assignRole('collab-id-456', AppRole.compta, adminSecurityContext);
 
       expect(prisma.userRoles.create).toHaveBeenCalledWith({
         data: {
@@ -197,7 +198,7 @@ describe('Auth & Users Integration (E2E)', () => {
       };
 
       await expect(
-        usersService.assignRole('collab-id-456', 'admin', userSecurityContext),
+        usersService.assignRole('collab-id-456', AppRole.admin, userSecurityContext),
       ).rejects.toThrow();
     });
   });
@@ -223,7 +224,7 @@ describe('Auth & Users Integration (E2E)', () => {
       });
 
       await expect(
-        usersService.removeRole('admin-id-123', 'admin', adminSecurityContext),
+        usersService.removeRole('admin-id-123', AppRole.admin, adminSecurityContext),
       ).rejects.toThrow();
     });
   });
@@ -250,7 +251,7 @@ describe('Auth & Users Integration (E2E)', () => {
       (prisma.user.count as jest.Mock).mockResolvedValueOnce(1);
 
       const result = await usersService.getUsersByRole(
-        'collaborateur',
+        AppRole.collaborateur,
         { page: 1, limit: 20 },
         adminSecurityContext,
       );

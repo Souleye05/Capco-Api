@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsEnum, IsArray, ValidateNested, IsNotEmpty, IsEmail } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { StatutAffaire, RolePartie } from '../../../types/prisma-enums';
+import { StatutAffaire, RolePartie } from '@prisma/client';
 
 export class PartieDto {
   @ApiProperty({ description: 'Nom de la partie' })

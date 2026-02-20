@@ -1,7 +1,45 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateAuditLogDto, AuditQueryDto, AuditLogResponseDto, PaginatedAuditResponse } from './dto/audit.dto';
-import { Prisma } from '@prisma/client';
+
+// Types de remplacement pour AuditLog
+interface AuditLogWhereInput {
+  AND?: AuditLogWhereInput[];
+  OR?: AuditLogWhereInput[];
+  action?: { contains?: string; mode?: 'insensitive' };
+  entityType?: { contains?: string; mode?: 'insensitive' };
+  entityId?: { contains?: string; mode?: 'insensitive' };
+  userId?: { contains?: string; mode?: 'insensitive' };
+  userEmail?: { contains?: string; mode?: 'insensitive' };
+  module?: { contains?: string; mode?: 'insensitive' };
+  entityReference?: { contains?: string; mode?: 'insensitive' };
+  createdAt?: DateTimeFilter;
+}
+
+interface DateTimeFilter {
+  gte?: Date;
+  lte?: Date;
+}
+
+interface AuditLogOrderByWithRelationInput {
+  createdAt?: 'asc' | 'desc';
+}
+
+interface AuditLogGetPayload {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  userId: string;
+  userEmail: string;
+  module: string;
+  entityReference: string;
+  oldValues?: any;
+  newValues?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: Date;
+}
 
 @Injectable()
 export class AuditService {
@@ -53,11 +91,16 @@ export class AuditService {
     const safeSortBy = this.allowedSortFields.includes(sortBy as any) ? sortBy : 'createdAt';
 
     // Build where clause
-    const where: Prisma.AuditLogWhereInput = {};
-    const conditions: Prisma.AuditLogWhereInput[] = [];
+    const where: AuditLogWhereInput = {};
+    const conditions: AuditLogWhereInput[] = [];
 
     if (userId) {
-      conditions.push({ userId });
+      conditions.push({ 
+        userId: {
+          contains: userId,
+          mode: 'insensitive',
+        }
+      });
     }
 
     if (module) {
@@ -88,11 +131,16 @@ export class AuditService {
     }
 
     if (entityId) {
-      conditions.push({ entityId });
+      conditions.push({ 
+        entityId: {
+          contains: entityId,
+          mode: 'insensitive',
+        }
+      });
     }
 
     if (fromDate || toDate) {
-      const dateCondition: Prisma.DateTimeFilter = {};
+      const dateCondition: DateTimeFilter = {};
       if (fromDate) {
         dateCondition.gte = new Date(fromDate);
       }
@@ -104,7 +152,7 @@ export class AuditService {
 
     // Gestion du search avec AND pour éviter les conflits
     if (search) {
-      const searchCondition: Prisma.AuditLogWhereInput = {
+      const searchCondition: AuditLogWhereInput = {
         OR: [
           { userEmail: { contains: search, mode: 'insensitive' } },
           { action: { contains: search, mode: 'insensitive' } },
@@ -122,7 +170,7 @@ export class AuditService {
     }
 
     // Build orderBy clause avec le champ sécurisé
-    const orderBy: Prisma.AuditLogOrderByWithRelationInput = {};
+    const orderBy: AuditLogOrderByWithRelationInput = {};
     orderBy[safeSortBy] = sortOrder;
 
     try {
@@ -185,7 +233,7 @@ export class AuditService {
     moduleBreakdown: { module: string; count: number }[];
     topUsers: { userId: string; userEmail: string; count: number }[];
   }> {
-    const where: Prisma.AuditLogWhereInput = {};
+    const where: AuditLogWhereInput = {};
 
     if (fromDate || toDate) {
       where.createdAt = {};
@@ -270,7 +318,7 @@ export class AuditService {
   /**
    * Map database model to response DTO
    */
-  private mapToResponseDto(auditLog: Prisma.AuditLogGetPayload<{}>): AuditLogResponseDto {
+  private mapToResponseDto(auditLog: AuditLogGetPayload): AuditLogResponseDto {
     return {
       id: auditLog.id,
       userId: auditLog.userId,

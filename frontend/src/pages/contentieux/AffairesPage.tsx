@@ -24,6 +24,7 @@ import { useAffaires } from '@/hooks/useAffaires';
 import { cn } from '@/lib/utils';
 
 const statutConfig = {
+  ACTIVE: { label: 'Active', className: 'bg-success/10 text-success border-success/20' },
   EN_COURS: { label: 'En cours', className: 'bg-success/10 text-success border-success/20' },
   CLOTUREE: { label: 'Clôturée', className: 'bg-muted text-muted-foreground border-muted' },
   RADIEE: { label: 'Radiée', className: 'bg-destructive/10 text-destructive border-destructive/20' },
@@ -47,7 +48,7 @@ export default function AffairesPage() {
 
   const stats = {
     total: affaires.length,
-    actives: affaires.filter(a => a.statut === 'EN_COURS').length,
+    actives: affaires.filter(a => a.statut === 'ACTIVE' || a.statut === 'EN_COURS').length,
     cloturees: affaires.filter(a => a.statut === 'CLOTUREE').length,
     radiees: affaires.filter(a => a.statut === 'RADIEE').length,
   };
@@ -111,6 +112,7 @@ export default function AffairesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
               <SelectItem value="EN_COURS">En cours</SelectItem>
               <SelectItem value="CLOTUREE">Clôturée</SelectItem>
               <SelectItem value="RADIEE">Radiée</SelectItem>
@@ -145,7 +147,7 @@ export default function AffairesPage() {
                   {filteredAffaires.map((affaire) => {
                     const demandeurs = affaire.parties?.filter(p => p.role === 'DEMANDEUR') || [];
                     const defendeurs = affaire.parties?.filter(p => p.role === 'DEFENDEUR') || [];
-                    const config = statutConfig[affaire.statut];
+                    const config = statutConfig[affaire.statut] || statutConfig.ACTIVE; // Fallback to ACTIVE if status not found
                     
                     return (
                       <tr 

@@ -57,6 +57,20 @@ import {
 } from '@/hooks/useHonorairesDepenses';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
+// Utility function to safely format dates
+const safeFormatDate = (date: string | Date | null | undefined, formatStr: string, options?: { locale?: any }): string => {
+  if (!date) return 'Date non disponible';
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return 'Date non disponible';
+    return format(dateObj, formatStr, options);
+  } catch (error) {
+    console.error('Error formatting date:', error, date);
+    return 'Date non disponible';
+  }
+};
+
 const typeDepenseLabels: Record<TypeDepenseDossier, string> = {
   FRAIS_HUISSIER: 'Frais d\'huissier',
   FRAIS_GREFFE: 'Frais de greffe',
@@ -446,7 +460,9 @@ export default function AffaireDetailPage() {
               <Separator />
               <div>
                 <span className="text-sm text-muted-foreground">Créée le</span>
-                <p className="font-medium">{format(new Date(affaire.created_at), 'dd MMMM yyyy', { locale: fr })}</p>
+                <p className="font-medium">
+                  {safeFormatDate(affaire.createdAt, 'dd MMMM yyyy', { locale: fr })}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -525,7 +541,7 @@ export default function AffaireDetailPage() {
                           {paiementsHonoraires.map((paiement, idx) => (
                             <tr key={paiement.id} className={idx % 2 === 0 ? '' : 'bg-muted/20'}>
                               <td className="px-4 py-3">
-                                {format(new Date(paiement.date), 'dd/MM/yyyy')}
+                                {safeFormatDate(paiement.date, 'dd/MM/yyyy')}
                               </td>
                               <td className="px-4 py-3 font-medium text-success">
                                 {formatCurrency(Number(paiement.montant))}
@@ -591,7 +607,7 @@ export default function AffaireDetailPage() {
                     {depenses.map((depense, idx) => (
                       <tr key={depense.id} className={idx % 2 === 0 ? '' : 'bg-muted/20'}>
                         <td className="px-4 py-3">
-                          {format(new Date(depense.date), 'dd/MM/yyyy')}
+                          {safeFormatDate(depense.date, 'dd/MM/yyyy')}
                         </td>
                         <td className="px-4 py-3">
                           <Badge variant="outline">
@@ -687,7 +703,7 @@ export default function AffaireDetailPage() {
                                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                                   <span className="flex items-center gap-1 font-medium text-foreground">
                                     <Calendar className="h-4 w-4" />
-                                    {format(new Date(audience.date), 'EEEE dd MMMM yyyy', { locale: fr })}
+                                    {safeFormatDate(audience.date, 'EEEE dd MMMM yyyy', { locale: fr })}
                                   </span>
                                   {audience.heure && (
                                     <span className="flex items-center gap-1">
@@ -809,7 +825,7 @@ export default function AffaireDetailPage() {
                     {audiencesChronologiques.map((audience, idx) => (
                       <tr key={audience.id} className={idx % 2 === 0 ? '' : 'bg-muted/20'}>
                         <td className="px-4 py-3">
-                          {format(new Date(audience.date), 'dd/MM/yyyy')}
+                          {safeFormatDate(audience.date, 'dd/MM/yyyy')}
                           {audience.heure && <span className="text-muted-foreground"> - {audience.heure}</span>}
                         </td>
                         <td className="px-4 py-3">{objetLabels[audience.objet] || audience.objet}</td>
@@ -836,7 +852,7 @@ export default function AffaireDetailPage() {
             
             {/* Footer */}
             <div className="text-center text-sm text-muted-foreground">
-              <p>Rapport généré le {format(new Date(), 'dd/MM/yyyy à HH:mm', { locale: fr })}</p>
+              <p>Rapport généré le {safeFormatDate(new Date(), 'dd/MM/yyyy à HH:mm', { locale: fr })}</p>
               <p>Cabinet CAPCO - Contentieux</p>
             </div>
           </div>

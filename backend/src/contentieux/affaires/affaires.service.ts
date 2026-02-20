@@ -20,6 +20,12 @@ export class AffairesService {
    * Créer une nouvelle affaire avec génération automatique de référence
    */
   async create(createAffaireDto: CreateAffaireDto, userId: string): Promise<AffaireResponseDto> {
+    // Vérifier que userId est bien une string
+    if (typeof userId !== 'string') {
+      console.error('userId is not a string:', userId);
+      throw new BadRequestException('Invalid user ID format');
+    }
+
     // Générer une référence unique
     const reference = await this.referenceGenerator.generateAffaireReference();
 

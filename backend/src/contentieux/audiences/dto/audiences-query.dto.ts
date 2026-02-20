@@ -6,7 +6,6 @@ import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
 export class AudiencesQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Filtrer par ID d\'affaire' })
   @IsOptional()
-  @IsUUID()
   affaireId?: string;
 
   @ApiPropertyOptional({ enum: StatutAudience, description: 'Filtrer par statut' })

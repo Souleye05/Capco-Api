@@ -28,7 +28,7 @@ export const LABELS_STATUT_AUDIENCE: Record<StatutAudience, string> = {
  * Labels français pour les statuts d'affaire
  */
 export const LABELS_STATUT_AFFAIRE: Record<StatutAffaire, string> = {
-  EN_COURS: 'En cours',
+  ACTIVE: 'Active',
   CLOTUREE: 'Clôturée',
   RADIEE: 'Radiée',
 };

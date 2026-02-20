@@ -7,7 +7,7 @@ export interface AffaireDB {
   id: string;
   reference: string;
   intitule: string;
-  statut: 'EN_COURS' | 'CLOTUREE' | 'RADIEE';
+  statut: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
   observations?: string;
   parties: Array<{
     id: string;
@@ -42,13 +42,13 @@ export interface CreateAffaireData {
     telephone?: string;
     email?: string;
   }>;
-  statut?: 'EN_COURS' | 'CLOTUREE' | 'RADIEE';
+  statut?: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
   observations?: string;
 }
 
 export interface UpdateAffaireData {
   intitule?: string;
-  statut?: 'EN_COURS' | 'CLOTUREE' | 'RADIEE';
+  statut?: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
   observations?: string;
 }
 

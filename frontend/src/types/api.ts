@@ -59,7 +59,7 @@ export interface PartieResponse {
 /**
  * Statuts d'affaire
  */
-export type StatutAffaire = 'EN_COURS' | 'CLOTUREE' | 'RADIEE';
+export type StatutAffaire = 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
 
 /**
  * Interface affaire (modèle Affaire)

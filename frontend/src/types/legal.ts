@@ -1,7 +1,7 @@
 // Types pour l'application Planning Juridique
 // Note: Ces types sont pour l'affichage frontend. Les types API sont dans types/api.ts
 
-export type StatutAffaire = 'EN_COURS' | 'CLOTUREE' | 'RADIEE';
+export type StatutAffaire = 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
 
 export type StatutAudience = 'A_VENIR' | 'TENUE' | 'NON_RENSEIGNEE';
 

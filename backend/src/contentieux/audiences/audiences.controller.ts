@@ -15,7 +15,8 @@ import { AudiencesService } from './audiences.service';
 import { CreateAudienceDto } from './dto/create-audience.dto';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { AudienceResponseDto } from './dto/audience-response.dto';
-import { PaginationQueryDto, PaginatedResponse } from '../../common/dto/pagination.dto';
+import { AudiencesQueryDto } from './dto/audiences-query.dto';
+import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -48,10 +49,9 @@ export class AudiencesController {
   @ApiQuery({ name: 'affaireId', required: false, description: 'Filtrer par ID d\'affaire' })
   @ApiResponse({ status: 200, description: 'Liste des audiences récupérée avec succès' })
   async findAll(
-    @Query() pagination: PaginationQueryDto,
-    @Query('affaireId') affaireId?: string,
+    @Query() query: AudiencesQueryDto,
   ): Promise<PaginatedResponse<AudienceResponseDto>> {
-    return this.audiencesService.findAll({ ...pagination, affaireId });
+    return this.audiencesService.findAll(query);
   }
 
   @Get(':id')

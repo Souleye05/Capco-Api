@@ -95,7 +95,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
               </SelectTrigger>
               <SelectContent>
                 {affaires
-                  .filter(a => a.statut === 'ACTIVE' || a.statut === 'EN_COURS')
+                  .filter(a => a.statut === 'ACTIVE')
                   .map((affaire) => (
                     <SelectItem key={affaire.id} value={affaire.id}>
                       {affaire.reference} - {affaire.intitule}

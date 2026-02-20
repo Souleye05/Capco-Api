@@ -20,6 +20,7 @@ import {
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { AppRole } from '@prisma/client';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 
@@ -53,6 +54,7 @@ export class JuridictionsController {
   }
 
   @Get('active')
+  @Public() // Rendre cet endpoint public pour le frontend
   @ApiOperation({ summary: 'Récupérer toutes les juridictions actives' })
   @ApiResponse({
     status: 200,

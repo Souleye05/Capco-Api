@@ -20,8 +20,8 @@ export const LABELS_TYPE_AUDIENCE: Record<TypeAudience, string> = {
  */
 export const LABELS_STATUT_AUDIENCE: Record<StatutAudience, string> = {
   A_VENIR: 'À venir',
-  TENUE: 'Tenue',
-  NON_RENSEIGNEE: 'Non renseignée',
+  PASSEE_NON_RENSEIGNEE: 'Non renseignée',
+  RENSEIGNEE: 'Renseignée',
 };
 
 /**

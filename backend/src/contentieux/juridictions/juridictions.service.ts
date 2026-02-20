@@ -16,6 +16,32 @@ interface Juridiction {
   updatedAt: Date;
 }
 
+// Interface pour les données de la base (snake_case)
+interface JuridictionDb {
+  id: string;
+  nom: string;
+  code?: string;
+  description?: string;
+  ordre: number;
+  est_actif: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Fonction utilitaire pour mapper les données de la base vers l'interface
+function mapJuridictionFromDb(dbJuridiction: JuridictionDb): Juridiction {
+  return {
+    id: dbJuridiction.id,
+    nom: dbJuridiction.nom,
+    code: dbJuridiction.code,
+    description: dbJuridiction.description,
+    ordre: dbJuridiction.ordre,
+    estActif: dbJuridiction.est_actif,
+    createdAt: dbJuridiction.created_at,
+    updatedAt: dbJuridiction.updated_at,
+  };
+}
+
 @Injectable()
 export class JuridictionsService {
   constructor(
@@ -24,9 +50,10 @@ export class JuridictionsService {
   ) {}
 
   async create(createJuridictionDto: CreateJuridictionDto): Promise<Juridiction> {
-    return (this.prisma as any).juridiction.create({
+    const result = await (this.prisma as any).juridictions.create({
       data: createJuridictionDto,
     });
+    return mapJuridictionFromDb(result as JuridictionDb);
   }
 
   async findAll(query: JuridictionsQueryDto): Promise<PaginatedResponse<Juridiction>> {
@@ -48,7 +75,7 @@ export class JuridictionsService {
     }
 
     return this.paginationService.paginate(
-      (this.prisma as any).juridiction,
+      (this.prisma as any).juridictions,
       paginationQuery,
       {
         where,
@@ -59,37 +86,41 @@ export class JuridictionsService {
   }
 
   async findOne(id: string): Promise<Juridiction> {
-    return (this.prisma as any).juridiction.findUniqueOrThrow({
+    const result = await (this.prisma as any).juridictions.findUniqueOrThrow({
       where: { id },
     });
+    return mapJuridictionFromDb(result as JuridictionDb);
   }
 
   async update(id: string, updateJuridictionDto: UpdateJuridictionDto): Promise<Juridiction> {
-    return (this.prisma as any).juridiction.update({
+    const result = await (this.prisma as any).juridictions.update({
       where: { id },
       data: updateJuridictionDto,
     });
+    return mapJuridictionFromDb(result as JuridictionDb);
   }
 
   async remove(id: string): Promise<void> {
-    await (this.prisma as any).juridiction.delete({
+    await (this.prisma as any).juridictions.delete({
       where: { id },
     });
   }
 
   async findActive(): Promise<Juridiction[]> {
-    return (this.prisma as any).juridiction.findMany({
-      where: { estActif: true },
+    const results = await (this.prisma as any).juridictions.findMany({
+      where: { est_actif: true },
       orderBy: { ordre: 'asc' },
     });
+    return results.map(result => mapJuridictionFromDb(result as JuridictionDb));
   }
 
   async search(search: string, limit: number = 10): Promise<Juridiction[]> {
-    return this.paginationService.searchOnly(
-      (this.prisma as any).juridiction,
+    const results = await this.paginationService.searchOnly(
+      (this.prisma as any).juridictions,
       search,
       ['nom', 'code', 'description'],
       limit,
     );
+    return results.map(result => mapJuridictionFromDb(result as JuridictionDb));
   }
 }

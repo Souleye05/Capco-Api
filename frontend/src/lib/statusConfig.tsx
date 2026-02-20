@@ -11,7 +11,7 @@ export const COULEURS_STATUT = {
     buttonHover: 'hover:bg-info/10 hover:text-info hover:border-info/50',
     dot: 'bg-info',
   },
-  TENUE: {
+  RENSEIGNEE: {
     bg: 'bg-success/10',
     border: 'border-success/20',
     text: 'text-success',
@@ -20,7 +20,7 @@ export const COULEURS_STATUT = {
     buttonHover: 'hover:bg-success/10 hover:text-success hover:border-success/50',
     dot: 'bg-success',
   },
-  NON_RENSEIGNEE: {
+  PASSEE_NON_RENSEIGNEE: {
     bg: 'bg-destructive/10',
     border: 'border-destructive/20',
     text: 'text-destructive',
@@ -33,14 +33,14 @@ export const COULEURS_STATUT = {
 
 export const ICONES_STATUT = {
   A_VENIR: Clock,
-  TENUE: CheckCircle,
-  NON_RENSEIGNEE: AlertCircle,
+  RENSEIGNEE: CheckCircle,
+  PASSEE_NON_RENSEIGNEE: AlertCircle,
 } as const;
 
 export const LABELS_STATUT = {
   A_VENIR: 'À venir',
-  TENUE: 'Tenue',
-  NON_RENSEIGNEE: 'À renseigner',
+  RENSEIGNEE: 'Renseignée',
+  PASSEE_NON_RENSEIGNEE: 'Non renseignée',
 } as const;
 
 export function getClasseStatut(statut: StatutAudience): string {

@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAffaires } from '@/hooks/useAffaires';
 import { useCreateAudience } from '@/hooks/useAudiences';
+import { useJuridictionsActives } from '@/hooks/useJuridictions';
 
 interface NouvelleAudienceDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface NouvelleAudienceDialogProps {
 
 export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireId }: NouvelleAudienceDialogProps) {
   const { data: affaires = [], isLoading: affairesLoading } = useAffaires();
+  const { data: juridictions = [], isLoading: juridictionsLoading } = useJuridictionsActives();
   const createAudience = useCreateAudience();
   
   const [formData, setFormData] = useState({
@@ -134,6 +136,11 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               />
+              {formData.date && new Date(formData.date) < new Date() && (
+                <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
+                  ⚠️ Date passée : le statut sera automatiquement défini sur "Non renseigné"
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="heure">Heure</Label>
@@ -152,17 +159,17 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
             <Select
               value={formData.juridiction}
               onValueChange={(value) => setFormData({ ...formData, juridiction: value })}
+              disabled={juridictionsLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner la juridiction" />
+                <SelectValue placeholder={juridictionsLoading ? "Chargement..." : "Sélectionner la juridiction"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Tribunal de Commerce de Dakar">Tribunal de Commerce de Dakar</SelectItem>
-                <SelectItem value="Tribunal de Grande Instance de Dakar">Tribunal de Grande Instance de Dakar</SelectItem>
-                <SelectItem value="Tribunal du Travail de Dakar">Tribunal du Travail de Dakar</SelectItem>
-                <SelectItem value="Cour d'Appel de Dakar">Cour d'Appel de Dakar</SelectItem>
-                <SelectItem value="Tribunal Régional de Thiès">Tribunal Régional de Thiès</SelectItem>
-                <SelectItem value="Tribunal Régional de Saint-Louis">Tribunal Régional de Saint-Louis</SelectItem>
+                {juridictions.map((juridiction) => (
+                  <SelectItem key={juridiction.id} value={juridiction.nom}>
+                    {juridiction.nom}
+                  </SelectItem>
+                ))}
                 <SelectItem value="Autre">Autre</SelectItem>
               </SelectContent>
             </Select>
@@ -213,7 +220,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
             </Button>
             <Button 
               type="submit" 
-              disabled={createAudience.isPending || affairesLoading}
+              disabled={createAudience.isPending || affairesLoading || juridictionsLoading}
             >
               {createAudience.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Créer l'audience

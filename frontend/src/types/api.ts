@@ -91,7 +91,7 @@ export type TypeAudience =
 /**
  * Statuts d'audience
  */
-export type StatutAudience = 'A_VENIR' | 'TENUE' | 'NON_RENSEIGNEE';
+export type StatutAudience = 'A_VENIR' | 'PASSEE_NON_RENSEIGNEE' | 'RENSEIGNEE';
 
 /**
  * Types de résultat d'audience

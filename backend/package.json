@@ -28,6 +28,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:reset": "prisma migrate reset",
     "seed:dev": "ts-node -r tsconfig-paths/register prisma/seed.ts",
+    "seed:juridictions": "ts-node -r tsconfig-paths/register scripts/seed-juridictions.ts",
     "migrate:juridiction-fields": "ts-node -r tsconfig-paths/register scripts/migrate-juridiction-fields.ts",
     "build:clean": "rimraf dist",
     "build:prod": "npm run build:clean && npm run build",

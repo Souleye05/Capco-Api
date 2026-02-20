@@ -68,18 +68,18 @@ export function useAffaires() {
 }
 
 // Hook pour récupérer une affaire par ID
-export function useAffaire(id: string) {
+export function useAffaire(id: string | undefined) {
   return useQuery({
     queryKey: ['affaires', id],
     queryFn: async (): Promise<AffaireDB | null> => {
-      if (!id) return null;
+      if (!id || id === 'undefined') return null;
       const response = await nestjsApi.get<AffaireDB>(`/contentieux/affaires/${id}`);
       if (response.error) {
         throw new Error(response.error);
       }
       return response.data || null;
     },
-    enabled: !!id,
+    enabled: !!id && id !== 'undefined',
     staleTime: 5 * 60 * 1000,
   });
 }

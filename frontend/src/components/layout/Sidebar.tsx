@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Banknote,
@@ -23,6 +23,7 @@ import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import capcoLogo from '@/assets/capco-logo.png';
+import { mockAlertes } from '@/data/mockData';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface NavItemConfig {
@@ -142,6 +143,14 @@ export function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, roles, signOut, isAdmin } = useNestJSAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Sync sidebar width with layout
+  useEffect(() => {
+    const width = isCollapsed ? '80px' : '256px';
+    document.documentElement.style.setProperty('--sidebar-width', width);
+  }, [isCollapsed]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -149,8 +158,9 @@ export function Sidebar() {
   };
 
   const userInitials = user?.email?.substring(0, 2).toUpperCase() || 'U';
-  const primaryRole = roles?.[0] || 'collaborateur';
-  const roleInfo = primaryRole ? roleLabels[primaryRole] : roleLabels.collaborateur;
+  const userName = user?.email?.split('@')[0] || 'Utilisateur';
+
+  const unreadAlerts = mockAlertes.filter(a => !a.lu).length;
 
   const navItems: NavItemConfig[] = [
     { to: '/', icon: <LayoutDashboard className="h-4 w-4" />, label: 'Tableau de bord' },
@@ -201,11 +211,10 @@ export function Sidebar() {
   ];
 
   const adminItems: NavItemConfig[] = [
-    { to: '/alertes', icon: <Bell className="h-4 w-4" />, label: 'Alertes', badge: 3 },
     ...(isAdmin ? [{ to: '/utilisateurs', icon: <Users className="h-4 w-4" />, label: 'Utilisateurs' }] : []),
   ];
 
-  const sidebarWidth = isCollapsed ? 'w-16' : 'w-60';
+  const sidebarWidth = isCollapsed ? 'w-20' : 'w-64';
 
   return (
     <>
@@ -213,7 +222,7 @@ export function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-3 left-3 z-50 lg:hidden h-9 w-9"
+        className="fixed top-3 left-3 z-50 lg:hidden h-9 w-9 bg-background/80 backdrop-blur-md shadow-sm border border-border"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
         {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -222,7 +231,7 @@ export function Sidebar() {
       {/* Mobile overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -230,25 +239,30 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-200 ease-in-out',
+          'fixed top-0 left-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out',
           sidebarWidth,
-          'lg:translate-x-0',
-          isMobileOpen ? 'translate-x-0 w-60' : '-translate-x-full'
+          'lg:translate-x-0 overflow-hidden',
+          isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full'
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo + Collapse toggle */}
+          {/* Logo Section */}
           <div className={cn(
-            "h-14 flex items-center border-b border-sidebar-border shrink-0",
-            isCollapsed ? "justify-center px-2" : "justify-between px-4"
+            "h-16 flex items-center border-b border-sidebar-border/50 shrink-0 transition-all duration-300",
+            isCollapsed ? "justify-center px-2" : "justify-between px-6"
           )}>
             {!isCollapsed && (
-              <img src={capcoLogo} alt="CAPCO" className="h-8 w-auto object-contain" />
+              <img
+                src={capcoLogo}
+                alt="CAPCO"
+                className="h-9 w-auto object-contain cursor-pointer transition-transform hover:scale-105"
+                onClick={() => navigate('/')}
+              />
             )}
             <Button
               variant="ghost"
               size="icon"
-              className="hidden lg:flex h-8 w-8 text-sidebar-foreground/50 hover:text-sidebar-foreground"
+              className="hidden lg:flex h-8 w-8 text-sidebar-foreground/40 hover:text-primary hover:bg-primary/5 transition-all"
               onClick={() => setIsCollapsed(!isCollapsed)}
             >
               {isCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
@@ -256,82 +270,86 @@ export function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+          <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1.5 scrollbar-hide">
             {navItems.map((item) => (
               <NavItem key={item.to} {...item} collapsed={isCollapsed} />
             ))}
 
             {!isCollapsed && (
-              <div className="pt-4 pb-1.5 px-3">
-                <p className="text-[10px] font-semibold text-sidebar-foreground/30 uppercase tracking-widest">
-                  Modules
+              <div className="pt-6 pb-2 px-4">
+                <p className="text-[10px] font-bold text-sidebar-foreground/20 uppercase tracking-widest">
+                  Écosystèmes
                 </p>
               </div>
             )}
-            {isCollapsed && <div className="my-2 border-t border-sidebar-border" />}
+            {isCollapsed && <div className="my-4 border-t border-sidebar-border/50 mx-4" />}
 
             {moduleItems.map((item) => (
               <NavItem key={item.to} {...item} collapsed={isCollapsed} />
             ))}
 
-            {!isCollapsed && (
-              <div className="pt-4 pb-1.5 px-3">
-                <p className="text-[10px] font-semibold text-sidebar-foreground/30 uppercase tracking-widest">
-                  Administration
-                </p>
-              </div>
+            {(adminItems.length > 0) && (
+              <>
+                {!isCollapsed && (
+                  <div className="pt-6 pb-2 px-4">
+                    <p className="text-[10px] font-bold text-sidebar-foreground/20 uppercase tracking-widest">
+                      Administration
+                    </p>
+                  </div>
+                )}
+                {isCollapsed && <div className="my-4 border-t border-sidebar-border/50 mx-4" />}
+                {adminItems.map((item) => (
+                  <NavItem key={item.to} {...item} collapsed={isCollapsed} />
+                ))}
+              </>
             )}
-            {isCollapsed && <div className="my-2 border-t border-sidebar-border" />}
-
-            {adminItems.map((item) => (
-              <NavItem key={item.to} {...item} collapsed={isCollapsed} />
-            ))}
           </nav>
 
-          {/* Footer */}
+          {/* Footer Section - REDESIGNED */}
           <div className={cn(
-            "border-t border-sidebar-border p-2 space-y-1",
-            isCollapsed && "flex flex-col items-center"
+            "mt-auto border-t border-sidebar-border bg-sidebar-accent/30 p-4 transition-all duration-300",
+            isCollapsed ? "items-center" : "space-y-4"
           )}>
-            <ThemeToggle variant="sidebar" />
-            
-            {!isCollapsed ? (
-              <div className="flex items-center gap-2 px-2 py-1.5">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-semibold text-primary">{userInitials}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-sidebar-foreground truncate">
-                    {user?.email || 'Utilisateur'}
-                  </p>
-                  <Badge className={cn('text-[10px] h-4', roleInfo.color)} variant="secondary">
-                    {roleInfo.label}
-                  </Badge>
-                </div>
-              </div>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-xs font-semibold text-primary">{userInitials}</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">{user?.email}</TooltipContent>
-              </Tooltip>
-            )}
 
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={cn(
-                "w-full text-sidebar-foreground/50 hover:text-sidebar-foreground h-8",
-                isCollapsed ? "px-0 justify-center" : "justify-start"
+
+            {/* 2. User Info */}
+            <div className={cn(
+              "flex items-center gap-3 rounded-2xl p-2 transition-all duration-300",
+              !isCollapsed && "hover:bg-sidebar-accent cursor-pointer group"
+            )}>
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 shadow-sm border border-primary/20 group-hover:border-primary/40 transition-all">
+                <span className="text-sm font-bold text-primary">{userInitials}</span>
+              </div>
+              {!isCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-sidebar-foreground truncate capitalize">
+                    {userName}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate uppercase tracking-tighter">
+                    {roles?.[0] || 'Collaborateur'}
+                  </p>
+                </div>
               )}
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-4 w-4" />
-              {!isCollapsed && <span className="ml-2 text-xs">Déconnexion</span>}
-            </Button>
+            </div>
+
+            {/* 3. Logout */}
+            <div className={cn(
+              "flex items-center gap-2",
+              isCollapsed ? "flex-col" : "justify-between"
+            )}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-10 rounded-xl transition-all",
+                  isCollapsed ? "w-10 hover:bg-destructive/10 hover:text-destructive" : "flex-1 justify-start px-3 hover:bg-destructive/10 hover:text-destructive"
+                )}
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+                {!isCollapsed && <span className="ml-3 text-sm font-medium">Déconnexion</span>}
+              </Button>
+            </div>
           </div>
         </div>
       </aside>

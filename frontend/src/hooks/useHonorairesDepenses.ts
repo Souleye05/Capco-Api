@@ -106,7 +106,7 @@ export function useHonorairesContentieux(affaireId?: string) {
   return useQuery({
     queryKey: ['honoraires', 'affaire', affaireId],
     queryFn: async (): Promise<HonoraireDB | null> => {
-      if (!affaireId) return null;
+      if (!affaireId || affaireId === 'undefined') return null;
       const response = await nestjsApi.request<{ data: HonoraireDB[] }>(`/contentieux/honoraires?affaireId=${affaireId}`);
       if (response.error) {
         throw new Error(response.error);
@@ -114,7 +114,7 @@ export function useHonorairesContentieux(affaireId?: string) {
       // Retourner le premier honoraire trouvé (il ne devrait y en avoir qu'un par affaire)
       return response.data?.data?.[0] || null;
     },
-    enabled: !!affaireId,
+    enabled: !!affaireId && affaireId !== 'undefined', // Only run query if affaireId is defined and not 'undefined'
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -191,7 +191,7 @@ export function usePaiementsHonorairesContentieux(honorairesId?: string) {
       }
       return response.data?.data || [];
     },
-    enabled: !!honorairesId,
+    enabled: !!honorairesId, // Only run query if honorairesId is defined
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -231,14 +231,14 @@ export function useDepensesAffaire(affaireId?: string) {
   return useQuery({
     queryKey: ['depenses', 'affaire', affaireId],
     queryFn: async (): Promise<DepenseDB[]> => {
-      if (!affaireId) return [];
+      if (!affaireId || affaireId === 'undefined') return [];
       const response = await nestjsApi.request<{ data: DepenseDB[] }>(`/contentieux/depenses?affaireId=${affaireId}`);
       if (response.error) {
         throw new Error(response.error);
       }
       return response.data?.data || [];
     },
-    enabled: !!affaireId,
+    enabled: !!affaireId && affaireId !== 'undefined', // Only run query if affaireId is defined and not 'undefined'
     staleTime: 5 * 60 * 1000,
   });
 }

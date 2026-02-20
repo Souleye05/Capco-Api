@@ -113,11 +113,31 @@ export default function AffaireDetailPage() {
   const navigate = useNavigate();
   const { user } = useNestJSAuth();
   
+  // Ensure we have a valid ID before making API calls
+  const affaireId = id && id !== 'undefined' ? id : undefined;
+  
+  // Early return if no valid ID is provided
+  if (!affaireId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+          <h2 className="text-xl font-semibold mb-2">Affaire non trouvée</h2>
+          <p className="text-muted-foreground mb-4">L'identifiant de l'affaire est manquant ou invalide.</p>
+          <Button onClick={() => navigate('/contentieux/affaires')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux affaires
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
   // Fetch data from database
-  const { data: affaire, isLoading: loadingAffaire } = useAffaire(id || '');
-  const { data: audiences = [], isLoading: loadingAudiences } = useAudiencesByAffaire(id || '');
-  const { data: honoraires, isLoading: loadingHonoraires } = useHonorairesContentieux(id);
-  const { data: depenses = [], isLoading: loadingDepenses } = useDepensesAffaire(id);
+  const { data: affaire, isLoading: loadingAffaire } = useAffaire(affaireId);
+  const { data: audiences = [], isLoading: loadingAudiences } = useAudiencesByAffaire(affaireId);
+  const { data: honoraires, isLoading: loadingHonoraires } = useHonorairesContentieux(affaireId);
+  const { data: depenses = [], isLoading: loadingDepenses } = useDepensesAffaire(affaireId);
   const { data: paiementsHonoraires = [] } = usePaiementsHonorairesContentieux(honoraires?.id);
   
   // Mutations

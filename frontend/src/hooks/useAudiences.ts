@@ -91,18 +91,18 @@ export function useAudiences() {
 }
 
 // Hook pour récupérer les audiences d'une affaire
-export function useAudiencesByAffaire(affaireId: string) {
+export function useAudiencesByAffaire(affaireId: string | undefined) {
   return useQuery({
     queryKey: ['audiences', 'affaire', affaireId],
     queryFn: async () => {
-      if (!affaireId) return [];
+      if (!affaireId || affaireId === 'undefined') return [];
       const response = await nestjsApi.getAudiences({ affaireId });
       if (response.error) {
         throw new Error(response.error);
       }
       return response.data?.data || [];
     },
-    enabled: !!affaireId,
+    enabled: !!affaireId && affaireId !== 'undefined',
     staleTime: 5 * 60 * 1000,
   });
 }

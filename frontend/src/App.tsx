@@ -13,6 +13,8 @@ import AffairesPage from "@/pages/contentieux/AffairesPage";
 import AffaireDetailPage from "@/pages/contentieux/AffaireDetailPage";
 import AudiencesPage from "@/pages/contentieux/AudiencesPage";
 import { AudienceDetailsPage } from "@/pages/contentieux/AudienceDetailsPage";
+import HonorairesPage from "@/pages/contentieux/HonorairesPage";
+import DepensesPage from "@/pages/contentieux/DepensesPage";
 import DossiersPage from "@/pages/recouvrement/DossiersPage";
 import DossierDetailPage from "@/pages/recouvrement/DossierDetailPage";
 import PaiementsPage from "@/pages/recouvrement/PaiementsPage";
@@ -70,6 +72,8 @@ const App = () => (
               <Route path="/contentieux/affaires/:id" element={<AffaireDetailPage />} />
               <Route path="/contentieux/audiences" element={<AudiencesPage />} />
               <Route path="/contentieux/audiences/:id" element={<AudienceDetailsPage />} />
+              <Route path="/contentieux/honoraires" element={<HonorairesPage />} />
+              <Route path="/contentieux/depenses" element={<DepensesPage />} />
               
               {/* Recouvrement */}
               <Route path="/recouvrement" element={<Navigate to="/recouvrement/dossiers" replace />} />

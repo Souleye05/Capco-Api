@@ -494,11 +494,11 @@ class NestJSApiClient {
   }
 
   async getHonorairesStats() {
-    return this.request('/contentieux/honoraires/statistics');
+    return this.request('/contentieux/honoraires/statistiques');
   }
 
   async getDepensesStats() {
-    return this.request('/contentieux/depenses/statistics');
+    return this.request('/contentieux/depenses/statistiques');
   }
 
   // === RÉSULTATS D'AUDIENCES ===

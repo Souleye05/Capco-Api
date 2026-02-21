@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, Loader2, Gavel, Filter } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, Loader2, Gavel, Filter, Calendar, Banknote } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,11 +21,12 @@ import {
 } from '@/components/ui/select';
 import { NouvelleAffaireDialog } from '@/components/dialogs/NouvelleAffaireDialog';
 import { useAffaires } from '@/hooks/useAffaires';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const statutConfig = {
   ACTIVE: { label: 'Active', className: 'bg-success/10 text-success border-success/20' },
-  EN_COURS: { label: 'En cours', className: 'bg-success/10 text-success border-success/20' },
   CLOTUREE: { label: 'Clôturée', className: 'bg-muted text-muted-foreground border-muted' },
   RADIEE: { label: 'Radiée', className: 'bg-destructive/10 text-destructive border-destructive/20' },
 };
@@ -36,7 +37,8 @@ export default function AffairesPage() {
   const [statutFilter, setStatutFilter] = useState<string>('all');
   const [showNouvelleAffaire, setShowNouvelleAffaire] = useState(false);
 
-  const { data: affaires = [], isLoading } = useAffaires();
+  const { data: affairesResponse, isLoading } = useAffaires();
+  const affaires = affairesResponse?.data || [];
 
   const filteredAffaires = affaires.filter(affaire => {
     const matchesSearch = 
@@ -48,7 +50,7 @@ export default function AffairesPage() {
 
   const stats = {
     total: affaires.length,
-    actives: affaires.filter(a => a.statut === 'ACTIVE' || a.statut === 'EN_COURS').length,
+    actives: affaires.filter(a => a.statut === 'ACTIVE').length,
     cloturees: affaires.filter(a => a.statut === 'CLOTUREE').length,
     radiees: affaires.filter(a => a.statut === 'RADIEE').length,
   };
@@ -86,8 +88,13 @@ export default function AffairesPage() {
           ].map((stat) => (
             <Card key={stat.label} className="border-border/50">
               <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
-                <p className={cn('text-2xl font-semibold mt-1', stat.color)}>{stat.value}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
+                    <p className={cn('text-2xl font-semibold mt-1', stat.color)}>{stat.value}</p>
+                  </div>
+                  <stat.icon className={cn('h-5 w-5', stat.color)} />
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -113,7 +120,6 @@ export default function AffairesPage() {
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
               <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="EN_COURS">En cours</SelectItem>
               <SelectItem value="CLOTUREE">Clôturée</SelectItem>
               <SelectItem value="RADIEE">Radiée</SelectItem>
             </SelectContent>
@@ -135,11 +141,11 @@ export default function AffairesPage() {
                 <thead>
                   <tr className="border-b bg-muted/30">
                     <th className="text-left font-medium text-muted-foreground py-3 px-4">Référence</th>
-                    <th className="text-left font-medium text-muted-foreground py-3 px-4">Intitulé</th>
-                    <th className="text-left font-medium text-muted-foreground py-3 px-4 hidden md:table-cell">Juridiction</th>
-                    <th className="text-left font-medium text-muted-foreground py-3 px-4 hidden lg:table-cell">Chambre</th>
+                    <th className="text-left font-medium text-muted-foreground py-3 px-4">Intitulé & Parties</th>
+                    <th className="text-left font-medium text-muted-foreground py-3 px-4 hidden md:table-cell">Dernière Audience</th>
+                    <th className="text-left font-medium text-muted-foreground py-3 px-4 hidden lg:table-cell">Montants</th>
                     <th className="text-left font-medium text-muted-foreground py-3 px-4">Statut</th>
-                    <th className="text-left font-medium text-muted-foreground py-3 px-4 hidden sm:table-cell">Date</th>
+                    <th className="text-left font-medium text-muted-foreground py-3 px-4 hidden sm:table-cell">Créée le</th>
                     <th className="w-10 py-3 px-2"></th>
                   </tr>
                 </thead>
@@ -147,7 +153,8 @@ export default function AffairesPage() {
                   {filteredAffaires.map((affaire) => {
                     const demandeurs = affaire.parties?.filter(p => p.role === 'DEMANDEUR') || [];
                     const defendeurs = affaire.parties?.filter(p => p.role === 'DEFENDEUR') || [];
-                    const config = statutConfig[affaire.statut] || statutConfig.ACTIVE; // Fallback to ACTIVE if status not found
+                    const config = statutConfig[affaire.statut] || statutConfig.ACTIVE;
+                    const totalFinancier = affaire.totalHonoraires + affaire.totalDepenses;
                     
                     return (
                       <tr 
@@ -161,20 +168,49 @@ export default function AffairesPage() {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <p className="font-medium text-foreground">{affaire.intitule}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {demandeurs.map(d => d.nom).join(', ')} c/ {defendeurs.map(d => d.nom).join(', ')}
+                          <p className="font-medium text-foreground line-clamp-1" title={affaire.intitule}>
+                            {affaire.intitule}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            {demandeurs.length > 0 && defendeurs.length > 0 
+                              ? `${demandeurs.map(d => d.nom).join(', ')} c/ ${defendeurs.map(d => d.nom).join(', ')}`
+                              : `${affaire.parties?.length || 0} partie(s)`
+                            }
                           </p>
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground hidden md:table-cell">-</td>
-                        <td className="py-3 px-4 text-muted-foreground hidden lg:table-cell">-</td>
+                        <td className="py-3 px-4 hidden md:table-cell">
+                          {affaire.derniereAudience ? (
+                            <div className="text-xs">
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                {format(new Date(affaire.derniereAudience.date), 'dd/MM/yyyy', { locale: fr })}
+                              </div>
+                              <div className="text-muted-foreground mt-0.5">
+                                {affaire.derniereAudience.juridiction}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Aucune audience</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 hidden lg:table-cell">
+                          <div className="text-xs space-y-0.5">
+                            <div className="flex items-center gap-1 text-green-600">
+                              <Banknote className="h-3 w-3" />
+                              {formatCurrency(affaire.totalHonoraires)}
+                            </div>
+                            <div className="text-muted-foreground">
+                              Dép: {formatCurrency(affaire.totalDepenses)}
+                            </div>
+                          </div>
+                        </td>
                         <td className="py-3 px-4">
                           <Badge variant="outline" className={cn('text-xs font-medium', config.className)}>
                             {config.label}
                           </Badge>
                         </td>
                         <td className="py-3 px-4 text-xs text-muted-foreground hidden sm:table-cell">
-                          {new Date(affaire.createdAt).toLocaleDateString('fr-FR')}
+                          {format(new Date(affaire.createdAt), 'dd/MM/yyyy', { locale: fr })}
                         </td>
                         <td className="py-3 px-2">
                           <DropdownMenu>

@@ -1,6 +1,7 @@
 import { IsString, IsOptional, IsUUID, IsEnum, IsDateString, IsNotEmpty, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TypeAudience, StatutAudience } from '@prisma/client';
+import { IsWorkingDayWarning, IsWorkingDay } from '../../../common/decorators/is-working-day.decorator';
 
 export class CreateAudienceDto {
   @ApiProperty({ description: 'ID de l\'affaire' })
@@ -11,6 +12,7 @@ export class CreateAudienceDto {
   @ApiProperty({ description: 'Date de l\'audience' })
   @IsDateString()
   @IsNotEmpty()
+  @IsWorkingDay({ message: 'Les audiences ne peuvent pas être programmées le week-end. Veuillez choisir un jour ouvrable.' })
   date: string;
 
   @ApiPropertyOptional({ description: 'Heure de l\'audience (ex: 14:30)' })

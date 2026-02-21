@@ -32,7 +32,7 @@ export class HonorairesService {
         affaireId: createHonoraireDto.affaireId,
         montantFacture: createHonoraireDto.montantFacture,
         montantEncaisse: createHonoraireDto.montantEncaisse || 0,
-        dateFacturation: createHonoraireDto.dateFacturation,
+        dateFacturation: createHonoraireDto.dateFacturation ? new Date(createHonoraireDto.dateFacturation) : null,
         notes: createHonoraireDto.notes,
         createdBy: userId,
       },

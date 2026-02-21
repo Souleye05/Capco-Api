@@ -14,8 +14,15 @@ export class ValidationPipe implements PipeTransform<any> {
       return value;
     }
 
-    const object = plainToInstance(metatype, value);
-    const errors = await validate(object);
+    const object = plainToInstance(metatype, value, {
+      excludeExtraneousValues: false, // Allow extra properties
+      enableImplicitConversion: true, // Auto-convert types
+    });
+    
+    const errors = await validate(object, {
+      whitelist: true, // Strip unknown properties
+      forbidNonWhitelisted: false, // Don't throw error for unknown properties
+    });
 
     if (errors.length > 0) {
       const formattedErrors = errors.reduce((acc, error) => {

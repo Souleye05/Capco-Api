@@ -138,4 +138,49 @@ export class AudiencesController {
     await this.audiencesService.removeResultat(audienceId);
     return { message: 'Résultat supprimé avec succès' };
   }
+
+  // === ENDPOINTS POUR LES ACTIONS SPÉCIALES ===
+
+  @Patch(':id/enrolement')
+  @Roles(AppRole.admin, AppRole.collaborateur)
+  @AuditLog({ action: 'MARK_ENROLEMENT_EFFECTUE', module: 'CONTENTIEUX' })
+  @ApiOperation({ summary: 'Marquer l\'enrôlement comme effectué' })
+  @ApiResponse({ status: 200, description: 'Enrôlement marqué comme effectué', type: AudienceResponseDto })
+  @ApiResponse({ status: 404, description: 'Audience non trouvée' })
+  async marquerEnrolementEffectue(@Param('id', ParseUUIDPipe) id: string): Promise<AudienceResponseDto> {
+    return this.audiencesService.marquerEnrolementEffectue(id);
+  }
+
+  @Get('rappel-enrolement')
+  @Roles(AppRole.admin, AppRole.collaborateur)
+  @ApiOperation({ summary: 'Récupérer les audiences nécessitant un rappel d\'enrôlement' })
+  @ApiResponse({ status: 200, description: 'Liste des audiences nécessitant un rappel', type: [AudienceResponseDto] })
+  async getAudiencesRappelEnrolement(): Promise<AudienceResponseDto[]> {
+    return this.audiencesService.getAudiencesRappelEnrolement();
+  }
+
+  @Get('statistics')
+  @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+  @ApiOperation({ summary: 'Obtenir les statistiques des audiences' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Statistiques des audiences récupérées avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        total: { type: 'number', description: 'Nombre total d\'audiences' },
+        aVenir: { type: 'number', description: 'Nombre d\'audiences à venir' },
+        tenues: { type: 'number', description: 'Nombre d\'audiences tenues (renseignées)' },
+        nonRenseignees: { type: 'number', description: 'Nombre d\'audiences non renseignées' }
+      }
+    }
+  })
+  async getStatistics(): Promise<{
+    total: number;
+    aVenir: number;
+    tenues: number;
+    nonRenseignees: number;
+  }> {
+    return this.audiencesService.getStatistics();
+  }
 }

@@ -33,6 +33,17 @@ export interface AffaireDB {
   createdBy: string;
 }
 
+export interface PaginatedAffairesResponse {
+  data: AffaireDB[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    total: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 export interface CreateAffaireData {
   intitule: string;
   parties: Array<{
@@ -53,15 +64,22 @@ export interface UpdateAffaireData {
 }
 
 // Hook pour récupérer toutes les affaires
-export function useAffaires() {
-  return useQuery({
-    queryKey: ['affaires'],
-    queryFn: async () => {
-      const response = await nestjsApi.getAffaires();
+export function useAffaires(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  statut?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) {
+  return useQuery<PaginatedAffairesResponse>({
+    queryKey: ['affaires', params],
+    queryFn: async (): Promise<PaginatedAffairesResponse> => {
+      const response = await nestjsApi.getAffaires(params);
       if (response.error) {
         throw new Error(response.error);
       }
-      return response.data?.data || []; // Retourne directement le tableau d'affaires
+      return response.data as PaginatedAffairesResponse; // Retourne la réponse complète avec data et pagination
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

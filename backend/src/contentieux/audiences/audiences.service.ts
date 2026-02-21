@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma.service';
 import { PaginationService } from '../../common/services/pagination.service';
 import { CreateAudienceDto } from './dto/create-audience.dto';
@@ -8,9 +8,12 @@ import { AudiencesQueryDto } from './dto/audiences-query.dto';
 import { CreateResultatAudienceDto } from './dto/create-resultat-audience.dto';
 import { UpdateResultatAudienceDto } from './dto/update-resultat-audience.dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
+import { WorkingDayUtils } from '../../common/decorators/is-working-day.decorator';
 
 @Injectable()
 export class AudiencesService {
+  private readonly logger = new Logger(AudiencesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly paginationService: PaginationService,
@@ -29,8 +32,18 @@ export class AudiencesService {
       throw new NotFoundException(`Affaire avec l'ID ${createAudienceDto.affaireId} non trouvée`);
     }
 
+    // Vérification du week-end avec blocage
+    const audienceDate = new Date(createAudienceDto.date);
+    if (WorkingDayUtils.isWeekend(audienceDate)) {
+      const dayName = WorkingDayUtils.getDayName(audienceDate);
+      throw new BadRequestException(
+        `Impossible de programmer une audience un ${dayName}. ` +
+        `Les tribunaux sont fermés le week-end. Veuillez choisir un jour ouvrable.`
+      );
+    }
+
     // Calculer la date de rappel d'enrôlement (4 jours ouvrables avant)
-    const dateRappelEnrolement = this.calculateRappelDate(new Date(createAudienceDto.date));
+    const dateRappelEnrolement = this.calculateRappelDate(audienceDate);
 
     const audience = await this.prisma.audiences.create({
       data: {
@@ -131,21 +144,64 @@ export class AudiencesService {
    */
   async update(id: string, updateAudienceDto: UpdateAudienceDto): Promise<AudienceResponseDto> {
     // Vérifier que l'audience existe
-    await this.findOne(id);
+    const existingAudience = await this.findOne(id);
 
-    // Recalculer la date de rappel si la date change
+    // Si la date est modifiée, appliquer les mêmes validations que lors de la création
     let dateRappelEnrolement: Date | undefined;
+    let statutAudience = updateAudienceDto.statut;
+    
     if (updateAudienceDto.date) {
-      dateRappelEnrolement = this.calculateRappelDate(new Date(updateAudienceDto.date));
+      const newAudienceDate = new Date(updateAudienceDto.date);
+      
+      // Vérification du week-end avec blocage
+      if (WorkingDayUtils.isWeekend(newAudienceDate)) {
+        const dayName = WorkingDayUtils.getDayName(newAudienceDate);
+        throw new BadRequestException(
+          `Impossible de programmer une audience un ${dayName}. ` +
+          `Les tribunaux sont fermés le week-end. Veuillez choisir un jour ouvrable.`
+        );
+      }
+
+      // Recalculer la date de rappel
+      dateRappelEnrolement = this.calculateRappelDate(newAudienceDate);
+
+      // Déterminer le statut automatiquement selon la nouvelle date si pas explicitement défini
+      if (!statutAudience) {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const audienceDateOnly = new Date(newAudienceDate);
+        audienceDateOnly.setHours(0, 0, 0, 0);
+        
+        if (audienceDateOnly < now) {
+          statutAudience = 'PASSEE_NON_RENSEIGNEE';
+          this.logger.warn(
+            `Audience mise à jour avec une date passée pour l'audience ${id}. ` +
+            `Date: ${newAudienceDate.toLocaleDateString('fr-FR')}. ` +
+            `Statut automatiquement défini sur "PASSEE_NON_RENSEIGNEE".`
+          );
+        } else if (existingAudience.statut === 'PASSEE_NON_RENSEIGNEE') {
+          // Si l'audience était passée mais maintenant la date est future, remettre à A_VENIR
+          statutAudience = 'A_VENIR';
+        }
+      }
+    }
+
+    const updateData: any = {
+      ...updateAudienceDto,
+      updated_at: new Date(),
+    };
+
+    // Ajouter les champs calculés seulement s'ils sont définis
+    if (dateRappelEnrolement !== undefined) {
+      updateData.date_rappel_enrolement = dateRappelEnrolement;
+    }
+    if (statutAudience !== undefined) {
+      updateData.statut = statutAudience;
     }
 
     const audience = await this.prisma.audiences.update({
       where: { id },
-      data: {
-        ...updateAudienceDto,
-        date_rappel_enrolement: dateRappelEnrolement,
-        updated_at: new Date(),
-      },
+      data: updateData,
       include: {
         affaire: {
           include: {

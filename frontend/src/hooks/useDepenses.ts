@@ -5,81 +5,80 @@ import { toast } from 'sonner';
 export interface DepenseDB {
   id: string;
   affaireId: string;
-  affaire?: {
+  affaire: {
     id: string;
     reference: string;
     intitule: string;
+    parties: Array<{
+      id: string;
+      nom: string;
+      role: string;
+    }>;
   };
-  typeDepense: 'FRAIS_JUSTICE' | 'FRAIS_HUISSIER' | 'FRAIS_EXPERTISE' | 'FRAIS_DEPLACEMENT' | 'AUTRE';
+  date: string;
+  typeDepense: string;
+  nature: string;
   montant: number;
-  dateDepense: string;
   description?: string;
-  fournisseur?: string;
-  numeroFacture?: string;
-  estRembourse: boolean;
-  dateRemboursement?: string;
+  justificatif?: string;
   createdAt: string;
-  updatedAt: string;
-  createdBy: string;
 }
 
 export interface CreateDepenseData {
   affaireId: string;
-  typeDepense: 'FRAIS_JUSTICE' | 'FRAIS_HUISSIER' | 'FRAIS_EXPERTISE' | 'FRAIS_DEPLACEMENT' | 'AUTRE';
+  date?: string;
+  typeDepense: string;
+  nature: string;
   montant: number;
-  dateDepense: string;
   description?: string;
-  fournisseur?: string;
-  numeroFacture?: string;
+  justificatif?: string;
 }
 
 export interface UpdateDepenseData {
-  typeDepense?: 'FRAIS_JUSTICE' | 'FRAIS_HUISSIER' | 'FRAIS_EXPERTISE' | 'FRAIS_DEPLACEMENT' | 'AUTRE';
+  date?: string;
+  typeDepense?: string;
+  nature?: string;
   montant?: number;
-  dateDepense?: string;
   description?: string;
-  fournisseur?: string;
-  numeroFacture?: string;
-  estRembourse?: boolean;
-  dateRemboursement?: string;
+  justificatif?: string;
 }
 
-// Hook pour récupérer toutes les dépenses
-export function useDepenses(params?: {
+export interface DepensesQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
   affaireId?: string;
   typeDepense?: string;
   dateDebut?: string;
   dateFin?: string;
   montantMin?: number;
   montantMax?: number;
-}) {
+}
+
+// Hook pour récupérer les dépenses avec pagination
+export function useDepenses(params?: DepensesQueryParams) {
   return useQuery({
     queryKey: ['depenses', params],
-    queryFn: async () => {
-      const response = await nestjsApi.getDepenses(params);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data?.data || [];
-    },
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => nestjsApi.getDepenses(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Hook pour récupérer une dépense par ID
+// Hook pour récupérer une dépense spécifique
 export function useDepense(id: string) {
   return useQuery({
     queryKey: ['depenses', id],
-    queryFn: async (): Promise<DepenseDB | null> => {
-      if (!id) return null;
-      const response = await nestjsApi.getDepense(id);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data || null;
-    },
+    queryFn: () => nestjsApi.getDepense(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Hook pour récupérer les statistiques des dépenses
+export function useDepensesStats() {
+  return useQuery({
+    queryKey: ['depenses-stats'],
+    queryFn: () => nestjsApi.getDepensesStats(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -88,22 +87,14 @@ export function useCreateDepense() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreateDepenseData): Promise<DepenseDB> => {
-      const response = await nestjsApi.createDepense(data);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      return response.data!;
-    },
-    onSuccess: (data) => {
+    mutationFn: (data: CreateDepenseData) => nestjsApi.createDepense(data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['depenses'] });
-      queryClient.invalidateQueries({ queryKey: ['affaires', data.affaireId] });
+      queryClient.invalidateQueries({ queryKey: ['depenses-stats'] });
       toast.success('Dépense créée avec succès');
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la création de la dépense: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erreur lors de la création de la dépense');
     },
   });
 }
@@ -113,23 +104,16 @@ export function useUpdateDepense() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateDepenseData }): Promise<DepenseDB> => {
-      const response = await nestjsApi.updateDepense(id, data);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      return response.data!;
-    },
-    onSuccess: (data) => {
+    mutationFn: ({ id, data }: { id: string; data: UpdateDepenseData }) =>
+      nestjsApi.updateDepense(id, data),
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['depenses'] });
-      queryClient.invalidateQueries({ queryKey: ['depenses', data.id] });
-      queryClient.invalidateQueries({ queryKey: ['affaires', data.affaireId] });
+      queryClient.invalidateQueries({ queryKey: ['depenses', id] });
+      queryClient.invalidateQueries({ queryKey: ['depenses-stats'] });
       toast.success('Dépense mise à jour avec succès');
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la mise à jour: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erreur lors de la mise à jour de la dépense');
     },
   });
 }
@@ -139,37 +123,28 @@ export function useDeleteDepense() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      const response = await nestjsApi.deleteDepense(id);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-    },
-    onSuccess: (_, id) => {
+    mutationFn: (id: string) => nestjsApi.deleteDepense(id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['depenses'] });
-      queryClient.removeQueries({ queryKey: ['depenses', id] });
+      queryClient.invalidateQueries({ queryKey: ['depenses-stats'] });
       toast.success('Dépense supprimée avec succès');
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la suppression: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erreur lors de la suppression de la dépense');
     },
   });
 }
 
-// Hook pour les statistiques des dépenses
-export function useDepensesStats() {
-  return useQuery({
-    queryKey: ['depenses', 'stats'],
-    queryFn: async () => {
-      const response = await nestjsApi.getDepensesStats();
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      return response.data!;
-    },
-    staleTime: 10 * 60 * 1000,
-  });
-}
+// Types de dépenses disponibles
+export const TYPE_DEPENSES = [
+  { value: 'FRAIS_JUSTICE', label: 'Frais de justice' },
+  { value: 'FRAIS_HUISSIER', label: 'Frais d\'huissier' },
+  { value: 'FRAIS_GREFFE', label: 'Frais de greffe' },
+  { value: 'FRAIS_EXPERTISE', label: 'Frais d\'expertise' },
+  { value: 'FRAIS_DEPLACEMENT', label: 'Frais de déplacement' },
+  { value: 'FRAIS_COURRIER', label: 'Frais de courrier' },
+  { value: 'TIMBRES_FISCAUX', label: 'Timbres fiscaux' },
+  { value: 'AUTRES', label: 'Autres frais' },
+] as const;
+
+export type TypeDepense = typeof TYPE_DEPENSES[number]['value'];

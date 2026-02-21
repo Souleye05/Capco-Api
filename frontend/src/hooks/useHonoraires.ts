@@ -5,82 +5,79 @@ import { toast } from 'sonner';
 export interface HonoraireDB {
   id: string;
   affaireId: string;
-  affaire?: {
+  affaire: {
     id: string;
     reference: string;
     intitule: string;
+    parties: Array<{
+      id: string;
+      nom: string;
+      role: string;
+    }>;
   };
-  montant: number;
-  dateFacturation: string;
-  description?: string;
-  statut: 'EN_ATTENTE' | 'PAYE' | 'PARTIELLEMENT_PAYE';
-  montantPaye: number;
+  montantFacture: number;
+  montantEncaisse: number;
+  montantRestant: number;
+  dateFacturation?: string;
+  notes?: string;
   paiements: Array<{
     id: string;
+    date: string;
     montant: number;
-    datePaiement: string;
     modePaiement: string;
-    reference?: string;
+    notes?: string;
   }>;
   createdAt: string;
-  updatedAt: string;
-  createdBy: string;
 }
 
 export interface CreateHonoraireData {
   affaireId: string;
-  montant: number;
-  dateFacturation: string;
-  description?: string;
+  montantFacture: number;
+  montantEncaisse?: number;
+  dateFacturation?: string;
+  notes?: string;
 }
 
 export interface UpdateHonoraireData {
-  montant?: number;
+  montantFacture?: number;
+  montantEncaisse?: number;
   dateFacturation?: string;
-  description?: string;
-  statut?: 'EN_ATTENTE' | 'PAYE' | 'PARTIELLEMENT_PAYE';
+  notes?: string;
 }
 
-export interface CreatePaiementHonoraireData {
-  montant: number;
-  datePaiement: string;
-  modePaiement: string;
-  reference?: string;
-}
-
-// Hook pour récupérer tous les honoraires
-export function useHonoraires(params?: {
+export interface HonorairesQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
   affaireId?: string;
   dateDebutFacturation?: string;
   dateFinFacturation?: string;
-}) {
+}
+
+// Hook pour récupérer les honoraires avec pagination
+export function useHonoraires(params?: HonorairesQueryParams) {
   return useQuery({
     queryKey: ['honoraires', params],
-    queryFn: async () => {
-      const response = await nestjsApi.getHonoraires(params);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data?.data || [];
-    },
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => nestjsApi.getHonoraires(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Hook pour récupérer un honoraire par ID
+// Hook pour récupérer un honoraire spécifique
 export function useHonoraire(id: string) {
   return useQuery({
     queryKey: ['honoraires', id],
-    queryFn: async (): Promise<HonoraireDB | null> => {
-      if (!id) return null;
-      const response = await nestjsApi.getHonoraire(id);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data || null;
-    },
+    queryFn: () => nestjsApi.getHonoraire(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Hook pour récupérer les statistiques des honoraires
+export function useHonorairesStats() {
+  return useQuery({
+    queryKey: ['honoraires-stats'],
+    queryFn: () => nestjsApi.getHonorairesStats(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -89,22 +86,14 @@ export function useCreateHonoraire() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreateHonoraireData): Promise<HonoraireDB> => {
-      const response = await nestjsApi.createHonoraire(data);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      return response.data!;
-    },
-    onSuccess: (data) => {
+    mutationFn: (data: CreateHonoraireData) => nestjsApi.createHonoraire(data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['honoraires'] });
-      queryClient.invalidateQueries({ queryKey: ['affaires', data.affaireId] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires-stats'] });
       toast.success('Honoraire créé avec succès');
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la création de l'honoraire: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erreur lors de la création de l\'honoraire');
     },
   });
 }
@@ -114,23 +103,16 @@ export function useUpdateHonoraire() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateHonoraireData }): Promise<HonoraireDB> => {
-      const response = await nestjsApi.updateHonoraire(id, data);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      return response.data!;
-    },
-    onSuccess: (data) => {
+    mutationFn: ({ id, data }: { id: string; data: UpdateHonoraireData }) =>
+      nestjsApi.updateHonoraire(id, data),
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['honoraires'] });
-      queryClient.invalidateQueries({ queryKey: ['honoraires', data.id] });
-      queryClient.invalidateQueries({ queryKey: ['affaires', data.affaireId] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires', id] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires-stats'] });
       toast.success('Honoraire mis à jour avec succès');
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la mise à jour: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erreur lors de la mise à jour de l\'honoraire');
     },
   });
 }
@@ -140,62 +122,43 @@ export function useDeleteHonoraire() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      const response = await nestjsApi.deleteHonoraire(id);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-    },
-    onSuccess: (_, id) => {
+    mutationFn: (id: string) => nestjsApi.deleteHonoraire(id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['honoraires'] });
-      queryClient.removeQueries({ queryKey: ['honoraires', id] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires-stats'] });
       toast.success('Honoraire supprimé avec succès');
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la suppression: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erreur lors de la suppression de l\'honoraire');
     },
+  });
+}
+
+// Hook pour récupérer les paiements d'un honoraire
+export function usePaiementsHonoraires(honorairesId: string) {
+  return useQuery({
+    queryKey: ['paiements-honoraires', honorairesId],
+    queryFn: () => nestjsApi.getPaiementsHonoraires(honorairesId),
+    enabled: !!honorairesId,
   });
 }
 
 // Hook pour créer un paiement d'honoraire
-export function useCreatePaiementHonoraire() {
+export function useCreatePaiementHonoraires() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ honorairesId, data }: { honorairesId: string; data: CreatePaiementHonoraireData }) => {
-      const response = await nestjsApi.createPaiementHonoraires(honorairesId, data);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      return response.data;
-    },
+    mutationFn: ({ honorairesId, data }: { honorairesId: string; data: any }) =>
+      nestjsApi.createPaiementHonoraires(honorairesId, data),
     onSuccess: (_, { honorairesId }) => {
       queryClient.invalidateQueries({ queryKey: ['honoraires'] });
       queryClient.invalidateQueries({ queryKey: ['honoraires', honorairesId] });
+      queryClient.invalidateQueries({ queryKey: ['paiements-honoraires', honorairesId] });
+      queryClient.invalidateQueries({ queryKey: ['honoraires-stats'] });
       toast.success('Paiement enregistré avec succès');
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de l'enregistrement du paiement: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erreur lors de l\'enregistrement du paiement');
     },
-  });
-}
-
-// Hook pour les statistiques des honoraires
-export function useHonorairesStats() {
-  return useQuery({
-    queryKey: ['honoraires', 'stats'],
-    queryFn: async () => {
-      const response = await nestjsApi.getHonorairesStats();
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      return response.data!;
-    },
-    staleTime: 10 * 60 * 1000,
   });
 }

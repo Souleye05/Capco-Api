@@ -175,6 +175,8 @@ export function Sidebar() {
       children: [
         { to: '/contentieux/affaires', label: 'Affaires' },
         { to: '/contentieux/audiences', label: 'Audiences' },
+        { to: '/contentieux/honoraires', label: 'Honoraires' },
+        { to: '/contentieux/depenses', label: 'Dépenses' },
       ],
     },
     {

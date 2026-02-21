@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,47 +9,99 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertTriangle, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAffaires } from '@/hooks/useAffaires';
-import { useCreateAudience } from '@/hooks/useAudiences';
+import { useUpdateAudience } from '@/hooks/useAudiences';
 import { useJuridictionsActives } from '@/hooks/useJuridictions';
-import { isWeekend, getDayName, getWeekendAlternatives, formatDateWithDay } from '@/lib/date-validation';
+import { isWeekend, getDayName, getWeekendAlternatives } from '@/lib/date-validation';
 
-interface NouvelleAudienceDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  preselectedAffaireId?: string;
+interface AudienceData {
+  id: string;
+  affaireId: string;
+  date: string;
+  heure?: string;
+  type: string;
+  juridiction: string;
+  chambre?: string;
+  ville?: string;
+  statut: string;
+  notesPreparation?: string;
+  estPreparee: boolean;
+  rappelEnrolement: boolean;
 }
 
-export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireId }: NouvelleAudienceDialogProps) {
+interface ModifierAudienceDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  audience: AudienceData | null;
+}
+
+export function ModifierAudienceDialog({ open, onOpenChange, audience }: ModifierAudienceDialogProps) {
   const { data: affairesResponse, isLoading: affairesLoading } = useAffaires();
   const { data: juridictions = [], isLoading: juridictionsLoading } = useJuridictionsActives();
   
   const affaires = affairesResponse?.data || [];
-  const createAudience = useCreateAudience();
+  const updateAudience = useUpdateAudience();
   
   const [formData, setFormData] = useState({
-    affaireId: preselectedAffaireId || '',
+    affaireId: '',
     date: '',
     heure: '',
     type: 'MISE_EN_ETAT' as const,
     juridiction: '',
     chambre: '',
     ville: '',
-    notesPreparation: ''
+    statut: 'A_VENIR' as const,
+    notesPreparation: '',
+    estPreparee: false,
+    rappelEnrolement: false,
   });
 
   const [showWeekendWarning, setShowWeekendWarning] = useState(false);
   const [weekendAlternatives, setWeekendAlternatives] = useState<any>(null);
 
+  // Initialiser le formulaire avec les données de l'audience
+  useEffect(() => {
+    if (audience && open) {
+      const audienceDate = new Date(audience.date);
+      const formattedDate = audienceDate.toISOString().split('T')[0];
+      
+      setFormData({
+        affaireId: audience.affaireId,
+        date: formattedDate,
+        heure: audience.heure || '',
+        type: audience.type as any,
+        juridiction: audience.juridiction,
+        chambre: audience.chambre || '',
+        ville: audience.ville || '',
+        statut: audience.statut as any,
+        notesPreparation: audience.notesPreparation || '',
+        estPreparee: audience.estPreparee,
+        rappelEnrolement: audience.rappelEnrolement,
+      });
+
+      // Vérifier si la date actuelle est un week-end
+      if (isWeekend(formattedDate)) {
+        setShowWeekendWarning(true);
+        setWeekendAlternatives(getWeekendAlternatives(formattedDate));
+      } else {
+        setShowWeekendWarning(false);
+        setWeekendAlternatives(null);
+      }
+    }
+  }, [audience, open]);
+
   const resetForm = () => {
     setFormData({
-      affaireId: preselectedAffaireId || '',
+      affaireId: '',
       date: '',
       heure: '',
       type: 'MISE_EN_ETAT',
       juridiction: '',
       chambre: '',
       ville: '',
-      notesPreparation: ''
+      statut: 'A_VENIR',
+      notesPreparation: '',
+      estPreparee: false,
+      rappelEnrolement: false,
     });
     setShowWeekendWarning(false);
     setWeekendAlternatives(null);
@@ -76,7 +128,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.affaireId || !formData.date || !formData.juridiction) {
+    if (!audience || !formData.affaireId || !formData.date || !formData.juridiction) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
@@ -89,31 +141,45 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
     }
 
     try {
-      await createAudience.mutateAsync({
-        affaireId: formData.affaireId,
-        date: formData.date,
-        heure: formData.heure || undefined,
-        type: formData.type,
-        juridiction: formData.juridiction,
-        chambre: formData.chambre || undefined,
-        ville: formData.ville || undefined,
-        notesPreparation: formData.notesPreparation || undefined,
+      await updateAudience.mutateAsync({
+        id: audience.id,
+        data: {
+          affaireId: formData.affaireId,
+          date: formData.date,
+          heure: formData.heure || undefined,
+          type: formData.type,
+          juridiction: formData.juridiction,
+          chambre: formData.chambre || undefined,
+          ville: formData.ville || undefined,
+          statut: formData.statut,
+          notesPreparation: formData.notesPreparation || undefined,
+          estPreparee: formData.estPreparee,
+          rappelEnrolement: formData.rappelEnrolement,
+        }
       });
 
       onOpenChange(false);
       resetForm();
+      toast.success('Audience modifiée avec succès');
     } catch (error) {
       // L'erreur est déjà gérée par le hook
     }
   };
 
+  const handleClose = () => {
+    onOpenChange(false);
+    resetForm();
+  };
+
+  if (!audience) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Nouvelle audience</DialogTitle>
+          <DialogTitle>Modifier l'audience</DialogTitle>
           <DialogDescription>
-            Programmer une nouvelle audience pour une affaire
+            Modifier les informations de l'audience
           </DialogDescription>
         </DialogHeader>
 
@@ -124,7 +190,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
             <Select
               value={formData.affaireId}
               onValueChange={(value) => setFormData({ ...formData, affaireId: value })}
-              disabled={!!preselectedAffaireId || affairesLoading}
+              disabled={affairesLoading}
             >
               <SelectTrigger>
                 <SelectValue placeholder={affairesLoading ? "Chargement..." : "Sélectionner une affaire"} />
@@ -160,6 +226,24 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
             </Select>
           </div>
 
+          {/* Statut */}
+          <div className="space-y-2">
+            <Label htmlFor="statut">Statut</Label>
+            <Select
+              value={formData.statut}
+              onValueChange={(value: any) => setFormData({ ...formData, statut: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner le statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="A_VENIR">À venir</SelectItem>
+                <SelectItem value="PASSEE_NON_RENSEIGNEE">Passée non renseignée</SelectItem>
+                <SelectItem value="RENSEIGNEE">Renseignée</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Date et heure */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -172,7 +256,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
               />
               {formData.date && new Date(formData.date) < new Date() && (
                 <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-                  ⚠️ Date passée : le statut sera automatiquement défini sur "Non renseigné"
+                  ⚠️ Date passée : le statut sera automatiquement défini sur "Passée non renseignée"
                 </p>
               )}
               
@@ -296,17 +380,17 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={createAudience.isPending}
+              onClick={handleClose}
+              disabled={updateAudience.isPending}
             >
               Annuler
             </Button>
             <Button 
               type="submit" 
-              disabled={createAudience.isPending || affairesLoading || juridictionsLoading || showWeekendWarning}
+              disabled={updateAudience.isPending || affairesLoading || juridictionsLoading || showWeekendWarning}
             >
-              {createAudience.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Créer l'audience
+              {updateAudience.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Modifier l'audience
             </Button>
           </DialogFooter>
         </form>

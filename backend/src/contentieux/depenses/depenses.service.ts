@@ -30,7 +30,7 @@ export class DepensesService {
     const depense = await this.prisma.depensesAffaires.create({
       data: {
         affaireId: createDepenseDto.affaireId,
-        date: createDepenseDto.date,
+        date: createDepenseDto.date ? new Date(createDepenseDto.date) : new Date(),
         typeDepense: createDepenseDto.typeDepense,
         nature: createDepenseDto.nature,
         montant: createDepenseDto.montant,

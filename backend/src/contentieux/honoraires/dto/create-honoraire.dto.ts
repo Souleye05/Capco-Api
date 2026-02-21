@@ -1,7 +1,6 @@
-import { IsUUID, IsOptional, IsString, IsDateString, IsDecimal, IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { IsUUID, IsOptional, IsString, IsDateString, IsNotEmpty, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { Decimal } from '@prisma/client/runtime/library';
 
 export class CreateHonoraireDto {
   @ApiProperty({ description: 'ID de l\'affaire' })
@@ -9,24 +8,24 @@ export class CreateHonoraireDto {
   @IsNotEmpty()
   affaireId: string;
 
-  @ApiPropertyOptional({ description: 'Montant facturé', type: 'number' })
+  @ApiPropertyOptional({ description: 'Montant facturé', type: 'number', example: 1500 })
   @IsOptional()
-  @Transform(({ value }) => new Decimal(value))
-  @IsDecimal()
-  montantFacture?: Decimal;
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Le montant facturé doit être un nombre' })
+  montantFacture?: number;
 
-  @ApiPropertyOptional({ description: 'Montant encaissé', type: 'number' })
+  @ApiPropertyOptional({ description: 'Montant encaissé', type: 'number', example: 500 })
   @IsOptional()
-  @Transform(({ value }) => new Decimal(value))
-  @IsDecimal()
-  montantEncaisse?: Decimal;
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Le montant encaissé doit être un nombre' })
+  montantEncaisse?: number;
 
-  @ApiPropertyOptional({ description: 'Date de facturation' })
+  @ApiPropertyOptional({ description: 'Date de facturation (YYYY-MM-DD)', example: '2026-02-20' })
   @IsOptional()
-  @IsDateString()
+  @IsDateString({}, { message: 'La date de facturation doit être au format YYYY-MM-DD' })
   dateFacturation?: string;
 
-  @ApiPropertyOptional({ description: 'Notes sur les honoraires' })
+  @ApiPropertyOptional({ description: 'Notes sur les honoraires', example: 'Honoraires de plaidoirie' })
   @IsOptional()
   @IsString()
   notes?: string;

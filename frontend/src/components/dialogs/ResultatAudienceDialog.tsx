@@ -1,26 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Calendar, FileText, AlertTriangle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCreateResultatAudience, useUpdateResultatAudience, useResultatAudience } from '@/hooks/useResultatsAudiences';
-import type { TypeResultatAudience } from '@/types/api';
+import { useCreateResultatAudience } from '@/hooks/useAudiences';
+
+interface AudienceInfo {
+  reference: string;
+  intitule: string;
+  date: string;
+  juridiction: string;
+}
 
 interface ResultatAudienceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  audienceId: string | undefined;
-  audienceInfo?: {
-    reference: string;
-    intitule: string;
-    date: string;
-    juridiction: string;
-  };
-  mode?: 'create' | 'edit';
+  audienceId?: string;
+  audienceInfo?: AudienceInfo;
+  mode: 'create' | 'edit';
 }
 
 export function ResultatAudienceDialog({ 
@@ -28,41 +29,21 @@ export function ResultatAudienceDialog({
   onOpenChange, 
   audienceId, 
   audienceInfo,
-  mode = 'create' 
+  mode 
 }: ResultatAudienceDialogProps) {
-  // Safety check: don't render if audienceId is invalid
-  if (!audienceId) {
-    return null;
-  }
-
-  const { data: existingResultat, isLoading: loadingResultat } = useResultatAudience(mode === 'edit' ? audienceId : undefined);
   const createResultat = useCreateResultatAudience();
-  const updateResultat = useUpdateResultatAudience();
   
   const [formData, setFormData] = useState({
-    type: '' as TypeResultatAudience | '',
+    type: 'RENVOI' as const,
     nouvelleDate: '',
     motifRenvoi: '',
     motifRadiation: '',
     texteDelibere: ''
   });
 
-  // Charger les données existantes en mode édition
-  useEffect(() => {
-    if (mode === 'edit' && existingResultat) {
-      setFormData({
-        type: existingResultat.type,
-        nouvelleDate: existingResultat.nouvelleDate ? existingResultat.nouvelleDate.split('T')[0] : '',
-        motifRenvoi: existingResultat.motifRenvoi || '',
-        motifRadiation: existingResultat.motifRadiation || '',
-        texteDelibere: existingResultat.texteDelibere || ''
-      });
-    }
-  }, [mode, existingResultat]);
-
   const resetForm = () => {
     setFormData({
-      type: '',
+      type: 'RENVOI',
       nouvelleDate: '',
       motifRenvoi: '',
       motifRadiation: '',
@@ -70,49 +51,47 @@ export function ResultatAudienceDialog({
     });
   };
 
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.type) {
-      toast.error('Veuillez sélectionner un type de résultat');
+    if (!audienceId) {
+      toast.error('ID d\'audience manquant');
       return;
     }
 
     // Validation selon le type
     if (formData.type === 'RENVOI' && !formData.nouvelleDate) {
-      toast.error('Veuillez indiquer la nouvelle date pour un renvoi');
-      return;
-    }
-
-    if (formData.type === 'RENVOI' && !formData.motifRenvoi) {
-      toast.error('Veuillez indiquer le motif du renvoi');
+      toast.error('La nouvelle date est obligatoire pour un renvoi');
       return;
     }
 
     if (formData.type === 'RADIATION' && !formData.motifRadiation) {
-      toast.error('Veuillez indiquer le motif de la radiation');
+      toast.error('Le motif de radiation est obligatoire');
       return;
     }
 
     if (formData.type === 'DELIBERE' && !formData.texteDelibere) {
-      toast.error('Veuillez saisir le texte du délibéré');
+      toast.error('Le texte du délibéré est obligatoire');
       return;
     }
 
     try {
-      const data = {
-        type: formData.type,
-        ...(formData.nouvelleDate && { nouvelleDate: formData.nouvelleDate }),
-        ...(formData.motifRenvoi && { motifRenvoi: formData.motifRenvoi }),
-        ...(formData.motifRadiation && { motifRadiation: formData.motifRadiation }),
-        ...(formData.texteDelibere && { texteDelibere: formData.texteDelibere }),
-      };
-
-      if (mode === 'create') {
-        await createResultat.mutateAsync({ audienceId, data });
-      } else {
-        await updateResultat.mutateAsync({ audienceId, data });
-      }
+      await createResultat.mutateAsync({
+        audienceId,
+        data: {
+          type: formData.type,
+          nouvelleDate: formData.nouvelleDate || undefined,
+          motifRenvoi: formData.motifRenvoi || undefined,
+          motifRadiation: formData.motifRadiation || undefined,
+          texteDelibere: formData.texteDelibere || undefined,
+        }
+      });
 
       onOpenChange(false);
       resetForm();
@@ -121,151 +100,125 @@ export function ResultatAudienceDialog({
     }
   };
 
-  const isLoading = createResultat.isPending || updateResultat.isPending;
+  if (!audienceInfo) return null;
+
+  const audienceDate = new Date(audienceInfo.date);
+  const formattedDate = audienceDate.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            {mode === 'create' ? 'Enregistrer le résultat' : 'Modifier le résultat'}
-          </DialogTitle>
+          <DialogTitle>Saisir le résultat de l'audience</DialogTitle>
           <DialogDescription>
-            Saisissez les informations du résultat d'audience.
+            Enregistrer le résultat de l'audience pour régulariser le dossier
           </DialogDescription>
-          {audienceInfo && (
-            <div className="mt-2 p-3 bg-muted rounded-lg">
-              <div className="text-sm">
-                <div><strong>Affaire :</strong> {audienceInfo.reference} - {audienceInfo.intitule}</div>
-                <div><strong>Date :</strong> {new Date(audienceInfo.date).toLocaleDateString('fr-FR')}</div>
-                <div><strong>Juridiction :</strong> {audienceInfo.juridiction}</div>
-              </div>
-            </div>
-          )}
         </DialogHeader>
 
-        {loadingResultat && mode === 'edit' ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Chargement...</span>
+        {/* Informations de l'audience */}
+        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+          <h4 className="font-medium text-sm">Informations de l'audience</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+            <p><span className="font-medium">Affaire :</span> {audienceInfo.reference}</p>
+            <p><span className="font-medium">Date :</span> {formattedDate}</p>
+            <p className="sm:col-span-2"><span className="font-medium">Intitulé :</span> {audienceInfo.intitule}</p>
+            <p className="sm:col-span-2"><span className="font-medium">Juridiction :</span> {audienceInfo.juridiction}</p>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
-            {/* Type de résultat */}
-            <div className="space-y-2">
-              <Label htmlFor="type">Type de résultat *</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: TypeResultatAudience) => {
-                  setFormData({ 
-                    ...formData, 
-                    type: value,
-                    // Reset des champs selon le type
-                    nouvelleDate: value === 'RENVOI' ? formData.nouvelleDate : '',
-                    motifRenvoi: value === 'RENVOI' ? formData.motifRenvoi : '',
-                    motifRadiation: value === 'RADIATION' ? formData.motifRadiation : '',
-                    texteDelibere: value === 'DELIBERE' ? formData.texteDelibere : ''
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner le type de résultat" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="RENVOI">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Renvoi à une date ultérieure
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="RADIATION">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      Radiation
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="DELIBERE">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Délibéré
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        </div>
 
-            {/* Champs conditionnels selon le type */}
-            {formData.type === 'RENVOI' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="nouvelleDate">Nouvelle date *</Label>
-                  <Input
-                    id="nouvelleDate"
-                    type="date"
-                    value={formData.nouvelleDate}
-                    onChange={(e) => setFormData({ ...formData, nouvelleDate: e.target.value })}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="motifRenvoi">Motif du renvoi *</Label>
-                  <Textarea
-                    id="motifRenvoi"
-                    value={formData.motifRenvoi}
-                    onChange={(e) => setFormData({ ...formData, motifRenvoi: e.target.value })}
-                    placeholder="Indiquez le motif du renvoi..."
-                    rows={3}
-                  />
-                </div>
-              </>
-            )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Type de résultat */}
+          <div className="space-y-2">
+            <Label htmlFor="type">Type de résultat *</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value: any) => setFormData({ ...formData, type: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner le type de résultat" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="RENVOI">Renvoi</SelectItem>
+                <SelectItem value="RADIATION">Radiation</SelectItem>
+                <SelectItem value="DELIBERE">Délibéré</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            {formData.type === 'RADIATION' && (
+          {/* Champs conditionnels selon le type */}
+          {formData.type === 'RENVOI' && (
+            <>
               <div className="space-y-2">
-                <Label htmlFor="motifRadiation">Motif de la radiation *</Label>
+                <Label htmlFor="nouvelleDate">Nouvelle date d'audience *</Label>
+                <Input
+                  id="nouvelleDate"
+                  type="date"
+                  value={formData.nouvelleDate}
+                  onChange={(e) => setFormData({ ...formData, nouvelleDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="motifRenvoi">Motif du renvoi</Label>
                 <Textarea
-                  id="motifRadiation"
-                  value={formData.motifRadiation}
-                  onChange={(e) => setFormData({ ...formData, motifRadiation: e.target.value })}
-                  placeholder="Indiquez le motif de la radiation..."
+                  id="motifRenvoi"
+                  value={formData.motifRenvoi}
+                  onChange={(e) => setFormData({ ...formData, motifRenvoi: e.target.value })}
+                  placeholder="Préciser le motif du renvoi..."
                   rows={3}
                 />
               </div>
-            )}
+            </>
+          )}
 
-            {formData.type === 'DELIBERE' && (
-              <div className="space-y-2">
-                <Label htmlFor="texteDelibere">Texte du délibéré *</Label>
-                <Textarea
-                  id="texteDelibere"
-                  value={formData.texteDelibere}
-                  onChange={(e) => setFormData({ ...formData, texteDelibere: e.target.value })}
-                  placeholder="Saisissez le texte du délibéré..."
-                  rows={5}
-                />
-              </div>
-            )}
+          {formData.type === 'RADIATION' && (
+            <div className="space-y-2">
+              <Label htmlFor="motifRadiation">Motif de radiation *</Label>
+              <Textarea
+                id="motifRadiation"
+                value={formData.motifRadiation}
+                onChange={(e) => setFormData({ ...formData, motifRadiation: e.target.value })}
+                placeholder="Préciser le motif de radiation..."
+                rows={3}
+              />
+            </div>
+          )}
 
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-              >
-                Annuler
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isLoading}
-              >
-                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {mode === 'create' ? 'Enregistrer' : 'Mettre à jour'}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
+          {formData.type === 'DELIBERE' && (
+            <div className="space-y-2">
+              <Label htmlFor="texteDelibere">Texte du délibéré *</Label>
+              <Textarea
+                id="texteDelibere"
+                value={formData.texteDelibere}
+                onChange={(e) => setFormData({ ...formData, texteDelibere: e.target.value })}
+                placeholder="Saisir le texte du délibéré..."
+                rows={4}
+              />
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={createResultat.isPending}
+            >
+              Annuler
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={createResultat.isPending}
+            >
+              {createResultat.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Enregistrer le résultat
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

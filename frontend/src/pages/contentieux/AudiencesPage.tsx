@@ -9,7 +9,8 @@ import {
   Clock,
   MapPin,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bell
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NouvelleAudienceDialog } from '@/components/dialogs/NouvelleAudienceDialog';
 import { ResultatAudienceDialog } from '@/components/dialogs/ResultatAudienceDialog';
-import { useAudiences, AudienceDB } from '@/hooks/useAudiences';
+import { AudienceCard } from '@/components/audiences/AudienceCard';
+import { EmptyState } from '@/components/ui/empty-state';
+import { useAudiences, useAudiencesStats, useAudiencesRappelEnrolement, AudienceDB } from '@/hooks/useAudiences';
 import { cn } from '@/lib/utils';
 
 const statutLabels = {
@@ -38,6 +41,8 @@ export default function AudiencesPage() {
   const [selectedAudience, setSelectedAudience] = useState<AudienceDB | null>(null);
 
   const { data: audiences = [], isLoading } = useAudiences();
+  const { data: stats } = useAudiencesStats();
+  const { data: audiencesRappel = [] } = useAudiencesRappelEnrolement();
 
   const audiencesNonRenseignees = audiences.filter((a: AudienceDB) => a.statut === 'PASSEE_NON_RENSEIGNEE');
   const audiencesAVenir = audiences.filter((a: AudienceDB) => a.statut === 'A_VENIR');
@@ -117,19 +122,19 @@ export default function AudiencesPage() {
           <Card className="border-border/50">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground font-medium">À venir</p>
-              <p className="text-2xl font-semibold text-info mt-1">{audiencesAVenir.length}</p>
+              <p className="text-2xl font-semibold text-info mt-1">{stats?.aVenir || audiencesAVenir.length}</p>
             </CardContent>
           </Card>
           <Card className={cn("border-border/50", audiencesNonRenseignees.length > 0 && "border-destructive/30 bg-destructive/5")}>
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground font-medium">Non renseignées</p>
-              <p className="text-2xl font-semibold text-destructive mt-1">{audiencesNonRenseignees.length}</p>
+              <p className="text-2xl font-semibold text-destructive mt-1">{stats?.nonRenseignees || audiencesNonRenseignees.length}</p>
             </CardContent>
           </Card>
           <Card className="border-border/50">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground font-medium">Renseignées</p>
-              <p className="text-2xl font-semibold text-success mt-1">{audiencesRenseignees.length}</p>
+              <p className="text-2xl font-semibold text-success mt-1">{stats?.tenues || audiencesRenseignees.length}</p>
             </CardContent>
           </Card>
         </div>
@@ -144,6 +149,21 @@ export default function AudiencesPage() {
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Saisissez le résultat pour régulariser ces audiences.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Rappel enrôlement */}
+        {audiencesRappel.length > 0 && (
+          <div className="flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <Bell className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-orange-700 text-sm">
+                {audiencesRappel.length} audience(s) nécessitant un rappel d'enrôlement
+              </p>
+              <p className="text-xs text-orange-600 mt-0.5">
+                Vérifiez l'enrôlement de ces audiences et marquez-les comme effectuées.
               </p>
             </div>
           </div>
@@ -268,79 +288,5 @@ export default function AudiencesPage() {
         )}
       </div>
     </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="text-center py-12">
-      <CalendarIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
-  );
-}
-
-function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: {
-  audience: AudienceDB;
-  onSaisirResultat: (a: AudienceDB) => void;
-  onVoirDetails: (id: string) => void;
-}) {
-  const isUrgent = audience.statut === 'PASSEE_NON_RENSEIGNEE';
-  
-  return (
-    <Card className={cn('border-border/50 transition-all hover:shadow-sm', isUrgent && 'border-destructive/30')}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <Badge variant="outline" className={cn('text-[11px]', statutLabels[audience.statut].className)}>
-                {statutLabels[audience.statut].label}
-              </Badge>
-              <Badge variant="secondary" className="text-[11px]">
-                {audience.type}
-              </Badge>
-            </div>
-            
-            <p className="font-medium text-sm text-foreground">
-              {audience.affaire?.reference} — {audience.affaire?.intitule}
-            </p>
-            
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <CalendarIcon className="h-3.5 w-3.5" />
-                {new Date(audience.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
-              </span>
-              {audience.heure && (
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {audience.heure}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {audience.juridiction}
-              </span>
-            </div>
-
-            {audience.notesPreparation && (
-              <p className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded line-clamp-2">
-                {audience.notesPreparation}
-              </p>
-            )}
-          </div>
-          
-          <div className="flex gap-1.5 shrink-0">
-            {isUrgent && (
-              <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={() => onSaisirResultat(audience)}>
-                Saisir résultat
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onVoirDetails(audience.id)}>
-              Détails
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

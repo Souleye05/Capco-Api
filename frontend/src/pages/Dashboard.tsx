@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { 
-  Calendar, 
-  AlertTriangle, 
-  Gavel, 
-  Banknote, 
-  Building2, 
+import {
+  Calendar,
+  AlertTriangle,
+  Gavel,
+  Banknote,
+  Building2,
   TrendingUp,
   TrendingDown,
   Clock,
@@ -17,8 +17,8 @@ import {
   Wallet,
   Loader2
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { StatCard } from '@/components/dashboard/StatCard';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { StatCard } from '@/components/ui/stat-card';
 import { AlertesList } from '@/components/dashboard/AlertesList';
 import { AudiencesDemain } from '@/components/dashboard/AudiencesDemain';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -31,7 +31,7 @@ import { useAlertes } from '@/hooks/useAlertes';
 
 export default function Dashboard() {
   const [showNouvelleAction, setShowNouvelleAction] = useState(false);
-  
+
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: audiencesDemain = [], isLoading: audiencesLoading } = useAudiencesDemain();
   const { data: alertes = [], isLoading: alertesLoading } = useAlertes();
@@ -59,27 +59,21 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
-        title={
-          <div className="flex items-center gap-4">
-            <img src={capcoLogo} alt="CAPCO" className="h-10 w-auto hidden md:block" />
-            <span>Tableau de bord</span>
-          </div>
-        }
-        subtitle={`${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
-        actions={
-          <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => setShowNouvelleAction(true)}>
-            <Plus className="h-4 w-4" />
-            Nouvelle action
-          </Button>
-        }
+      <PageHeader
+        title="Tableau de bord"
+        description={`${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
+        action={{
+          label: "Nouvelle action",
+          icon: <Plus className="h-4 w-4" />,
+          onClick: () => setShowNouvelleAction(true)
+        }}
       />
 
-      <NouvelleActionDialog 
-        open={showNouvelleAction} 
-        onOpenChange={setShowNouvelleAction} 
+      <NouvelleActionDialog
+        open={showNouvelleAction}
+        onOpenChange={setShowNouvelleAction}
       />
-      
+
       <div className="p-6 space-y-6 animate-fade-in">
         {/* Alertes urgentes */}
         {urgentAlertes.length > 0 && (
@@ -88,9 +82,9 @@ export default function Dashboard() {
               <AlertTriangle className="h-5 w-5 text-destructive" />
               <h2 className="font-semibold text-destructive">Actions urgentes requises</h2>
             </div>
-            <AlertesList 
-              alertes={urgentAlertes} 
-              limit={3} 
+            <AlertesList
+              alertes={urgentAlertes}
+              limit={3}
             />
           </div>
         )}
@@ -124,8 +118,8 @@ export default function Dashboard() {
               </div>
               <div className="mt-3">
                 <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-success h-2 rounded-full transition-all" 
+                  <div
+                    className="bg-success h-2 rounded-full transition-all"
                     style={{ width: `${currentStats.contentieux.honorairesFactures > 0 ? (currentStats.contentieux.honorairesEncaisses / currentStats.contentieux.honorairesFactures) * 100 : 0}%` }}
                   />
                 </div>
@@ -134,7 +128,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-            
+
             {/* Recouvrement */}
             <div className="p-4 bg-success/5 border border-success/20 rounded-lg">
               <div className="flex items-center gap-2 mb-4">
@@ -157,8 +151,8 @@ export default function Dashboard() {
               </div>
               <div className="mt-3">
                 <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-success h-2 rounded-full transition-all" 
+                  <div
+                    className="bg-success h-2 rounded-full transition-all"
                     style={{ width: `${currentStats.recouvrement.honorairesFactures > 0 ? (currentStats.recouvrement.honorairesEncaisses / currentStats.recouvrement.honorairesFactures) * 100 : 0}%` }}
                   />
                 </div>
@@ -168,7 +162,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
+
           {/* Total combiné */}
           <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
             <div className="grid grid-cols-3 gap-6 text-center">
@@ -205,7 +199,7 @@ export default function Dashboard() {
               title="Non renseignées"
               value={currentStats.contentieux.audiencesNonRenseignees}
               icon={AlertTriangle}
-              variant={currentStats.contentieux.audiencesNonRenseignees > 0 ? 'urgent' : 'default'}
+              variant={currentStats.contentieux.audiencesNonRenseignees > 0 ? 'destructive' : 'default'}
               subtitle="À régulariser"
             />
             <StatCard
@@ -252,7 +246,7 @@ export default function Dashboard() {
               title="Sans action +7j"
               value={currentStats.recouvrement.dossiersSansAction7j + currentStats.recouvrement.dossiersSansAction30j}
               icon={AlertTriangle}
-              variant={currentStats.recouvrement.dossiersSansAction7j > 0 ? 'urgent' : 'default'}
+              variant={currentStats.recouvrement.dossiersSansAction7j > 0 ? 'destructive' : 'default'}
               subtitle="Relance nécessaire"
             />
           </div>
@@ -282,7 +276,7 @@ export default function Dashboard() {
               title="Impayés"
               value={formatCurrency(currentStats.immobilier.impayesMois)}
               icon={TrendingDown}
-              variant={currentStats.immobilier.impayesMois > 0 ? 'urgent' : 'default'}
+              variant={currentStats.immobilier.impayesMois > 0 ? 'destructive' : 'default'}
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
@@ -327,7 +321,7 @@ export default function Dashboard() {
               title="Factures en attente"
               value={currentStats.conseil.facturesEnAttente}
               icon={FileText}
-              variant={currentStats.conseil.facturesEnAttente > 0 ? 'urgent' : 'default'}
+              variant={currentStats.conseil.facturesEnAttente > 0 ? 'destructive' : 'default'}
             />
             <StatCard
               title="Facturé ce mois"

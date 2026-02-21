@@ -1,5 +1,5 @@
 import { Users, UserCheck, UserX, Shield, Clock } from 'lucide-react';
-import { StatCard } from './StatCard';
+import { StatCard } from '@/components/ui/stat-card';
 
 interface UserStatsGridProps {
     stats: {
@@ -18,43 +18,37 @@ export const UserStatsGrid = ({ stats }: UserStatsGridProps) => (
             title="Total"
             value={stats.total}
             icon={Users}
-            color="text-primary"
-            bgColor="bg-primary/10"
+            variant="primary"
         />
         <StatCard
             title="Actifs"
             value={stats.actifs}
             icon={UserCheck}
-            color="text-success"
-            bgColor="bg-success/10"
+            variant="success"
         />
         <StatCard
             title="Inactifs"
             value={stats.inactifs}
             icon={UserX}
-            color="text-destructive"
-            bgColor="bg-destructive/10"
+            variant="destructive"
         />
         <StatCard
             title="Admins"
             value={stats.admins}
             icon={Shield}
-            color="text-primary"
-            bgColor="bg-primary/10"
+            variant="primary"
         />
         <StatCard
-            title="Collaborateurs"
+            title="Collabs"
             value={stats.collabs}
             icon={Users}
-            color="text-muted-foreground"
-            bgColor="bg-muted"
+            variant="default"
         />
         <StatCard
             title="Récent"
             value={stats.recent}
             icon={Clock}
-            color="text-[hsl(var(--status-upcoming))]"
-            bgColor="bg-[hsl(var(--status-upcoming)/0.1)]"
+            variant="info"
         />
     </div>
 );

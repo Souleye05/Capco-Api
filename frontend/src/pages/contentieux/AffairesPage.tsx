@@ -1,6 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, Loader2, Gavel, Filter, Calendar, Banknote } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2,
+  Loader2,
+  Gavel,
+  Filter,
+  Calendar,
+  Banknote
+} from 'lucide-react';
+import { StatCard } from '@/components/ui/stat-card';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +54,7 @@ export default function AffairesPage() {
   const affaires = affairesResponse?.data || [];
 
   const filteredAffaires = affaires.filter(affaire => {
-    const matchesSearch = 
+    const matchesSearch =
       affaire.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
       affaire.intitule.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatut = statutFilter === 'all' || affaire.statut === statutFilter;
@@ -57,8 +70,8 @@ export default function AffairesPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Affaires Contentieuses" 
+      <Header
+        title="Affaires Contentieuses"
         subtitle={`${stats.total} affaires au total`}
         breadcrumbs={[
           { label: 'Contentieux', href: '/contentieux/affaires' },
@@ -72,32 +85,38 @@ export default function AffairesPage() {
         }
       />
 
-      <NouvelleAffaireDialog 
-        open={showNouvelleAffaire} 
-        onOpenChange={setShowNouvelleAffaire} 
+      <NouvelleAffaireDialog
+        open={showNouvelleAffaire}
+        onOpenChange={setShowNouvelleAffaire}
       />
 
       <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
         {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: 'Total', value: stats.total, icon: Gavel, color: 'text-foreground' },
-            { label: 'Actives', value: stats.actives, icon: Gavel, color: 'text-success' },
-            { label: 'Clôturées', value: stats.cloturees, icon: Gavel, color: 'text-muted-foreground' },
-            { label: 'Radiées', value: stats.radiees, icon: Gavel, color: 'text-destructive' },
-          ].map((stat) => (
-            <Card key={stat.label} className="border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
-                    <p className={cn('text-2xl font-semibold mt-1', stat.color)}>{stat.value}</p>
-                  </div>
-                  <stat.icon className={cn('h-5 w-5', stat.color)} />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Toutes les affaires"
+            value={stats.total}
+            icon={Gavel}
+            variant="primary"
+          />
+          <StatCard
+            title="Actives"
+            value={stats.actives}
+            icon={Gavel}
+            variant="success"
+          />
+          <StatCard
+            title="Clôturées"
+            value={stats.cloturees}
+            icon={Gavel}
+            variant="default"
+          />
+          <StatCard
+            title="Radiées"
+            value={stats.radiees}
+            icon={Gavel}
+            variant="destructive"
+          />
         </div>
 
         {/* Filters */}
@@ -155,10 +174,10 @@ export default function AffairesPage() {
                     const defendeurs = affaire.parties?.filter(p => p.role === 'DEFENDEUR') || [];
                     const config = statutConfig[affaire.statut] || statutConfig.ACTIVE;
                     const totalFinancier = affaire.totalHonoraires + affaire.totalDepenses;
-                    
+
                     return (
-                      <tr 
-                        key={affaire.id} 
+                      <tr
+                        key={affaire.id}
                         className="group cursor-pointer hover:bg-muted/40 transition-colors"
                         onClick={() => navigate(`/contentieux/affaires/${affaire.id}`)}
                       >
@@ -172,7 +191,7 @@ export default function AffairesPage() {
                             {affaire.intitule}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                            {demandeurs.length > 0 && defendeurs.length > 0 
+                            {demandeurs.length > 0 && defendeurs.length > 0
                               ? `${demandeurs.map(d => d.nom).join(', ')} c/ ${defendeurs.map(d => d.nom).join(', ')}`
                               : `${affaire.parties?.length || 0} partie(s)`
                             }
@@ -215,10 +234,10 @@ export default function AffairesPage() {
                         <td className="py-3 px-2">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreHorizontal className="h-4 w-4" />
@@ -243,7 +262,7 @@ export default function AffairesPage() {
                 </tbody>
               </table>
             </div>
-            
+
             {filteredAffaires.length === 0 && !isLoading && (
               <div className="text-center py-16">
                 <Gavel className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
@@ -252,8 +271,8 @@ export default function AffairesPage() {
                   {searchQuery || statutFilter !== 'all' ? 'Essayez de modifier vos filtres' : 'Commencez par créer une affaire'}
                 </p>
                 {!searchQuery && statutFilter === 'all' && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="mt-4"
                     onClick={() => setShowNouvelleAffaire(true)}

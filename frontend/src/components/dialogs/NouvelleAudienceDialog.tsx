@@ -12,6 +12,7 @@ import { useAffaires } from '@/hooks/useAffaires';
 import { useCreateAudience } from '@/hooks/useAudiences';
 import { useJuridictionsActives } from '@/hooks/useJuridictions';
 import { isWeekend, getDayName, getWeekendAlternatives, formatDateWithDay } from '@/lib/date-validation';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface NouvelleAudienceDialogProps {
   open: boolean;
@@ -22,10 +23,10 @@ interface NouvelleAudienceDialogProps {
 export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireId }: NouvelleAudienceDialogProps) {
   const { data: affairesResponse, isLoading: affairesLoading } = useAffaires();
   const { data: juridictions = [], isLoading: juridictionsLoading } = useJuridictionsActives();
-  
+
   const affaires = affairesResponse?.data || [];
   const createAudience = useCreateAudience();
-  
+
   const [formData, setFormData] = useState({
     affaireId: preselectedAffaireId || '',
     date: '',
@@ -57,7 +58,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
 
   const handleDateChange = (date: string) => {
     setFormData({ ...formData, date });
-    
+
     if (date && isWeekend(date)) {
       setShowWeekendWarning(true);
       setWeekendAlternatives(getWeekendAlternatives(date));
@@ -75,7 +76,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.affaireId || !formData.date || !formData.juridiction) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
@@ -117,192 +118,187 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          {/* Affaire */}
-          <div className="space-y-2">
-            <Label htmlFor="affaire">Affaire *</Label>
-            <Select
-              value={formData.affaireId}
-              onValueChange={(value) => setFormData({ ...formData, affaireId: value })}
-              disabled={!!preselectedAffaireId || affairesLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={affairesLoading ? "Chargement..." : "Sélectionner une affaire"} />
-              </SelectTrigger>
-              <SelectContent>
-                {affaires
-                  .filter(a => a.statut === 'ACTIVE')
-                  .map((affaire) => (
-                    <SelectItem key={affaire.id} value={affaire.id}>
-                      {affaire.reference} - {affaire.intitule}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit}>
+          <ScrollArea className="max-h-[65vh] pr-4 py-4">
+            <div className="space-y-4">
+              {/* Affaire */}
+              <div className="space-y-2">
+                <Label htmlFor="affaire">Affaire *</Label>
+                <Select
+                  value={formData.affaireId}
+                  onValueChange={(value) => setFormData({ ...formData, affaireId: value })}
+                  disabled={!!preselectedAffaireId || affairesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={affairesLoading ? "Chargement..." : "Sélectionner une affaire"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {createAudience.isPending && (
+                      <Loader2 className="absolute right-8 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                    )}
+                    {affaires
+                      .filter(a => a.statut === 'ACTIVE')
+                      .map((affaire) => (
+                        <SelectItem key={affaire.id} value={affaire.id}>
+                          {affaire.reference} - {affaire.intitule}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Type d'audience */}
-          <div className="space-y-2">
-            <Label htmlFor="type">Type d'audience *</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value: any) => setFormData({ ...formData, type: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner le type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MISE_EN_ETAT">Mise en état</SelectItem>
-                <SelectItem value="PLAIDOIRIE">Plaidoirie</SelectItem>
-                <SelectItem value="REFERE">Référé</SelectItem>
-                <SelectItem value="AUTRE">Autre</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Type d'audience */}
+              <div className="space-y-2">
+                <Label htmlFor="type">Type d'audience *</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value: any) => setFormData({ ...formData, type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner le type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MISE_EN_ETAT">Mise en état</SelectItem>
+                    <SelectItem value="PLAIDOIRIE">Plaidoirie</SelectItem>
+                    <SelectItem value="REFERE">Référé</SelectItem>
+                    <SelectItem value="AUTRE">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Date et heure */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date *</Label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => handleDateChange(e.target.value)}
-              />
-              {formData.date && new Date(formData.date) < new Date() && (
-                <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-                  ⚠️ Date passée : le statut sera automatiquement défini sur "Non renseigné"
-                </p>
-              )}
-              
-              {/* Alerte week-end */}
-              {showWeekendWarning && weekendAlternatives && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">
-                    <div className="space-y-2">
-                      <p className="font-medium">
-                        ❌ Cette date correspond à un {getDayName(formData.date)}
-                      </p>
-                      <p className="text-sm">
-                        Les audiences ne peuvent pas être programmées le week-end. Veuillez choisir une date alternative :
-                      </p>
-                      <div className="flex flex-col gap-2 mt-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="justify-start text-left h-auto py-2"
-                          onClick={() => handleAlternativeDateSelect(weekendAlternatives.previousFriday.isoString)}
-                        >
-                          <Calendar className="h-3 w-3 mr-2" />
-                          <div>
-                            <div className="font-medium">Vendredi précédent</div>
-                            <div className="text-xs text-muted-foreground">
-                              {weekendAlternatives.previousFriday.formatted}
-                            </div>
+              {/* Date et heure */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date *</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => handleDateChange(e.target.value)}
+                  />
+                  {formData.date && new Date(formData.date) < new Date() && (
+                    <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 mt-1">
+                      ⚠️ Date passée : le statut sera automatique.
+                    </p>
+                  )}
+
+                  {/* Alerte week-end - compact version already in file from previous tool call */}
+                  {/* I will re-include the compact version here as I'm replacing the whole block */}
+                  {showWeekendWarning && weekendAlternatives && (
+                    <Alert className="border-red-200 bg-red-50 mt-2">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-red-800">
+                        <div className="space-y-2">
+                          <p className="font-medium text-xs">
+                            ❌ Week-end ({getDayName(formData.date)})
+                          </p>
+                          <div className="flex flex-col gap-1.5 mt-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="justify-start text-left h-auto py-1 px-2 border-red-200 bg-white"
+                              onClick={() => handleAlternativeDateSelect(weekendAlternatives.previousFriday.isoString)}
+                            >
+                              <Calendar className="h-3 w-3 mr-2" />
+                              <span className="text-[10px]">Ven. {weekendAlternatives.previousFriday.formatted}</span>
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="justify-start text-left h-auto py-1 px-2 border-red-200 bg-white"
+                              onClick={() => handleAlternativeDateSelect(weekendAlternatives.nextMonday.isoString)}
+                            >
+                              <Calendar className="h-3 w-3 mr-2" />
+                              <span className="text-[10px]">Lun. {weekendAlternatives.nextMonday.formatted}</span>
+                            </Button>
                           </div>
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="justify-start text-left h-auto py-2"
-                          onClick={() => handleAlternativeDateSelect(weekendAlternatives.nextMonday.isoString)}
-                        >
-                          <Calendar className="h-3 w-3 mr-2" />
-                          <div>
-                            <div className="font-medium">Lundi suivant</div>
-                            <div className="text-xs text-muted-foreground">
-                              {weekendAlternatives.nextMonday.formatted}
-                            </div>
-                          </div>
-                        </Button>
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="heure">Heure</Label>
-              <Input
-                id="heure"
-                type="time"
-                value={formData.heure}
-                onChange={(e) => setFormData({ ...formData, heure: e.target.value })}
-              />
-            </div>
-          </div>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="heure">Heure</Label>
+                  <Input
+                    id="heure"
+                    type="time"
+                    value={formData.heure}
+                    onChange={(e) => setFormData({ ...formData, heure: e.target.value })}
+                  />
+                </div>
+              </div>
 
-          {/* Juridiction */}
-          <div className="space-y-2">
-            <Label htmlFor="juridiction">Juridiction *</Label>
-            <Select
-              value={formData.juridiction}
-              onValueChange={(value) => setFormData({ ...formData, juridiction: value })}
-              disabled={juridictionsLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={juridictionsLoading ? "Chargement..." : "Sélectionner la juridiction"} />
-              </SelectTrigger>
-              <SelectContent>
-                {juridictions.map((juridiction) => (
-                  <SelectItem key={juridiction.id} value={juridiction.nom}>
-                    {juridiction.nom}
-                  </SelectItem>
-                ))}
-                <SelectItem value="Autre">Autre</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Juridiction */}
+              <div className="space-y-2">
+                <Label htmlFor="juridiction">Juridiction *</Label>
+                <Select
+                  value={formData.juridiction}
+                  onValueChange={(value) => setFormData({ ...formData, juridiction: value })}
+                  disabled={juridictionsLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={juridictionsLoading ? "Chargement..." : "Sélectionner la juridiction"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {juridictions.map((juridiction) => (
+                      <SelectItem key={juridiction.id} value={juridiction.nom}>
+                        {juridiction.nom}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="Autre">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Chambre et ville */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="chambre">Chambre</Label>
-              <Input
-                id="chambre"
-                value={formData.chambre}
-                onChange={(e) => setFormData({ ...formData, chambre: e.target.value })}
-                placeholder="Ex: 3ème Chambre"
-              />
+              {/* Chambre et ville */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="chambre">Chambre</Label>
+                  <Input
+                    id="chambre"
+                    value={formData.chambre}
+                    onChange={(e) => setFormData({ ...formData, chambre: e.target.value })}
+                    placeholder="Ex: 3ème Chambre"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ville">Ville</Label>
+                  <Input
+                    id="ville"
+                    value={formData.ville}
+                    onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
+                    placeholder="Ex: Dakar"
+                  />
+                </div>
+              </div>
+
+              {/* Notes de préparation */}
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes de préparation</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notesPreparation}
+                  onChange={(e) => setFormData({ ...formData, notesPreparation: e.target.value })}
+                  placeholder="Points à préparer..."
+                  className="min-h-[80px]"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="ville">Ville</Label>
-              <Input
-                id="ville"
-                value={formData.ville}
-                onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                placeholder="Ex: Dakar"
-              />
-            </div>
-          </div>
+          </ScrollArea>
 
-          {/* Notes de préparation */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes de préparation</Label>
-            <Textarea
-              id="notes"
-              value={formData.notesPreparation}
-              onChange={(e) => setFormData({ ...formData, notesPreparation: e.target.value })}
-              placeholder="Points à préparer, documents à apporter, stratégie..."
-              rows={3}
-            />
-          </div>
-
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+          <DialogFooter className="mt-4 pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={createAudience.isPending}
             >
               Annuler
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={createAudience.isPending || affairesLoading || juridictionsLoading || showWeekendWarning}
             >
               {createAudience.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

@@ -75,17 +75,24 @@ export interface IndicateursPerformance {
   }[];
 }
 
+export interface RechercheGlobale {
+  affaires: any[];
+  audiences: any[];
+  honoraires: any[];
+  depenses: any[];
+}
+
 // Hook pour récupérer le dashboard contentieux
 export function useContentieuxDashboard() {
   return useQuery({
     queryKey: ['contentieux', 'dashboard'],
     queryFn: async (): Promise<ContentieuxDashboard> => {
       const response = await nestjsApi.get<ContentieuxDashboard>('/contentieux/dashboard');
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -101,14 +108,14 @@ export function usePlanningAudiences(dateDebut?: Date, dateFin?: Date) {
       const params = new URLSearchParams();
       if (dateDebut) params.append('dateDebut', dateDebut.toISOString());
       if (dateFin) params.append('dateFin', dateFin.toISOString());
-      
+
       const endpoint = `/contentieux/planning-audiences${params.toString() ? '?' + params.toString() : ''}`;
       const response = await nestjsApi.get<PlanningAudience[]>(endpoint);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data || [];
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -119,15 +126,15 @@ export function usePlanningAudiences(dateDebut?: Date, dateFin?: Date) {
 export function useRechercheGlobale(terme: string) {
   return useQuery({
     queryKey: ['contentieux', 'recherche', terme],
-    queryFn: async () => {
+    queryFn: async (): Promise<RechercheGlobale> => {
       if (!terme.trim()) return { affaires: [], audiences: [], honoraires: [], depenses: [] };
-      
-      const response = await nestjsApi.get(`/contentieux/recherche?terme=${encodeURIComponent(terme)}`);
-      
+
+      const response = await nestjsApi.get<RechercheGlobale>(`/contentieux/recherche?terme=${encodeURIComponent(terme)}`);
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data || { affaires: [], audiences: [], honoraires: [], depenses: [] };
     },
     enabled: !!terme.trim(),
@@ -141,11 +148,11 @@ export function useIndicateursPerformance() {
     queryKey: ['contentieux', 'indicateurs-performance'],
     queryFn: async (): Promise<IndicateursPerformance> => {
       const response = await nestjsApi.get<IndicateursPerformance>('/contentieux/indicateurs-performance');
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     staleTime: 15 * 60 * 1000, // 15 minutes
@@ -165,20 +172,20 @@ export function useExportDonnees() {
         type: options.type,
         format: options.format || 'json',
       });
-      
+
       if (options.dateDebut) {
         params.append('dateDebut', options.dateDebut.toISOString());
       }
       if (options.dateFin) {
         params.append('dateFin', options.dateFin.toISOString());
       }
-      
+
       const response = await nestjsApi.get(`/contentieux/export?${params.toString()}`);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data;
     }
   };
@@ -190,13 +197,13 @@ export function useResumeFinancierAffaire(affaireId: string | undefined) {
     queryKey: ['contentieux', 'affaires', affaireId, 'resume-financier'],
     queryFn: async () => {
       if (!affaireId) return null;
-      
+
       const response = await nestjsApi.get(`/contentieux/affaires/${affaireId}/resume-financier`);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data;
     },
     enabled: !!affaireId,

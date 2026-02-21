@@ -22,7 +22,9 @@ import {
   TrendingUp,
   Loader2
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { StatCard } from '@/components/ui/stat-card';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,8 +48,8 @@ import { toast } from 'sonner';
 import { TypeResultat, TypeDepenseDossier } from '@/types';
 import { useAffaire } from '@/hooks/useAffaires';
 import { useAudiencesByAffaire, AudienceDB } from '@/hooks/useAudiences';
-import { 
-  useHonorairesContentieux, 
+import {
+  useHonorairesContentieux,
   useCreateHonorairesContentieux,
   useUpdateHonorairesContentieux,
   useDepensesAffaire,
@@ -60,7 +62,7 @@ import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 // Utility function to safely format dates
 const safeFormatDate = (date: string | Date | null | undefined, formatStr: string, options?: { locale?: any }): string => {
   if (!date) return 'Date non disponible';
-  
+
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     if (isNaN(dateObj.getTime())) return 'Date non disponible';
@@ -112,10 +114,10 @@ export default function AffaireDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useNestJSAuth();
-  
+
   // Ensure we have a valid ID before making API calls
   const affaireId = id && id !== 'undefined' ? id : undefined;
-  
+
   // Early return if no valid ID is provided
   if (!affaireId) {
     return (
@@ -132,25 +134,25 @@ export default function AffaireDetailPage() {
       </div>
     );
   }
-  
+
   // Fetch data from database
   const { data: affaire, isLoading: loadingAffaire } = useAffaire(affaireId);
   const { data: audiences = [], isLoading: loadingAudiences } = useAudiencesByAffaire(affaireId);
   const { data: honoraires, isLoading: loadingHonoraires } = useHonorairesContentieux(affaireId);
   const { data: depenses = [], isLoading: loadingDepenses } = useDepensesAffaire(affaireId);
   const { data: paiementsHonoraires = [] } = usePaiementsHonorairesContentieux(honoraires?.id);
-  
+
   // Mutations
   const createHonoraires = useCreateHonorairesContentieux();
   const updateHonoraires = useUpdateHonorairesContentieux();
   const createDepense = useCreateDepenseAffaire();
   const createPaiement = useCreatePaiementHonorairesContentieux();
-  
+
   const [showResultatDialog, setShowResultatDialog] = useState(false);
   const [showNouvelleAudienceDialog, setShowNouvelleAudienceDialog] = useState(false);
   const [showCompteRenduDialog, setShowCompteRenduDialog] = useState(false);
   const [selectedAudience, setSelectedAudience] = useState<AudienceDB | null>(null);
-  
+
   // États pour les honoraires
   const [honorairesDialogOpen, setHonorairesDialogOpen] = useState(false);
   const [paiementHonorairesDialogOpen, setPaiementHonorairesDialogOpen] = useState(false);
@@ -166,8 +168,8 @@ export default function AffaireDetailPage() {
   const [depenseMontant, setDepenseMontant] = useState('');
   const [depenseDescription, setDepenseDescription] = useState('');
 
-  const totalDepenses = useMemo(() => 
-    depenses.reduce((sum, d) => sum + Number(d.montant), 0), 
+  const totalDepenses = useMemo(() =>
+    depenses.reduce((sum, d) => sum + Number(d.montant), 0),
     [depenses]
   );
 
@@ -177,9 +179,9 @@ export default function AffaireDetailPage() {
 
   const audiencesNonRenseignees = audiences.filter(a => a.statut === 'PASSEE_NON_RENSEIGNEE');
   const prochainesAudiences = audiences.filter(a => a.statut === 'A_VENIR');
-  
+
   // Calculs des honoraires
-  const montantPrevu = honoraires?.montant_facture || 0;
+  const montantPrevu = honoraires?.montantFacture || 0;
   const totalPaiements = paiementsHonoraires.reduce((sum, p) => sum + Number(p.montant), 0);
   const soldeRestant = montantPrevu - totalPaiements;
   const pourcentageEncaisse = montantPrevu > 0 ? (totalPaiements / montantPrevu) * 100 : 0;
@@ -229,27 +231,26 @@ export default function AffaireDetailPage() {
 
   const handleSubmitHonoraires = async () => {
     if (!user || !id) return;
-    
+
     const montant = parseFloat(honorairesMontant);
     if (isNaN(montant) || montant <= 0) {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     try {
       if (honoraires?.id) {
         await updateHonoraires.mutateAsync({
           id: honoraires.id,
-          montant_facture: montant
+          data: { montantFacture: montant }
         });
       } else {
         await createHonoraires.mutateAsync({
-          affaire_id: id,
-          montant_facture: montant,
-          montant_encaisse: 0,
-          date_facturation: null,
-          notes: null,
-          created_by: user.id
+          affaireId: id,
+          montantFacture: montant,
+          montantEncaisse: 0,
+          dateFacturation: undefined,
+          notes: undefined,
         });
       }
       setHonorairesDialogOpen(false);
@@ -264,29 +265,28 @@ export default function AffaireDetailPage() {
       toast.error('Veuillez d\'abord définir le montant des honoraires');
       return;
     }
-    
+
     const montant = parseFloat(paiementMontant);
     if (isNaN(montant) || montant <= 0) {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     try {
       await createPaiement.mutateAsync({
-        honoraires_id: honoraires.id,
+        honorairesId: honoraires.id,
         date: new Date().toISOString().split('T')[0],
         montant,
-        mode_paiement: paiementMode as any,
-        notes: paiementNotes || null,
-        created_by: user.id
+        modePaiement: paiementMode as any,
+        notes: paiementNotes || undefined,
       });
-      
+
       // Update total encaissé
       await updateHonoraires.mutateAsync({
         id: honoraires.id,
-        montant_encaisse: totalPaiements + montant
+        data: { montantEncaisse: totalPaiements + montant }
       });
-      
+
       setPaiementHonorairesDialogOpen(false);
       setPaiementMontant('');
       setPaiementMode('VIREMENT');
@@ -298,7 +298,7 @@ export default function AffaireDetailPage() {
 
   const handleSubmitDepense = async () => {
     if (!user || !id) return;
-    
+
     const montant = parseFloat(depenseMontant);
     if (!depenseNature.trim()) {
       toast.error('Veuillez saisir la nature de la dépense');
@@ -308,19 +308,18 @@ export default function AffaireDetailPage() {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     try {
       await createDepense.mutateAsync({
-        affaire_id: id,
+        affaireId: id,
         date: new Date().toISOString().split('T')[0],
-        type_depense: depenseType,
+        typeDepense: depenseType,
         nature: depenseNature,
         montant,
-        description: depenseDescription || null,
-        justificatif: null,
-        created_by: user.id
+        description: depenseDescription || undefined,
+        justificatif: undefined,
       });
-      
+
       setDepenseDialogOpen(false);
       setDepenseType('FRAIS_HUISSIER');
       setDepenseNature('');
@@ -331,38 +330,27 @@ export default function AffaireDetailPage() {
     }
   };
 
-  // Parse demandeurs/defendeurs from JSONB
-  const demandeurs = Array.isArray(affaire.demandeurs) ? affaire.demandeurs : [];
-  const defendeurs = Array.isArray(affaire.defendeurs) ? affaire.defendeurs : [];
+  // Parse demandeurs/defendeurs from parties
+  const demandeurs = affaire.parties.filter(p => p.role === 'DEMANDEUR');
+  const defendeurs = affaire.parties.filter(p => p.role === 'DEFENDEUR');
 
   return (
     <div className="min-h-screen">
-      <Header 
+      <PageHeader
         title={affaire.reference}
-        subtitle={affaire.intitule}
-        breadcrumbs={[
-          { label: 'Contentieux', href: '/contentieux/affaires' },
-          { label: 'Affaires', href: '/contentieux/affaires' },
-          { label: affaire.reference },
-        ]}
-        actions={
-          <div className="flex gap-1.5">
-            <Button variant="outline" size="sm" onClick={handleGenerateCompteRendu}>
-              <FileText className="h-4 w-4 mr-1.5" />
-              Compte rendu
-            </Button>
-            <Button size="sm" onClick={() => setShowNouvelleAudienceDialog(true)}>
-              <Calendar className="h-4 w-4 mr-1.5" />
-              Nouvelle audience
-            </Button>
-          </div>
-        }
+        description={affaire.intitule}
+        action={{
+          label: "Nouvelle audience",
+          icon: <Calendar className="h-4 w-4" />,
+          onClick: () => setShowNouvelleAudienceDialog(true)
+        }}
       />
 
       <ResultatAudienceDialog
         open={showResultatDialog}
         onOpenChange={setShowResultatDialog}
-        audience={selectedAudience}
+        audienceId={selectedAudience?.id}
+        mode="edit"
       />
 
       <NouvelleAudienceDialog
@@ -403,17 +391,17 @@ export default function AffaireDetailPage() {
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">Juridiction</h4>
                   <p className="flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
-                    {affaire.juridiction}
+                    {affaire.derniereAudience?.juridiction || 'Non renseignée'}
                   </p>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">Chambre</h4>
-                  <p>{affaire.chambre}</p>
+                  <p>{affaire.derniereAudience?.chambre || 'Non renseignée'}</p>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
@@ -422,11 +410,11 @@ export default function AffaireDetailPage() {
                   </h4>
                   <ul className="space-y-1">
                     {demandeurs.length > 0 ? (
-                      demandeurs.map((p: any, idx: number) => (
-                        <li key={idx} className="text-sm">{p.nom || p}</li>
+                      demandeurs.map((p, idx) => (
+                        <li key={idx} className="text-sm font-bold">{p.nom}</li>
                       ))
                     ) : (
-                      <li className="text-sm text-muted-foreground">Aucun demandeur</li>
+                      <li className="text-sm text-muted-foreground italic">Aucun demandeur</li>
                     )}
                   </ul>
                 </div>
@@ -437,22 +425,22 @@ export default function AffaireDetailPage() {
                   </h4>
                   <ul className="space-y-1">
                     {defendeurs.length > 0 ? (
-                      defendeurs.map((p: any, idx: number) => (
-                        <li key={idx} className="text-sm">{p.nom || p}</li>
+                      defendeurs.map((p, idx) => (
+                        <li key={idx} className="text-sm font-bold">{p.nom}</li>
                       ))
                     ) : (
-                      <li className="text-sm text-muted-foreground">Aucun défendeur</li>
+                      <li className="text-sm text-muted-foreground italic">Aucun défendeur</li>
                     )}
                   </ul>
                 </div>
               </div>
 
-              {affaire.notes && (
+              {affaire.observations && (
                 <>
                   <Separator />
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Notes</h4>
-                    <p className="text-sm bg-muted/50 p-3 rounded">{affaire.notes}</p>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Observations</h4>
+                    <p className="text-sm bg-muted/50 p-3 rounded">{affaire.observations}</p>
                   </div>
                 </>
               )}
@@ -460,27 +448,30 @@ export default function AffaireDetailPage() {
           </Card>
 
           {/* Stats Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Statistiques</CardTitle>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Statistiques
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
+            <CardContent className="space-y-4 pt-4">
+              <div className="flex justify-between items-center group/item hover:bg-muted/30 p-2 rounded-lg transition-colors">
                 <span className="text-sm text-muted-foreground">Total audiences</span>
-                <span className="font-semibold">{audiences.length}</span>
+                <span className="font-black text-lg">{audiences.length}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center group/item hover:bg-info/10 p-2 rounded-lg transition-colors">
                 <span className="text-sm text-muted-foreground">À venir</span>
-                <span className="font-semibold text-info">{prochainesAudiences.length}</span>
+                <span className="font-black text-lg text-info">{prochainesAudiences.length}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center group/item hover:bg-destructive/10 p-2 rounded-lg transition-colors">
                 <span className="text-sm text-muted-foreground">Non renseignées</span>
-                <span className="font-semibold text-destructive">{audiencesNonRenseignees.length}</span>
+                <span className="font-black text-lg text-destructive">{audiencesNonRenseignees.length}</span>
               </div>
-              <Separator />
-              <div>
-                <span className="text-sm text-muted-foreground">Créée le</span>
-                <p className="font-medium">
+              <Separator className="opacity-50" />
+              <div className="pt-2 px-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Dossier créé le</span>
+                <p className="font-bold text-foreground">
                   {safeFormatDate(affaire.createdAt, 'dd MMMM yyyy', { locale: fr })}
                 </p>
               </div>
@@ -489,105 +480,85 @@ export default function AffaireDetailPage() {
         </div>
 
         {/* Section Honoraires */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Banknote className="h-5 w-5 text-success" />
-                Honoraires CAPCO
-              </CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <StatCard
+            title="Honoraires prévus"
+            value={formatCurrency(montantPrevu)}
+            icon={Banknote}
+            variant="contentieux"
+          />
+          <StatCard
+            title="Total encaissé"
+            value={formatCurrency(totalPaiements)}
+            icon={TrendingUp}
+            variant="success"
+            trend={{ value: Math.round(pourcentageEncaisse), isPositive: true }}
+          />
+          <StatCard
+            title="Solde restant"
+            value={formatCurrency(soldeRestant)}
+            icon={AlertTriangle}
+            variant={soldeRestant > 0 ? "warning" : "success"}
+          />
+          <StatCard
+            title="Dépenses engagées"
+            value={formatCurrency(totalDepenses)}
+            icon={Receipt}
+            variant="destructive"
+          />
+        </div>
+
+        {/* Historique Honoraires */}
+        {honoraires && (
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between py-4">
+              <CardTitle className="text-lg font-bold">Historique des Paiements</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setHonorairesDialogOpen(true)}>
                   <TrendingUp className="h-4 w-4 mr-2" />
-                  {honoraires ? 'Modifier montant' : 'Définir honoraires'}
+                  Modifier montant
                 </Button>
-                <Button size="sm" onClick={() => setPaiementHonorairesDialogOpen(true)} disabled={!honoraires}>
+                <Button size="sm" onClick={() => setPaiementHonorairesDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Enregistrer paiement
                 </Button>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {!honoraires ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <Banknote className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Aucun honoraire défini pour cette affaire</p>
-                <Button variant="outline" className="mt-4" onClick={() => setHonorairesDialogOpen(true)}>
-                  Définir les honoraires
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="grid gap-6 md:grid-cols-4 mb-6">
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Honoraires prévus</p>
-                    <p className="text-2xl font-bold">{formatCurrency(montantPrevu)}</p>
-                  </div>
-                  <div className="p-4 bg-success/10 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Encaissé</p>
-                    <p className="text-2xl font-bold text-success">{formatCurrency(totalPaiements)}</p>
-                  </div>
-                  <div className="p-4 bg-warning/10 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Solde restant</p>
-                    <p className="text-2xl font-bold text-warning">{formatCurrency(soldeRestant)}</p>
-                  </div>
-                  <div className="p-4 bg-info/10 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Progression</p>
-                    <p className="text-2xl font-bold text-info">{pourcentageEncaisse.toFixed(0)}%</p>
-                    <div className="w-full bg-muted rounded-full h-2 mt-2">
-                      <div 
-                        className="bg-success h-2 rounded-full transition-all" 
-                        style={{ width: `${Math.min(pourcentageEncaisse, 100)}%` }}
-                      />
-                    </div>
-                  </div>
+            </CardHeader>
+            <CardContent>
+              {paiementsHonoraires.length > 0 ? (
+                <div className="border rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-bold">Date</th>
+                        <th className="text-left px-4 py-3 font-bold">Montant</th>
+                        <th className="text-left px-4 py-3 font-bold">Mode</th>
+                        <th className="text-left px-4 py-3 font-bold">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paiementsHonoraires.map((paiement, idx) => (
+                        <tr key={paiement.id} className="border-t hover:bg-muted/20 transition-colors">
+                          <td className="px-4 py-3">{safeFormatDate(paiement.date, 'dd/MM/yyyy')}</td>
+                          <td className="px-4 py-3 font-bold text-success">{formatCurrency(Number(paiement.montant))}</td>
+                          <td className="px-4 py-3"><StatusBadge label={modePaiementLabels[paiement.modePaiement] || paiement.modePaiement} variant="default" /></td>
+                          <td className="px-4 py-3 text-muted-foreground">{paiement.notes || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-
-                {paiementsHonoraires.length > 0 && (
-                  <>
-                    <h4 className="font-medium mb-3">Historique des paiements</h4>
-                    <div className="border rounded-lg overflow-hidden">
-                      <table className="w-full text-sm">
-                        <thead className="bg-muted/50">
-                          <tr>
-                            <th className="text-left px-4 py-3 font-medium">Date</th>
-                            <th className="text-left px-4 py-3 font-medium">Montant</th>
-                            <th className="text-left px-4 py-3 font-medium">Mode</th>
-                            <th className="text-left px-4 py-3 font-medium">Notes</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paiementsHonoraires.map((paiement, idx) => (
-                            <tr key={paiement.id} className={idx % 2 === 0 ? '' : 'bg-muted/20'}>
-                              <td className="px-4 py-3">
-                                {safeFormatDate(paiement.date, 'dd/MM/yyyy')}
-                              </td>
-                              <td className="px-4 py-3 font-medium text-success">
-                                {formatCurrency(Number(paiement.montant))}
-                              </td>
-                              <td className="px-4 py-3">
-                                <Badge variant="outline">
-                                  {modePaiementLabels[paiement.mode_paiement] || paiement.mode_paiement}
-                                </Badge>
-                              </td>
-                              <td className="px-4 py-3 text-muted-foreground">
-                                {paiement.notes || '-'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground italic">
+                  Aucun paiement enregistré pour le moment.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Section Dépenses */}
-        <Card>
+        <Card className="border-border/50 shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -630,9 +601,10 @@ export default function AffaireDetailPage() {
                           {safeFormatDate(depense.date, 'dd/MM/yyyy')}
                         </td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline">
-                            {typeDepenseLabels[depense.type_depense as TypeDepenseDossier] || depense.type_depense}
-                          </Badge>
+                          <StatusBadge
+                            label={typeDepenseLabels[depense.typeDepense as TypeDepenseDossier] || depense.typeDepense}
+                            variant="destructive"
+                          />
                         </td>
                         <td className="px-4 py-3">
                           {depense.nature}
@@ -663,10 +635,10 @@ export default function AffaireDetailPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card >
 
         {/* Timeline des audiences */}
-        <Card>
+        < Card >
           <CardHeader>
             <CardTitle>Chronologie des audiences</CardTitle>
           </CardHeader>
@@ -686,13 +658,13 @@ export default function AffaireDetailPage() {
               <div className="relative">
                 {/* Timeline line */}
                 <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border" />
-                
+
                 <div className="space-y-6">
                   {audiencesChronologiques.map((audience) => {
                     const isUrgent = audience.statut === 'PASSEE_NON_RENSEIGNEE';
                     const isUpcoming = audience.statut === 'A_VENIR';
                     const hasResultat = audience.statut === 'RENSEIGNEE';
-                    
+
                     return (
                       <div key={audience.id} className="relative pl-14">
                         {/* Timeline dot */}
@@ -703,7 +675,7 @@ export default function AffaireDetailPage() {
                           hasResultat && 'border-success bg-success',
                           !isUrgent && !isUpcoming && !hasResultat && 'border-muted-foreground'
                         )} />
-                        
+
                         <Card className={cn(
                           'transition-all hover:shadow-md',
                           isUrgent && 'border-destructive/50 bg-destructive/5'
@@ -716,10 +688,10 @@ export default function AffaireDetailPage() {
                                     {isUpcoming ? 'À venir' : isUrgent ? 'Non renseignée' : 'Passée'}
                                   </Badge>
                                   <span className="module-badge module-badge-contentieux">
-                                    {objetLabels[audience.objet] || audience.objet}
+                                    {objetLabels[audience.type] || audience.type}
                                   </span>
                                 </div>
-                                
+
                                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                                   <span className="flex items-center gap-1 font-medium text-foreground">
                                     <Calendar className="h-4 w-4" />
@@ -733,20 +705,20 @@ export default function AffaireDetailPage() {
                                   )}
                                   <span className="flex items-center gap-1">
                                     <MapPin className="h-4 w-4" />
-                                    {affaire.juridiction}
+                                    {audience.juridiction || affaire.derniereAudience?.juridiction}
                                   </span>
                                 </div>
-                                
+
                                 {audience.notes_preparation && (
                                   <p className="mt-3 text-sm text-muted-foreground bg-muted/50 p-2 rounded">
                                     <span className="font-medium">Notes:</span> {audience.notes_preparation}
                                   </p>
                                 )}
                               </div>
-                              
+
                               {isUrgent && (
-                                <Button 
-                                  variant="destructive" 
+                                <Button
+                                  variant="destructive"
                                   size="sm"
                                   onClick={() => handleSaisirResultat(audience)}
                                 >
@@ -763,11 +735,11 @@ export default function AffaireDetailPage() {
               </div>
             )}
           </CardContent>
-        </Card>
-      </div>
+        </Card >
+      </div >
 
       {/* Compte Rendu Dialog */}
-      <Dialog open={showCompteRenduDialog} onOpenChange={setShowCompteRenduDialog}>
+      < Dialog open={showCompteRenduDialog} onOpenChange={setShowCompteRenduDialog} >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Compte rendu de l'affaire</DialogTitle>
@@ -775,14 +747,14 @@ export default function AffaireDetailPage() {
               Aperçu du compte rendu avec l'historique complet des audiences
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-4">
             {/* Header */}
             <div className="text-center border-b pb-6">
               <h2 className="text-2xl font-bold">CABINET CAPCO</h2>
               <p className="text-muted-foreground">Compte rendu de procédure</p>
             </div>
-            
+
             {/* Affaire info */}
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -794,11 +766,11 @@ export default function AffaireDetailPage() {
                 <p className="font-medium">{affaire.intitule}</p>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Juridiction</h3>
-                <p>{affaire.juridiction} - {affaire.chambre}</p>
+                <p>{affaire.derniereAudience?.juridiction || '-'} - {affaire.derniereAudience?.chambre || '-'}</p>
               </div>
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Statut</h3>
@@ -807,27 +779,27 @@ export default function AffaireDetailPage() {
                 </Badge>
               </div>
             </div>
-            
+
             <Separator />
-            
+
             {/* Parties */}
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Demandeur(s)</h3>
                 <ul className="list-disc list-inside">
-                  {demandeurs.map((p: any, idx: number) => <li key={idx}>{p.nom || p}</li>)}
+                  {demandeurs.map((p, idx) => <li key={idx} className="text-sm">{p.nom}</li>)}
                 </ul>
               </div>
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Défendeur(s)</h3>
                 <ul className="list-disc list-inside">
-                  {defendeurs.map((p: any, idx: number) => <li key={idx}>{p.nom || p}</li>)}
+                  {defendeurs.map((p, idx) => <li key={idx} className="text-sm">{p.nom}</li>)}
                 </ul>
               </div>
             </div>
-            
+
             <Separator />
-            
+
             {/* Historique des audiences */}
             <div>
               <h3 className="font-semibold mb-4">Historique des audiences ({audiences.length})</h3>
@@ -848,7 +820,7 @@ export default function AffaireDetailPage() {
                           {safeFormatDate(audience.date, 'dd/MM/yyyy')}
                           {audience.heure && <span className="text-muted-foreground"> - {audience.heure}</span>}
                         </td>
-                        <td className="px-4 py-3">{objetLabels[audience.objet] || audience.objet}</td>
+                        <td className="px-4 py-3">{objetLabels[audience.type] || audience.type}</td>
                         <td className="px-4 py-3">
                           {audience.statut === 'A_VENIR' ? (
                             <span className="text-info">À venir</span>
@@ -859,7 +831,7 @@ export default function AffaireDetailPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
-                          {audience.notes_preparation || '-'}
+                          {audience.notesPreparation || '-'}
                         </td>
                       </tr>
                     ))}
@@ -867,16 +839,16 @@ export default function AffaireDetailPage() {
                 </table>
               </div>
             </div>
-            
+
             <Separator />
-            
+
             {/* Footer */}
             <div className="text-center text-sm text-muted-foreground">
               <p>Rapport généré le {safeFormatDate(new Date(), 'dd/MM/yyyy à HH:mm', { locale: fr })}</p>
               <p>Cabinet CAPCO - Contentieux</p>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCompteRenduDialog(false)}>Fermer</Button>
             <Button onClick={handleDownloadCompteRendu} className="gap-2">
@@ -885,15 +857,15 @@ export default function AffaireDetailPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Dialog Modifier Honoraires */}
-      <Dialog open={honorairesDialogOpen} onOpenChange={setHonorairesDialogOpen}>
+      < Dialog open={honorairesDialogOpen} onOpenChange={setHonorairesDialogOpen} >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{honoraires ? 'Modifier le montant des honoraires' : 'Définir les honoraires'}</DialogTitle>
             <DialogDescription>
-              {honoraires 
+              {honoraires
                 ? 'Modifiez le montant total des honoraires prévus pour cette affaire'
                 : 'Définissez le montant des honoraires à facturer pour cette affaire'
               }
@@ -924,10 +896,10 @@ export default function AffaireDetailPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Dialog Enregistrer Paiement */}
-      <Dialog open={paiementHonorairesDialogOpen} onOpenChange={setPaiementHonorairesDialogOpen}>
+      < Dialog open={paiementHonorairesDialogOpen} onOpenChange={setPaiementHonorairesDialogOpen} >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Enregistrer un paiement</DialogTitle>
@@ -984,10 +956,10 @@ export default function AffaireDetailPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Dialog Nouvelle Dépense */}
-      <Dialog open={depenseDialogOpen} onOpenChange={setDepenseDialogOpen}>
+      < Dialog open={depenseDialogOpen} onOpenChange={setDepenseDialogOpen} >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nouvelle dépense</DialogTitle>
@@ -1046,7 +1018,7 @@ export default function AffaireDetailPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
-    </div>
+      </Dialog >
+    </div >
   );
 }

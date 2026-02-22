@@ -1,73 +1,57 @@
-# Welcome to your Lovable project
+# CAPCOS - Gestion de Cabinet Juridique
 
-## Project info
+## Description
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+CAPCOS est une application de gestion performante conçue pour les avocats et les cabinets juridiques. Elle permet de gérer les affaires, les audiences, l'agenda et les rappels de manière centralisée et intuitive.
 
-## How can I edit this code?
+## Technologies Utilisées
 
-There are several ways of editing your application.
+Ce projet est construit avec les technologies modernes suivantes :
 
-**Use Lovable**
+- **Vite** : Outil de construction rapide pour le frontend.
+- **TypeScript** : Langage de programmation typé pour une meilleure maintenabilité.
+- **React** : Bibliothèque pour la construction d'interfaces utilisateur.
+- **shadcn-ui** : Composants d'interface utilisateur réutilisables et accessibles.
+- **Tailwind CSS** : Framework CSS utilitaire pour un design moderne et responsive.
+- **TanStack Query** : Gestion de l'état asynchrone et du cache des données.
+- **Framer Motion** : Bibliothèque pour les animations premium.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Installation Locale
 
-Changes made via Lovable will be committed automatically to this repo.
+Pour lancer le projet localement sur votre machine, suivez ces étapes :
 
-**Use your preferred IDE**
+1.  **Cloner le dépôt**
+    ```sh
+    git clone <votre_url_de_repo>
+    cd CAPCOS
+    ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2.  **Installer les dépendances**
+    ```sh
+    npm install
+    ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3.  **Lancer le serveur de développement**
+    ```sh
+    npm run dev
+    ```
 
-Follow these steps:
+L'application sera accessible par défaut sur `http://localhost:8080`.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Scripts Disponibles
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- `npm run dev` : Lance le serveur de développement.
+- `npm run build` : Génère le build de production dans le dossier `dist`.
+- `npm run preview` : Lance un serveur local pour prévisualiser le build de production.
+- `npm run lint` : Vérifie la qualité du code avec ESLint.
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Structure du Projet
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+L'architecture suit les meilleures pratiques de développement React :
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- `src/components` : Composants UI réutilisables.
+- `src/pages` : Pages principales de l'application.
+- `src/hooks` : Hooks personnalisés pour la logique métier.
+- `src/services` : Appels API et services externes.
+- `src/utils` : Fonctions utilitaires globales.
+- `src/types` : Définitions de types TypeScript.

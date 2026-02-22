@@ -170,8 +170,8 @@ export default function AffairesPage() {
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {filteredAffaires.map((affaire) => {
-                    const demandeurs = affaire.parties?.filter(p => p.role === 'DEMANDEUR') || [];
-                    const defendeurs = affaire.parties?.filter(p => p.role === 'DEFENDEUR') || [];
+                    const demandeurs = affaire.demandeurs || [];
+                    const defendeurs = affaire.defendeurs || [];
                     const config = statutConfig[affaire.statut] || statutConfig.ACTIVE;
                     const totalFinancier = affaire.totalHonoraires + affaire.totalDepenses;
 
@@ -193,7 +193,7 @@ export default function AffairesPage() {
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                             {demandeurs.length > 0 && defendeurs.length > 0
                               ? `${demandeurs.map(d => d.nom).join(', ')} c/ ${defendeurs.map(d => d.nom).join(', ')}`
-                              : `${affaire.parties?.length || 0} partie(s)`
+                              : `${(demandeurs.length + defendeurs.length) || 0} partie(s)`
                             }
                           </p>
                         </td>

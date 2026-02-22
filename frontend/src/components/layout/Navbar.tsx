@@ -57,7 +57,7 @@ export function Navbar() {
     };
 
     return (
-        <nav className="sticky top-0 z-30 h-20 w-full border-b border-border/40 bg-background/60 backdrop-blur-2xl flex items-center justify-between px-8">
+        <nav className="shrink-0 z-30 h-20 w-full border-b border-border/40 bg-background/80 backdrop-blur-2xl flex items-center justify-between px-8">
             <div className="flex items-center gap-6">
                 {/* Breadcrumbs */}
                 <div className="flex items-center text-sm text-muted-foreground">
@@ -76,18 +76,20 @@ export function Navbar() {
                         {pathnames.map((name, index) => {
                             const routeTo = `/${pathnames.slice(0, index + 1).join('/')}`;
                             const isLast = index === pathnames.length - 1;
-                            const label = name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ');
+                            const labelText = name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ');
+                            const label = labelText.length > 20 ? labelText.substring(0, 10) + '...' + labelText.substring(labelText.length - 5) : labelText;
 
                             return (
                                 <div key={name} className="flex items-center gap-1 shrink-0">
                                     {index > 0 && <ChevronRight className="h-4 w-4 mx-1 opacity-20" />}
                                     {isLast ? (
-                                        <span className="font-bold text-base tracking-tight text-foreground">{label}</span>
+                                        <span className="font-bold text-base tracking-tight text-foreground max-w-[200px] truncate" title={labelText}>{label}</span>
                                     ) : (
                                         <button
                                             type="button"
                                             onClick={() => navigate(routeTo)}
-                                            className="hover:text-primary transition-colors font-medium opacity-60 hover:opacity-100"
+                                            className="hover:text-primary transition-colors font-medium opacity-60 hover:opacity-100 max-w-[150px] truncate"
+                                            title={labelText}
                                         >
                                             {label}
                                         </button>
@@ -99,17 +101,17 @@ export function Navbar() {
                 </div>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 ml-auto shrink-0">
                 {/* Search Bar - Modern Design */}
-                <div className="hidden lg:flex items-center relative group">
+                <div className="hidden xl:flex items-center relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
-                        placeholder="Rechercher une affaire, audience..."
-                        className="w-[400px] h-11 pl-12 bg-muted/40 border-transparent focus:bg-background focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all rounded-2xl"
+                        placeholder="Rechercher..."
+                        className="w-[250px] focus:w-[350px] h-11 pl-12 bg-muted/40 border-transparent focus:bg-background focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all rounded-2xl"
                     />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     {/* Theme Toggle */}
                     <ThemeToggle />
 
@@ -175,12 +177,12 @@ export function Navbar() {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <div className="h-6 w-[1px] bg-border mx-2" />
+                    <div className="h-6 w-[1px] bg-border mx-1 shrink-0 opacity-40" />
 
                     {/* Profile Dropdown */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-12 gap-3 px-2 pr-4 rounded-2xl hover:bg-muted/50 transition-all group">
+                            <Button variant="ghost" className="h-12 gap-3 px-2 pr-4 rounded-2xl hover:bg-muted/50 transition-all group shrink-0">
                                 <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black shadow-sm group-hover:scale-105 transition-transform">
                                     {userInitials}
                                 </div>

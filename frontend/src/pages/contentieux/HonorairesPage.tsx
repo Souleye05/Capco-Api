@@ -216,7 +216,7 @@ export default function HonorairesPage() {
                           {honoraire.affaire.reference}
                         </h3>
                         <Badge variant="outline">
-                          {honoraire.affaire.parties.length} partie(s)
+                          {honoraire.affaire.parties?.length || 0} partie(s)
                         </Badge>
                       </div>
                       

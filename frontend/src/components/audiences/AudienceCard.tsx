@@ -218,18 +218,21 @@ export function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: Audi
               )}
 
               {/* Parties */}
-              {audience.affaire?.parties && audience.affaire.parties.length > 0 && (
+              {audience.affaire && ((audience.affaire.demandeurs?.length || 0) + (audience.affaire.defendeurs?.length || 0)) > 0 && (
                 <div className="text-xs">
                   <p className="text-muted-foreground mb-1">Parties :</p>
                   <div className="flex flex-wrap gap-1">
-                    {audience.affaire.parties.slice(0, 3).map((partie, index) => (
+                    {[
+                      ...(audience.affaire.demandeurs || []).map(p => ({ ...p, role: 'DEMANDEUR' })),
+                      ...(audience.affaire.defendeurs || []).map(p => ({ ...p, role: 'DEFENDEUR' }))
+                    ].slice(0, 3).map((partie, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {partie.nom} ({partie.role})
                       </Badge>
                     ))}
-                    {audience.affaire.parties.length > 3 && (
+                    {((audience.affaire.demandeurs?.length || 0) + (audience.affaire.defendeurs?.length || 0)) > 3 && (
                       <Badge variant="secondary" className="text-xs">
-                        +{audience.affaire.parties.length - 3}
+                        +{((audience.affaire.demandeurs?.length || 0) + (audience.affaire.defendeurs?.length || 0)) - 3}
                       </Badge>
                     )}
                   </div>

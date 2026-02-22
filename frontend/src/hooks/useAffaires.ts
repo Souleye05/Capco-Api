@@ -9,13 +9,13 @@ export interface AffaireDB {
   intitule: string;
   statut: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
   observations?: string;
-  parties: Array<{
-    id: string;
+  demandeurs: Array<{
     nom: string;
-    role: 'DEMANDEUR' | 'DEFENDEUR' | 'CONSEIL_ADVERSE';
-    adresse?: string;
-    telephone?: string;
-    email?: string;
+    role: 'DEMANDEUR';
+  }>;
+  defendeurs: Array<{
+    nom: string;
+    role: 'DEFENDEUR';
   }>;
   derniereAudience?: {
     id: string;
@@ -30,7 +30,6 @@ export interface AffaireDB {
   totalDepenses: number;
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
 }
 
 export interface PaginatedAffairesResponse {
@@ -46,9 +45,16 @@ export interface PaginatedAffairesResponse {
 
 export interface CreateAffaireData {
   intitule: string;
-  parties: Array<{
+  demandeurs: Array<{
     nom: string;
-    role: 'DEMANDEUR' | 'DEFENDEUR' | 'CONSEIL_ADVERSE';
+    role?: 'DEMANDEUR';
+    adresse?: string;
+    telephone?: string;
+    email?: string;
+  }>;
+  defendeurs: Array<{
+    nom: string;
+    role?: 'DEFENDEUR';
     adresse?: string;
     telephone?: string;
     email?: string;

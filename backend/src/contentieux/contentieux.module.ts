@@ -13,6 +13,7 @@ import { JuridictionsController } from './juridictions/juridictions.controller';
 import { ContentieuxService } from './contentieux.service';
 import { AffairesService } from './affaires/affaires.service';
 import { AudiencesService } from './audiences/audiences.service';
+import { AudienceCronService } from './audiences/audience-cron.service';
 import { HonorairesService } from './honoraires/honoraires.service';
 import { DepensesService } from './depenses/depenses.service';
 import { JuridictionsService } from './juridictions/juridictions.service';
@@ -31,6 +32,7 @@ import { JuridictionsService } from './juridictions/juridictions.service';
     ContentieuxService,
     AffairesService,
     AudiencesService,
+    AudienceCronService,
     HonorairesService,
     DepensesService,
     JuridictionsService,

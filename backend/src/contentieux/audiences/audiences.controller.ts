@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AudiencesService } from './audiences.service';
+import { AudienceCronService } from './audience-cron.service';
 import { CreateAudienceDto } from './dto/create-audience.dto';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { AudienceResponseDto } from './dto/audience-response.dto';
@@ -30,7 +31,10 @@ import { AppRole } from '@prisma/client';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('contentieux/audiences')
 export class AudiencesController {
-  constructor(private readonly audiencesService: AudiencesService) {}
+  constructor(
+    private readonly audiencesService: AudiencesService,
+    private readonly audienceCronService: AudienceCronService,
+  ) {}
 
   @Post()
   @Roles(AppRole.admin, AppRole.collaborateur)
@@ -182,5 +186,31 @@ export class AudiencesController {
     nonRenseignees: number;
   }> {
     return this.audiencesService.getStatistics();
+  }
+
+  @Post('update-passed-statuses')
+  @Roles(AppRole.admin)
+  @AuditLog({ action: 'MANUAL_UPDATE_AUDIENCE_STATUSES', module: 'CONTENTIEUX' })
+  @ApiOperation({ 
+    summary: 'Déclencher manuellement la mise à jour des statuts d\'audiences passées',
+    description: 'Met à jour le statut des audiences passées de A_VENIR vers PASSEE_NON_RENSEIGNEE. Normalement exécuté automatiquement chaque jour à minuit.'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Mise à jour des statuts effectuée avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        timestamp: { type: 'string' },
+      },
+    },
+  })
+  async updatePassedAudienceStatuses(): Promise<{ message: string; timestamp: string }> {
+    await this.audienceCronService.triggerManualUpdate();
+    return {
+      message: 'Mise à jour des statuts d\'audiences passées effectuée avec succès',
+      timestamp: new Date().toISOString(),
+    };
   }
 }

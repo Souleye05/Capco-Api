@@ -36,8 +36,7 @@
     "docker:build": "docker build -t capco-api .",
     "docker:run": "docker run -p 3000:3000 capco-api",
     "docker:compose": "docker-compose up -d",
-    "docker:compose:down": "docker-compose down",
-    "prepare": "husky install"
+    "docker:compose:down": "docker-compose down"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -45,7 +44,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.2",
-    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/platform-express": "^10.4.22",
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^7.1.17",
     "@prisma/client": "^5.22.0",

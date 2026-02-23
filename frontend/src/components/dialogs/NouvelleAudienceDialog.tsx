@@ -6,13 +6,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, Calendar } from 'lucide-react';
+import { Loader2, AlertTriangle, Calendar, Gavel } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAffaires } from '@/hooks/useAffaires';
 import { useCreateAudience } from '@/hooks/useAudiences';
 import { useJuridictionsActives } from '@/hooks/useJuridictions';
-import { isWeekend, getDayName, getWeekendAlternatives, formatDateWithDay } from '@/lib/date-validation';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { isWeekend, getDayName, getWeekendAlternatives } from '@/lib/date-validation';
+
+// Types d'audience alignés avec le backend (TypeAudience enum)
+const TYPES_AUDIENCE = [
+  { value: 'MISE_EN_ETAT', label: 'Mise en état' },
+  { value: 'PLAIDOIRIE', label: 'Plaidoirie' },
+  { value: 'REFERE', label: 'Référé' },
+  { value: 'EVOCATION', label: 'Évocation' },
+  { value: 'CONCILIATION', label: 'Conciliation' },
+  { value: 'MEDIATION', label: 'Médiation' },
+  { value: 'AUTRE', label: 'Autre' },
+] as const;
 
 interface NouvelleAudienceDialogProps {
   open: boolean;
@@ -31,7 +41,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
     affaireId: preselectedAffaireId || '',
     date: '',
     heure: '',
-    type: 'MISE_EN_ETAT' as const,
+    type: 'MISE_EN_ETAT' as string,
     juridiction: '',
     chambre: '',
     ville: '',
@@ -82,7 +92,6 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
       return;
     }
 
-    // Vérification finale du week-end - le backend bloquera maintenant
     if (isWeekend(formData.date)) {
       const dayName = getDayName(formData.date);
       toast.error(`Impossible de programmer une audience un ${dayName}. Veuillez choisir un jour ouvrable.`);
@@ -94,7 +103,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
         affaireId: formData.affaireId,
         date: formData.date,
         heure: formData.heure || undefined,
-        type: formData.type,
+        type: formData.type as any,
         juridiction: formData.juridiction,
         chambre: formData.chambre || undefined,
         ville: formData.ville || undefined,
@@ -108,187 +117,211 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
     }
   };
 
+  const updateField = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Nouvelle audience</DialogTitle>
-          <DialogDescription>
-            Programmer une nouvelle audience pour une affaire
-          </DialogDescription>
+      <DialogContent className="sm:max-w-[640px] max-h-[85vh] flex flex-col overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary">
+              <Gavel className="h-5 w-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg">Nouvelle audience</DialogTitle>
+              <DialogDescription className="text-xs">
+                Programmer une nouvelle audience pour une affaire
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <ScrollArea className="max-h-[65vh] pr-4 py-4">
-            <div className="space-y-4">
-              {/* Affaire */}
-              <div className="space-y-2">
-                <Label htmlFor="affaire">Affaire *</Label>
-                <Select
-                  value={formData.affaireId}
-                  onValueChange={(value) => setFormData({ ...formData, affaireId: value })}
-                  disabled={!!preselectedAffaireId || affairesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={affairesLoading ? "Chargement..." : "Sélectionner une affaire"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {createAudience.isPending && (
-                      <Loader2 className="absolute right-8 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
-                    )}
-                    {affaires
-                      .filter(a => a.statut === 'ACTIVE')
-                      .map((affaire) => (
-                        <SelectItem key={affaire.id} value={affaire.id}>
-                          {affaire.reference} - {affaire.intitule}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
 
-              {/* Type d'audience */}
-              <div className="space-y-2">
-                <Label htmlFor="type">Type d'audience *</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value: any) => setFormData({ ...formData, type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner le type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MISE_EN_ETAT">Mise en état</SelectItem>
-                    <SelectItem value="PLAIDOIRIE">Plaidoirie</SelectItem>
-                    <SelectItem value="REFERE">Référé</SelectItem>
-                    <SelectItem value="AUTRE">Autre</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Date et heure */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="date">Date *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleDateChange(e.target.value)}
-                  />
-                  {formData.date && new Date(formData.date) < new Date() && (
-                    <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 mt-1">
-                      ⚠️ Date passée : le statut sera automatique.
-                    </p>
-                  )}
-
-                  {/* Alerte week-end - compact version already in file from previous tool call */}
-                  {/* I will re-include the compact version here as I'm replacing the whole block */}
-                  {showWeekendWarning && weekendAlternatives && (
-                    <Alert className="border-red-200 bg-red-50 mt-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-red-800">
-                        <div className="space-y-2">
-                          <p className="font-medium text-xs">
-                            ❌ Week-end ({getDayName(formData.date)})
-                          </p>
-                          <div className="flex flex-col gap-1.5 mt-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="justify-start text-left h-auto py-1 px-2 border-red-200 bg-white"
-                              onClick={() => handleAlternativeDateSelect(weekendAlternatives.previousFriday.isoString)}
-                            >
-                              <Calendar className="h-3 w-3 mr-2" />
-                              <span className="text-[10px]">Ven. {weekendAlternatives.previousFriday.formatted}</span>
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="justify-start text-left h-auto py-1 px-2 border-red-200 bg-white"
-                              onClick={() => handleAlternativeDateSelect(weekendAlternatives.nextMonday.isoString)}
-                            >
-                              <Calendar className="h-3 w-3 mr-2" />
-                              <span className="text-[10px]">Lun. {weekendAlternatives.nextMonday.formatted}</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="heure">Heure</Label>
-                  <Input
-                    id="heure"
-                    type="time"
-                    value={formData.heure}
-                    onChange={(e) => setFormData({ ...formData, heure: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              {/* Juridiction */}
-              <div className="space-y-2">
-                <Label htmlFor="juridiction">Juridiction *</Label>
-                <Select
-                  value={formData.juridiction}
-                  onValueChange={(value) => setFormData({ ...formData, juridiction: value })}
-                  disabled={juridictionsLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={juridictionsLoading ? "Chargement..." : "Sélectionner la juridiction"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {juridictions.map((juridiction) => (
-                      <SelectItem key={juridiction.id} value={juridiction.nom}>
-                        {juridiction.nom}
+            {/* ── Affaire ── */}
+            <div className="space-y-1.5">
+              <Label htmlFor="affaire" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Affaire <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={formData.affaireId}
+                onValueChange={(v) => updateField('affaireId', v)}
+                disabled={!!preselectedAffaireId || affairesLoading}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder={affairesLoading ? "Chargement..." : "Sélectionner une affaire"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {affaires
+                    .filter(a => a.statut === 'ACTIVE')
+                    .map((affaire) => (
+                      <SelectItem key={affaire.id} value={affaire.id}>
+                        {affaire.reference} — {affaire.intitule}
                       </SelectItem>
                     ))}
-                    <SelectItem value="Autre">Autre</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                </SelectContent>
+              </Select>
+            </div>
 
-              {/* Chambre et ville */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="chambre">Chambre</Label>
-                  <Input
-                    id="chambre"
-                    value={formData.chambre}
-                    onChange={(e) => setFormData({ ...formData, chambre: e.target.value })}
-                    placeholder="Ex: 3ème Chambre"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ville">Ville</Label>
-                  <Input
-                    id="ville"
-                    value={formData.ville}
-                    onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                    placeholder="Ex: Dakar"
-                  />
-                </div>
-              </div>
+            {/* ── Type d'audience ── */}
+            <div className="space-y-1.5">
+              <Label htmlFor="type" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Type d'audience <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={formData.type}
+                onValueChange={(v) => updateField('type', v)}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Sélectionner le type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPES_AUDIENCE.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              {/* Notes de préparation */}
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes de préparation</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notesPreparation}
-                  onChange={(e) => setFormData({ ...formData, notesPreparation: e.target.value })}
-                  placeholder="Points à préparer..."
-                  className="min-h-[80px]"
+            {/* ── Date et Heure ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="date" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Date <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="date"
+                  type="date"
+                  className="h-10"
+                  value={formData.date}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                />
+                {formData.date && new Date(formData.date) < new Date() && !showWeekendWarning && (
+                  <p className="text-[11px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200">
+                    ⚠️ Date passée : le statut sera automatique.
+                  </p>
+                )}
+
+                {showWeekendWarning && weekendAlternatives && (
+                  <Alert className="border-red-200 bg-red-50 py-2 px-3">
+                    <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      <p className="font-medium text-[11px] mb-1.5">
+                        ❌ Week-end ({getDayName(formData.date)})
+                      </p>
+                      <div className="flex gap-1.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-[10px] border-red-200 bg-white"
+                          onClick={() => handleAlternativeDateSelect(weekendAlternatives.previousFriday.isoString)}
+                        >
+                          <Calendar className="h-3 w-3 mr-1" />
+                          Ven. {weekendAlternatives.previousFriday.formatted}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-[10px] border-red-200 bg-white"
+                          onClick={() => handleAlternativeDateSelect(weekendAlternatives.nextMonday.isoString)}
+                        >
+                          <Calendar className="h-3 w-3 mr-1" />
+                          Lun. {weekendAlternatives.nextMonday.formatted}
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="heure" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Heure
+                </Label>
+                <Input
+                  id="heure"
+                  type="time"
+                  className="h-10"
+                  value={formData.heure}
+                  onChange={(e) => updateField('heure', e.target.value)}
                 />
               </div>
             </div>
-          </ScrollArea>
 
-          <DialogFooter className="mt-4 pt-4 border-t">
+            {/* ── Juridiction ── */}
+            <div className="space-y-1.5">
+              <Label htmlFor="juridiction" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Juridiction <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={formData.juridiction}
+                onValueChange={(v) => updateField('juridiction', v)}
+                disabled={juridictionsLoading}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder={juridictionsLoading ? "Chargement..." : "Sélectionner la juridiction"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {juridictions.map((juridiction) => (
+                    <SelectItem key={juridiction.id} value={juridiction.nom}>
+                      {juridiction.nom}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="Autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ── Chambre et Ville ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="chambre" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Chambre
+                </Label>
+                <Input
+                  id="chambre"
+                  className="h-10"
+                  value={formData.chambre}
+                  onChange={(e) => updateField('chambre', e.target.value)}
+                  placeholder="Ex: 3ème Chambre"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ville" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Ville
+                </Label>
+                <Input
+                  id="ville"
+                  className="h-10"
+                  value={formData.ville}
+                  onChange={(e) => updateField('ville', e.target.value)}
+                  placeholder="Ex: Dakar"
+                />
+              </div>
+            </div>
+
+            {/* ── Notes de préparation ── */}
+            <div className="space-y-1.5">
+              <Label htmlFor="notes" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Notes de préparation
+              </Label>
+              <Textarea
+                id="notes"
+                value={formData.notesPreparation}
+                onChange={(e) => updateField('notesPreparation', e.target.value)}
+                placeholder="Points à préparer, observations..."
+                className="min-h-[70px] max-h-[120px] resize-y"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="px-6 py-4 border-t bg-muted/30 shrink-0">
             <Button
               type="button"
               variant="outline"
@@ -299,6 +332,7 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
             </Button>
             <Button
               type="submit"
+              className="bg-primary hover:bg-primary/90"
               disabled={createAudience.isPending || affairesLoading || juridictionsLoading || showWeekendWarning}
             >
               {createAudience.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

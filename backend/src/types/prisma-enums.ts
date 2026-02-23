@@ -16,7 +16,7 @@ export interface User {
   emailVerified: boolean;
   roles: string[];
   migrationSource?: string;
-  requiresPasswordReset: boolean;
+  requiresPasswordReset: boolean; 
   lastSignIn?: string;
   createdAt: Date;
   updatedAt: Date;

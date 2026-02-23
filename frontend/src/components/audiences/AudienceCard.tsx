@@ -3,16 +3,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Building, 
-  FileText, 
-  MoreVertical, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Building,
+  FileText,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
   CheckCircle,
   Copy,
   Download,
@@ -123,12 +123,12 @@ export function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: Audi
                     {audience.affaire?.intitule || 'Intitulé non disponible'}
                   </p>
                 </div>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                     >
                       <MoreVertical className="h-4 w-4" />
@@ -155,7 +155,7 @@ export function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: Audi
                         Saisir le résultat
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleSupprimer}
                       className="text-red-600 focus:text-red-600"
                     >
@@ -172,17 +172,17 @@ export function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: Audi
                   <Calendar className="h-3.5 w-3.5 shrink-0" />
                   <span className="capitalize">{formattedDate}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-3.5 w-3.5 shrink-0" />
                   <span>{formattedTime}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Building className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{audience.juridiction}</span>
                 </div>
-                
+
                 {audience.ville && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 shrink-0" />
@@ -218,21 +218,18 @@ export function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: Audi
               )}
 
               {/* Parties */}
-              {audience.affaire && ((audience.affaire.demandeurs?.length || 0) + (audience.affaire.defendeurs?.length || 0)) > 0 && (
+              {audience.affaire?.parties && audience.affaire.parties.length > 0 && (
                 <div className="text-xs">
                   <p className="text-muted-foreground mb-1">Parties :</p>
                   <div className="flex flex-wrap gap-1">
-                    {[
-                      ...(audience.affaire.demandeurs || []).map(p => ({ ...p, role: 'DEMANDEUR' })),
-                      ...(audience.affaire.defendeurs || []).map(p => ({ ...p, role: 'DEFENDEUR' }))
-                    ].slice(0, 3).map((partie, index) => (
+                    {audience.affaire.parties.slice(0, 3).map((partie, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {partie.nom} ({partie.role})
                       </Badge>
                     ))}
-                    {((audience.affaire.demandeurs?.length || 0) + (audience.affaire.defendeurs?.length || 0)) > 3 && (
+                    {audience.affaire.parties.length > 3 && (
                       <Badge variant="secondary" className="text-xs">
-                        +{((audience.affaire.demandeurs?.length || 0) + (audience.affaire.defendeurs?.length || 0)) - 3}
+                        +{audience.affaire.parties.length - 3}
                       </Badge>
                     )}
                   </div>
@@ -244,13 +241,13 @@ export function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: Audi
       </Card>
 
       {/* Dialogs */}
-      <ModifierAudienceDialog 
+      <ModifierAudienceDialog
         open={showModifier}
         onOpenChange={setShowModifier}
         audience={audienceForDialog}
       />
-      
-      <SupprimerAudienceDialog 
+
+      <SupprimerAudienceDialog
         open={showSupprimer}
         onOpenChange={setShowSupprimer}
         audience={audienceForDelete}

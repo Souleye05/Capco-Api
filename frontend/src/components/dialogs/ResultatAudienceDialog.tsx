@@ -21,6 +21,7 @@ interface ResultatAudienceDialogProps {
   onOpenChange: (open: boolean) => void;
   audienceId?: string;
   audienceInfo?: AudienceInfo;
+  mode?: 'create' | 'edit';
 }
 
 export function ResultatAudienceDialog({
@@ -28,6 +29,7 @@ export function ResultatAudienceDialog({
   onOpenChange,
   audienceId,
   audienceInfo,
+  mode = 'create',
 }: ResultatAudienceDialogProps) {
   const createResultat = useCreateResultatAudience();
 

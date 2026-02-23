@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { nestjsApi, User, LoginRequest } from '@/integrations/nestjs/client';
 
-type AppRole = 'admin' | 'collaborateur' | 'compta';
+export type AppRole = 'admin' | 'collaborateur' | 'compta';
 
 interface AuthContextType {
   user: User | null;
@@ -70,7 +70,7 @@ export function NestJSAuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       const response = await nestjsApi.login(credentials);
-      
+
       if (response.error) {
         return { error: response.error };
       }
@@ -83,9 +83,9 @@ export function NestJSAuthProvider({ children }: { children: ReactNode }) {
           updatedAt: new Date().toISOString(), // Placeholder, will be updated when profile is fetched
         };
         setUser(userWithDates);
-        return { 
-          error: null, 
-          requiresPasswordReset: response.data.requiresPasswordReset 
+        return {
+          error: null,
+          requiresPasswordReset: response.data.requiresPasswordReset
         };
       }
 
@@ -142,7 +142,7 @@ export function NestJSAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const roles: AppRole[] = user?.roles?.filter((role): role is AppRole => 
+  const roles: AppRole[] = user?.roles?.filter((role): role is AppRole =>
     ['admin', 'collaborateur', 'compta'].includes(role)
   ) || [];
 

@@ -94,7 +94,13 @@ export default function AudiencesPage() {
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             viewMode={viewMode}
-            setViewMode={setViewMode}
+            setViewMode={(mode) => {
+              if (mode === 'list') {
+                setView('list');
+              } else {
+                setViewMode(mode);
+              }
+            }}
             events={events}
             onEventClick={(e) => navigate(`/contentieux/audiences/${e.id}`)}
           />

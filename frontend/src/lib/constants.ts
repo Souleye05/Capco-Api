@@ -15,3 +15,16 @@ export const STATUT_LOUE = {
   VACANT: { label: 'Vacant', variant: 'destructive' },
   MAINTENANCE: { label: 'Maintenance', variant: 'warning' }
 } as const;
+
+export const LIST_CHAMBRES = [
+  'Chambre civile',
+  'Chambre commerciale',
+  'Chambre sociale',
+  'Chambre criminelle',
+  'Chambre des référés',
+  'Chambre correctionnelle',
+  'Chambre de l\'instruction',
+  'Chambre civile 1',
+  'Chambre civile 2',
+  'Chambre civile 3',
+] as const;

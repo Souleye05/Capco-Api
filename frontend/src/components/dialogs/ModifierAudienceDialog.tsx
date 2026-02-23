@@ -12,6 +12,8 @@ import { useAffaires } from '@/hooks/useAffaires';
 import { useUpdateAudience } from '@/hooks/useAudiences';
 import { useJuridictionsActives } from '@/hooks/useJuridictions';
 import { isWeekend, getDayName, getWeekendAlternatives } from '@/lib/date-validation';
+import { LIST_CHAMBRES } from '@/lib/constants';
+import { AffaireSelector } from '@/components/contentieux/AffaireSelector';
 
 interface AudienceData {
   id: string;
@@ -37,10 +39,10 @@ interface ModifierAudienceDialogProps {
 export function ModifierAudienceDialog({ open, onOpenChange, audience }: ModifierAudienceDialogProps) {
   const { data: affairesResponse, isLoading: affairesLoading } = useAffaires();
   const { data: juridictions = [], isLoading: juridictionsLoading } = useJuridictionsActives();
-  
+
   const affaires = affairesResponse?.data || [];
   const updateAudience = useUpdateAudience();
-  
+
   const [formData, setFormData] = useState({
     affaireId: '',
     date: '',
@@ -63,7 +65,7 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
     if (audience && open) {
       const audienceDate = new Date(audience.date);
       const formattedDate = audienceDate.toISOString().split('T')[0];
-      
+
       setFormData({
         affaireId: audience.affaireId,
         date: formattedDate,
@@ -109,7 +111,7 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
 
   const handleDateChange = (date: string) => {
     setFormData({ ...formData, date });
-    
+
     if (date && isWeekend(date)) {
       setShowWeekendWarning(true);
       setWeekendAlternatives(getWeekendAlternatives(date));
@@ -127,7 +129,7 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!audience || !formData.affaireId || !formData.date || !formData.juridiction) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
@@ -153,7 +155,7 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
           ville: formData.ville || undefined,
           statut: formData.statut,
           notesPreparation: formData.notesPreparation || undefined,
-          estPreparee: formData.estPreparee,
+          estPrepare: formData.estPreparee,
           rappelEnrolement: formData.rappelEnrolement,
         }
       });
@@ -187,24 +189,13 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
           {/* Affaire */}
           <div className="space-y-2">
             <Label htmlFor="affaire">Affaire *</Label>
-            <Select
+            <AffaireSelector
+              affaires={affaires}
               value={formData.affaireId}
               onValueChange={(value) => setFormData({ ...formData, affaireId: value })}
               disabled={affairesLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={affairesLoading ? "Chargement..." : "Sélectionner une affaire"} />
-              </SelectTrigger>
-              <SelectContent>
-                {affaires
-                  .filter(a => a.statut === 'ACTIVE')
-                  .map((affaire) => (
-                    <SelectItem key={affaire.id} value={affaire.id}>
-                      {affaire.reference} - {affaire.intitule}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+              isLoading={affairesLoading}
+            />
           </div>
 
           {/* Type d'audience */}
@@ -259,7 +250,7 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
                   ⚠️ Date passée : le statut sera automatiquement défini sur "Passée non renseignée"
                 </p>
               )}
-              
+
               {/* Alerte week-end */}
               {showWeekendWarning && weekendAlternatives && (
                 <Alert className="border-red-200 bg-red-50">
@@ -346,12 +337,22 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="chambre">Chambre</Label>
-              <Input
-                id="chambre"
+              <Select
                 value={formData.chambre}
-                onChange={(e) => setFormData({ ...formData, chambre: e.target.value })}
-                placeholder="Ex: 3ème Chambre"
-              />
+                onValueChange={(value) => setFormData({ ...formData, chambre: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner la chambre" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LIST_CHAMBRES.map((chambre) => (
+                    <SelectItem key={chambre} value={chambre}>
+                      {chambre}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="Autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ville">Ville</Label>
@@ -377,16 +378,16 @@ export function ModifierAudienceDialog({ open, onOpenChange, audience }: Modifie
           </div>
 
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={handleClose}
               disabled={updateAudience.isPending}
             >
               Annuler
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={updateAudience.isPending || affairesLoading || juridictionsLoading || showWeekendWarning}
             >
               {updateAudience.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

@@ -57,6 +57,7 @@ export interface CreateAudienceData {
 }
 
 export interface UpdateAudienceData {
+  affaireId?: string;
   date?: string;
   heure?: string;
   type?: 'MISE_EN_ETAT' | 'PLAIDOIRIE' | 'REFERE' | 'EVOCATION' | 'CONCILIATION' | 'MEDIATION' | 'AUTRE';
@@ -66,6 +67,7 @@ export interface UpdateAudienceData {
   statut?: 'A_VENIR' | 'PASSEE_NON_RENSEIGNEE' | 'RENSEIGNEE';
   notesPreparation?: string;
   estPrepare?: boolean;
+  rappelEnrolement?: boolean;
 }
 
 export interface CreateResultatAudienceData {
@@ -132,11 +134,11 @@ export function useCreateAudience() {
   return useMutation({
     mutationFn: async (data: CreateAudienceData): Promise<AudienceDB> => {
       const response = await nestjsApi.post<AudienceDB>('/contentieux/audiences', data);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     onSuccess: (data) => {
@@ -158,11 +160,11 @@ export function useUpdateAudience() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateAudienceData }): Promise<AudienceDB> => {
       const response = await nestjsApi.patch<AudienceDB>(`/contentieux/audiences/${id}`, data);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     onSuccess: (data) => {
@@ -185,7 +187,7 @@ export function useDeleteAudience() {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const response = await nestjsApi.delete(`/contentieux/audiences/${id}`);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
@@ -208,11 +210,11 @@ export function useCreateResultatAudience() {
   return useMutation({
     mutationFn: async ({ audienceId, data }: { audienceId: string; data: CreateResultatAudienceData }) => {
       const response = await nestjsApi.post(`/contentieux/audiences/${audienceId}/resultat`, data);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data;
     },
     onSuccess: (_, { audienceId }) => {
@@ -233,11 +235,11 @@ export function useMarquerEnrolementEffectue() {
   return useMutation({
     mutationFn: async (audienceId: string): Promise<AudienceDB> => {
       const response = await nestjsApi.patch<AudienceDB>(`/contentieux/audiences/${audienceId}/enrolement`);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     onSuccess: (data) => {
@@ -277,11 +279,11 @@ export function useAudiencesStats() {
         tenues: number;
         nonRenseignees: number;
       }>('/contentieux/audiences/statistics');
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes

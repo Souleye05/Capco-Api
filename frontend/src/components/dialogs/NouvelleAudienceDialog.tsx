@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import { useCreateAudience } from '@/hooks/useAudiences';
 import { useJuridictionsActives } from '@/hooks/useJuridictions';
 import { isWeekend, getDayName, getWeekendAlternatives } from '@/lib/date-validation';
 import { parseDateString, getStartOfDay, isBefore } from '@/lib/date-utils';
+import { LIST_CHAMBRES } from '@/lib/constants';
+import { AffaireSelector } from '@/components/contentieux/AffaireSelector';
 
 // Types d'audience alignés avec le backend (TypeAudience enum)
 const TYPES_AUDIENCE = [
@@ -51,6 +53,12 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
 
   const [showWeekendWarning, setShowWeekendWarning] = useState(false);
   const [weekendAlternatives, setWeekendAlternatives] = useState<any>(null);
+
+  useEffect(() => {
+    if (open && preselectedAffaireId) {
+      setFormData(prev => ({ ...prev, affaireId: preselectedAffaireId }));
+    }
+  }, [open, preselectedAffaireId]);
 
   const resetForm = () => {
     setFormData({
@@ -147,24 +155,13 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
               <Label htmlFor="affaire" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Affaire <span className="text-destructive">*</span>
               </Label>
-              <Select
+              <AffaireSelector
+                affaires={affaires}
                 value={formData.affaireId}
                 onValueChange={(v) => updateField('affaireId', v)}
                 disabled={!!preselectedAffaireId || affairesLoading}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder={affairesLoading ? "Chargement..." : "Sélectionner une affaire"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {affaires
-                    .filter(a => a.statut === 'ACTIVE')
-                    .map((affaire) => (
-                      <SelectItem key={affaire.id} value={affaire.id}>
-                        {affaire.reference} — {affaire.intitule}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+                isLoading={affairesLoading}
+              />
             </div>
 
             {/* ── Type d'audience ── */}
@@ -207,10 +204,10 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
                   const today = getStartOfDay(new Date());
                   return isBefore(selectedDate, today);
                 })() && !showWeekendWarning && (
-                  <p className="text-[11px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200">
-                    ⚠️ Date passée : le statut sera automatique.
-                  </p>
-                )}
+                    <p className="text-[11px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200">
+                      ⚠️ Date passée : le statut sera automatique.
+                    </p>
+                  )}
 
                 {showWeekendWarning && weekendAlternatives && (
                   <Alert className="border-red-200 bg-red-50 py-2 px-3">
@@ -289,13 +286,22 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
                 <Label htmlFor="chambre" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Chambre
                 </Label>
-                <Input
-                  id="chambre"
-                  className="h-10"
+                <Select
                   value={formData.chambre}
-                  onChange={(e) => updateField('chambre', e.target.value)}
-                  placeholder="Ex: 3ème Chambre"
-                />
+                  onValueChange={(v) => updateField('chambre', v)}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Sélectionner la chambre" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LIST_CHAMBRES.map((chambre) => (
+                      <SelectItem key={chambre} value={chambre}>
+                        {chambre}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="Autre">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="ville" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

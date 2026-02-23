@@ -33,7 +33,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { NouvelleAffaireDialog } from '@/components/dialogs/NouvelleAffaireDialog';
-import { useAffaires } from '@/hooks/useAffaires';
+import { SupprimerAffaireDialog } from '@/components/dialogs/SupprimerAffaireDialog';
+import { useAffaires, useDeleteAffaire, AffaireDB } from '@/hooks/useAffaires';
 import { cn, formatCurrency } from '@/lib/utils';
 import { parseDateFromAPI } from '@/lib/date-utils';
 
@@ -48,9 +49,17 @@ export default function AffairesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statutFilter, setStatutFilter] = useState<string>('all');
   const [showNouvelleAffaire, setShowNouvelleAffaire] = useState(false);
+  const [showSupprimerDialog, setShowSupprimerDialog] = useState(false);
+  const [affaireASupprimer, setAffaireASupprimer] = useState<AffaireDB | null>(null);
 
   const { data: affairesResponse, isLoading } = useAffaires();
   const affaires = affairesResponse?.data || [];
+
+  const handleDelete = (e: React.MouseEvent, affaire: AffaireDB) => {
+    e.stopPropagation();
+    setAffaireASupprimer(affaire);
+    setShowSupprimerDialog(true);
+  };
 
   const filteredAffaires = affaires.filter(affaire => {
     const matchesSearch =
@@ -87,6 +96,12 @@ export default function AffairesPage() {
       <NouvelleAffaireDialog
         open={showNouvelleAffaire}
         onOpenChange={setShowNouvelleAffaire}
+      />
+
+      <SupprimerAffaireDialog
+        open={showSupprimerDialog}
+        onOpenChange={setShowSupprimerDialog}
+        affaire={affaireASupprimer}
       />
 
       <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
@@ -243,13 +258,25 @@ export default function AffairesPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="gap-2" onClick={() => navigate(`/contentieux/affaires/${affaire.id}`)}>
+                              <DropdownMenuItem
+                                className="gap-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/contentieux/affaires/${affaire.id}`);
+                                }}
+                              >
                                 <Eye className="h-4 w-4" /> Voir détails
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
+                              <DropdownMenuItem
+                                className="gap-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <Edit className="h-4 w-4" /> Modifier
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2 text-destructive">
+                              <DropdownMenuItem
+                                className="gap-2 text-destructive"
+                                onClick={(e) => handleDelete(e, affaire)}
+                              >
                                 <Trash2 className="h-4 w-4" /> Supprimer
                               </DropdownMenuItem>
                             </DropdownMenuContent>

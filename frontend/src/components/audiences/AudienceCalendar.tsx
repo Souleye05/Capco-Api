@@ -1,10 +1,11 @@
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ViewMode } from '@/hooks/useAudienceUI';
 import { DayView } from './DayView';
-import { parseDateFromAPI, getUTCYear, getUTCMonth, getUTCDay, isSameDay, format } from '@/lib/date-utils';
+import { WeekView } from './WeekView';
+import { parseDateFromAPI, getUTCYear, getUTCMonth, getUTCDay, isSameDay } from '@/lib/date-utils';
 
 interface CalendarViewProps {
     currentMonth: Date;
@@ -30,7 +31,6 @@ export function AudienceCalendar({
 
     const year = getUTCYear(currentMonth);
     const month = getUTCMonth(currentMonth);
-    const today = new Date();
 
     // Calendar Helpers - utilise UTC pour éviter les décalages timezone
     const firstDayOfMonth = new Date(Date.UTC(year, month, 1)).getUTCDay();
@@ -38,7 +38,6 @@ export function AudienceCalendar({
     const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
     const getDayEvents = (day: number) => events.filter(e => {
-        // ✅ Parse la date en UTC et compare avec UTC
         const eventDate = parseDateFromAPI(e.date);
         return getUTCDay(eventDate) === day &&
             getUTCMonth(eventDate) === month &&
@@ -49,6 +48,7 @@ export function AudienceCalendar({
         setCurrentMonth(new Date(year, month + step, 1));
     };
 
+    // Day view
     if (viewMode === 'day') {
         return (
             <DayView
@@ -62,42 +62,58 @@ export function AudienceCalendar({
         );
     }
 
-    if (viewMode !== 'month') {
+    // Week view
+    if (viewMode === 'week') {
         return (
-            <div className="card-elevated overflow-hidden bg-background">
-                <CalendarHeader viewMode={viewMode} setViewMode={setViewMode} title={`Vue ${viewMode}`} />
-                <div className="p-12 text-center space-y-4">
-                    <div className="flex justify-center">
-                        <div className="p-4 bg-muted rounded-full">
-                            <CalendarIcon className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-medium">Vue {viewMode}</h3>
-                        <p className="text-muted-foreground">Cette vue sera implémentée prochainement.</p>
-                    </div>
-                </div>
-            </div>
+            <WeekView
+                events={events}
+                onEventClick={onEventClick}
+                currentWeek={selectedDate}
+                onWeekChange={setSelectedDate}
+                viewMode={viewMode}
+                onViewChange={setViewMode}
+            />
         );
     }
 
+    // Month view
     return (
         <div className="card-elevated overflow-hidden bg-background">
-            <div className="flex items-center justify-between p-4 border-b border-border bg-card">
+            <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-border bg-card gap-4">
+                {/* Left: Navigation */}
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateMonth(-1)}>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 hover:scale-110 active:scale-95 transition-all hover:bg-muted"
+                        onClick={() => navigateMonth(-1)}
+                    >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <h2 className="text-xl font-bold text-foreground capitalize font-serif">
-                        {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-                    </h2>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateMonth(1)}>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 hover:scale-110 active:scale-95 transition-all hover:bg-muted"
+                        onClick={() => navigateMonth(1)}
+                    >
                         <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="ml-2" onClick={() => setCurrentMonth(new Date())}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentMonth(new Date())}
+                        className="ml-2 font-medium hover:scale-105 active:scale-95 transition-all"
+                    >
                         Aujourd'hui
                     </Button>
                 </div>
+
+                {/* Center: Title */}
+                <h2 className="text-xl font-bold text-foreground capitalize font-serif whitespace-nowrap">
+                    {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                </h2>
+
+                {/* Right: View Tabs */}
                 <ViewTabs value={viewMode} onChange={setViewMode} />
             </div>
 
@@ -112,24 +128,39 @@ export function AudienceCalendar({
                     {Array.from({ length: daysInMonth }).map((_, i) => {
                         const day = i + 1;
                         const dayEvents = getDayEvents(day);
-                        const isToday = (() => {
+                        const isCurrentDay = (() => {
                             const todayUTC = new Date();
                             const dayDateUTC = new Date(Date.UTC(year, month, day, 12, 0, 0));
                             return isSameDay(todayUTC, dayDateUTC);
                         })();
 
                         return (
-                            <div key={day} className={cn('h-28 bg-card p-2 transition-colors hover:bg-muted/30 cursor-pointer', isToday && 'bg-primary/5 ring-2 ring-primary/20')}>
-                                <div className={cn('text-sm font-medium mb-1', isToday && 'text-primary')}>{day}</div>
+                            <div
+                                key={day}
+                                className={cn(
+                                    'h-28 bg-card p-2 transition-colors hover:bg-muted/30 cursor-pointer',
+                                    isCurrentDay && 'bg-primary/5 ring-2 ring-primary/20'
+                                )}
+                                onClick={() => {
+                                    setSelectedDate(new Date(Date.UTC(year, month, day, 12, 0, 0)));
+                                    setViewMode('day');
+                                }}
+                            >
+                                <div className={cn(
+                                    'text-sm font-medium mb-1',
+                                    isCurrentDay && 'text-primary'
+                                )}>
+                                    {day}
+                                </div>
                                 <div className="space-y-1">
                                     {dayEvents.slice(0, 3).map(event => (
                                         <div
                                             key={event.id}
                                             className={cn(
-                                                'text-xs p-1 rounded truncate cursor-pointer transition-all hover:scale-105',
+                                                'text-xs p-1 rounded truncate cursor-pointer transition-all hover:scale-105 font-semibold',
                                                 event.status === 'PASSEE_NON_RENSEIGNEE' ? 'bg-destructive text-destructive-foreground' :
-                                                    event.status === 'A_VENIR' ? 'bg-info/20 text-info-foreground border border-info/30' :
-                                                        'bg-success/20 text-success-foreground border border-success/30'
+                                                    event.status === 'A_VENIR' ? 'bg-info/15 text-info border border-info/30' :
+                                                        'bg-success/15 text-success border border-success/30'
                                             )}
                                             title={`${event.parties} - ${event.caseReference}`}
                                             onClick={(e) => { e.stopPropagation(); onEventClick(event); }}
@@ -146,15 +177,6 @@ export function AudienceCalendar({
                     })}
                 </div>
             </div>
-        </div>
-    );
-}
-
-function CalendarHeader({ viewMode, setViewMode, title }: { viewMode: ViewMode, setViewMode: (m: ViewMode) => void, title: string }) {
-    return (
-        <div className="flex items-center justify-between p-4 border-b border-border bg-card">
-            <h2 className="text-xl font-bold text-foreground capitalize font-serif ml-2">{title}</h2>
-            <ViewTabs value={viewMode} onChange={setViewMode} />
         </div>
     );
 }

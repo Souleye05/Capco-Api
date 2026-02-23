@@ -115,7 +115,7 @@ function AudienceListCard({ event, searchQuery, onClick, onDelete }: { event: an
             <div className="relative flex items-center justify-between gap-6">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded transition-colors group-hover:bg-primary/20">
+                        <span className="text-xs font-mono font-semibold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded transition-colors">
                             <HighlightText text={event.caseReference} highlight={searchQuery} />
                         </span>
                         <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tight bg-background/50 border-border/50">

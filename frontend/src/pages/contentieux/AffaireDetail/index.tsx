@@ -78,7 +78,11 @@ export default function AffaireDetailPage() {
                 } : undefined}
                 mode="edit"
             />
-            <NouvelleAudienceDialog open={ui.showNouvelleAudience} onOpenChange={ui.setShowNouvelleAudience} />
+            <NouvelleAudienceDialog
+                open={ui.showNouvelleAudience}
+                onOpenChange={ui.setShowNouvelleAudience}
+                preselectedAffaireId={affaire.id}
+            />
             <AffaireDialogs ui={ui} actions={actions} finance={finance} />
         </div>
     );

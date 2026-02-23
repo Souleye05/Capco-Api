@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCreateAffaire } from '@/hooks/useAffaires';
+import { useCreateAffaire, AffaireDB } from '@/hooks/useAffaires';
 
 interface PartieForm {
   nom: string;
@@ -20,16 +20,18 @@ interface PartieForm {
 interface NouvelleAffaireDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: (affaire: AffaireDB) => void;
 }
 
-export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDialogProps) {
+export function NouvelleAffaireDialog({ open, onOpenChange, onSuccess }: NouvelleAffaireDialogProps) {
   const createAffaire = useCreateAffaire();
-  
+
   const [formData, setFormData] = useState({
     intitule: '',
     observations: ''
   });
 
+  // ... rest of state stays same ...
   const [demandeurs, setDemandeurs] = useState<PartieForm[]>([
     { nom: '', role: 'DEMANDEUR' as const }
   ]);
@@ -74,7 +76,7 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.intitule.trim()) {
       toast.error('Veuillez saisir l\'intitulé de l\'affaire');
       return;
@@ -94,12 +96,16 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
     }
 
     try {
-      await createAffaire.mutateAsync({
+      const result = await createAffaire.mutateAsync({
         intitule: formData.intitule.trim(),
-        demandeurs: validDemandeurs,
-        defendeurs: validDefendeurs,
+        demandeurs: validDemandeurs.map(d => ({ ...d, role: 'DEMANDEUR' as const })),
+        defendeurs: validDefendeurs.map(d => ({ ...d, role: 'DEFENDEUR' as const })),
         observations: formData.observations.trim() || undefined,
       });
+
+      if (onSuccess) {
+        onSuccess(result);
+      }
 
       onOpenChange(false);
       resetForm();
@@ -145,7 +151,7 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
                 Ajouter
               </Button>
             </div>
-            
+
             {demandeurs.map((demandeur, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
@@ -164,7 +170,7 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label htmlFor={`demandeur-nom-${index}`}>Nom *</Label>
@@ -185,7 +191,7 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label htmlFor={`demandeur-email-${index}`}>Email</Label>
@@ -226,7 +232,7 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
                 Ajouter
               </Button>
             </div>
-            
+
             {defendeurs.map((defendeur, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
@@ -245,7 +251,7 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label htmlFor={`defendeur-nom-${index}`}>Nom *</Label>
@@ -266,7 +272,7 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label htmlFor={`defendeur-email-${index}`}>Email</Label>
@@ -305,16 +311,16 @@ export function NouvelleAffaireDialog({ open, onOpenChange }: NouvelleAffaireDia
           </div>
 
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={createAffaire.isPending}
             >
               Annuler
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={createAffaire.isPending}
             >
               {createAffaire.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

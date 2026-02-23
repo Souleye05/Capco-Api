@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Building2, Clock, Users, MoreVertical, Eye, Trash2 } from 'lucide-react';
+import { parseDateFromAPI } from '@/lib/date-utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -143,14 +142,14 @@ function AudienceListCard({ event, searchQuery, onClick, onDelete }: { event: an
                     <div className="text-right">
                         <div className="p-2 bg-muted/50 rounded-xl border border-border group-hover:bg-primary group-hover:border-primary transition-all">
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest group-hover:text-primary-foreground transition-colors">
-                                {format(new Date(event.date), 'MMM', { locale: fr })}
+                                {new Intl.DateTimeFormat('fr-FR', { month: 'short', timeZone: 'UTC' }).format(parseDateFromAPI(event.date))}
                             </p>
                             <p className="text-2xl text-center font-black text-foreground group-hover:text-primary-foreground transition-colors">
-                                {format(new Date(event.date), 'dd')}
+                                {parseDateFromAPI(event.date).getUTCDate()}
                             </p>
                         </div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1 tracking-tighter text-center">
-                            {format(new Date(event.date), 'EEEE', { locale: fr })}
+                            {new Intl.DateTimeFormat('fr-FR', { weekday: 'long', timeZone: 'UTC' }).format(parseDateFromAPI(event.date))}
                         </p>
                     </div>
 

@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { useRecentActivity } from '@/hooks/useDashboardStats';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 
 const actionIcons: Record<string, any> = {
   'creation': Plus,
@@ -88,7 +89,7 @@ export function RecentActivity() {
                 </h4>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true, locale: fr })}
+                  {formatDistanceToNow(parseDateFromAPI(activity.created_at), { addSuffix: true, locale: fr })}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">

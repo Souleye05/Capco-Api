@@ -13,6 +13,13 @@ import {
   Eye,
   Edit,
   Trash2,
+  CheckCircle
+} from 'lucide-react';
+import { AudienceDB } from '@/hooks/useAudiences';
+import { statusConfig } from '@/lib/statusConfig';
+import { ModifierAudienceDialog } from '../dialogs/ModifierAudienceDialog';
+import { SupprimerAudienceDialog } from '../dialogs/SupprimerAudienceDialog';
+import { parseDateFromAPI, formatDateWithWeekday, isBefore, getStartOfDay } from '@/lib/date-utils';
   CheckCircle,
   Copy,
   Download,
@@ -52,16 +59,11 @@ export function AudienceCard({ audience, onSaisirResultat, onVoirDetails }: Audi
   const [showSupprimer, setShowSupprimer] = useState(false);
   const marquerEnrolementMutation = useMarquerEnrolementEffectue();
 
-  const audienceDate = new Date(audience.date);
-  const isPassee = audienceDate < new Date();
+  const audienceDate = parseDateFromAPI(audience.date);
+  const isPassee = isBefore(audienceDate, getStartOfDay(new Date()));
   const status = statusConfig[audience.statut];
 
-  const formattedDate = audienceDate.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+  const formattedDate = formatDateWithWeekday(audienceDate);
 
   const formattedTime = audience.heure || 'Heure non précisée';
 

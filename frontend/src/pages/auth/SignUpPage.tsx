@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
+import { PasswordStrength } from '@/components/ui/password-strength';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Scale, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import capcoLogo from '@/assets/capco-logo.png';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useNestJSAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,21 +29,21 @@ export default function SignUpPage() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+    if (password.length < 8) {
+      toast.error('Le mot de passe doit contenir au moins 8 caractères');
       return;
     }
 
     setLoading(true);
-    // Sign up is not available in this system - users are created by administrators
-    toast.error('L\'inscription n\'est pas disponible. Contactez un administrateur pour créer votre compte.');
-    setLoading(false);
-
-    if (error) {
-      toast.error(error.message || 'Erreur lors de la création du compte');
-    } else {
-      toast.success('Compte créé avec succès !');
-      navigate('/');
+    
+    try {
+      // TODO: Implement signup logic with your backend
+      // For now, just show a message
+      toast.info('Fonctionnalité d\'inscription en cours de développement');
+      setLoading(false);
+    } catch (error) {
+      toast.error('Erreur lors de la création du compte');
+      setLoading(false);
     }
   };
 
@@ -51,12 +51,16 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 w-fit">
-            <Scale className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 w-fit">
+            <img 
+              src={capcoLogo} 
+              alt="CAPCO Logo" 
+              className="h-16 w-auto mx-auto"
+            />
           </div>
           <CardTitle className="text-2xl">Créer un compte</CardTitle>
           <CardDescription>
-            Rejoignez l'équipe CAPCO
+            Rejoignez l'espace CAPCO
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -74,20 +78,19 @@ export default function SignUpPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
+              <PasswordStrength password={password} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 import {
   ArrowLeft,
   Plus,
@@ -383,7 +384,12 @@ export default function ClientDetailPage() {
                       {tachesClient.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((tache) => (
                         <TableRow key={tache.id}>
                           <TableCell>
-                            {format(new Date(tache.date), 'dd/MM/yyyy', { locale: fr })}
+                            {new Intl.DateTimeFormat('fr-FR', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              year: 'numeric',
+                              timeZone: 'UTC'
+                            }).format(parseDateFromAPI(tache.date))}
                           </TableCell>
                           <TableCell>
                             <Badge className={getTypeTacheColor(tache.type)}>
@@ -458,10 +464,20 @@ export default function ClientDetailPage() {
                           <TableCell className="font-mono">{facture.reference}</TableCell>
                           <TableCell>{facture.moisConcerne}</TableCell>
                           <TableCell>
-                            {format(new Date(facture.dateEmission), 'dd/MM/yyyy', { locale: fr })}
+                            {new Intl.DateTimeFormat('fr-FR', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              year: 'numeric',
+                              timeZone: 'UTC'
+                            }).format(parseDateFromAPI(facture.dateEmission))}
                           </TableCell>
                           <TableCell>
-                            {format(new Date(facture.dateEcheance), 'dd/MM/yyyy', { locale: fr })}
+                            {new Intl.DateTimeFormat('fr-FR', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              year: 'numeric',
+                              timeZone: 'UTC'
+                            }).format(parseDateFromAPI(facture.dateEcheance))}
                           </TableCell>
                           <TableCell className="text-right font-medium">
                             {formatCurrency(facture.montantTTC)}

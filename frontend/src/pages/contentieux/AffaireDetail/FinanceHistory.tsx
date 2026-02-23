@@ -2,8 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, CreditCard, Banknote, Landmark, Wallet, MoreVertical, Settings } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 
 const modePaiementIcons: Record<string, any> = {
     VIREMENT: Landmark,
@@ -67,7 +66,7 @@ export function FinanceHistory({ paiements, onAddPaiement, onEditHonoraires, hon
                                                 {modePaiementLabels[p.modePaiement] || p.modePaiement}
                                             </p>
                                             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">
-                                                {format(new Date(p.date), 'dd MMMM yyyy', { locale: fr })}
+                                                {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(p.date))}
                                             </p>
                                         </div>
                                     </div>

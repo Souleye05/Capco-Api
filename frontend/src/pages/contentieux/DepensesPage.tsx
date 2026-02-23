@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Filter,
   Receipt,
   Calendar,
@@ -18,8 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useDepenses, useDepensesStats } from '@/hooks/useDepenses';
 import { NouvelleDepenseDialog } from '@/components/dialogs/NouvelleDepenseDialog';
 import { formatCurrency } from '@/lib/currency';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 
 interface Depense {
   id: string;
@@ -104,13 +103,13 @@ export default function DepensesPage() {
   if (depensesLoading || statsLoading) {
     return (
       <div className="min-h-screen">
-        <Header 
-          title="Dépenses" 
-          subtitle="Chargement..." 
+        <Header
+          title="Dépenses"
+          subtitle="Chargement..."
           breadcrumbs={[
-            { label: 'Contentieux' }, 
+            { label: 'Contentieux' },
             { label: 'Dépenses' }
-          ]} 
+          ]}
         />
         <div className="p-6 lg:p-8 space-y-4">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full rounded-lg" />)}
@@ -121,8 +120,8 @@ export default function DepensesPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Dépenses Affaires" 
+      <Header
+        title="Dépenses Affaires"
         subtitle={`${stats.nombreDepenses} dépenses • ${formatCurrency(stats.totalMontant)} total`}
         breadcrumbs={[
           { label: 'Contentieux', href: '/contentieux/affaires' },
@@ -137,9 +136,9 @@ export default function DepensesPage() {
       />
 
       <div className="p-6 lg:p-8 space-y-6">
-        <NouvelleDepenseDialog 
-          open={showNouvelleDepense} 
-          onOpenChange={setShowNouvelleDepense} 
+        <NouvelleDepenseDialog
+          open={showNouvelleDepense}
+          onOpenChange={setShowNouvelleDepense}
         />
 
         {/* Statistics Cards */}
@@ -258,7 +257,7 @@ export default function DepensesPage() {
                           {typeDepenseLabels[depense.typeDepense] || depense.typeDepense}
                         </Badge>
                       </div>
-                      
+
                       <p className="text-muted-foreground mb-2">
                         {depense.affaire.intitule}
                       </p>
@@ -266,7 +265,7 @@ export default function DepensesPage() {
                       <div className="flex items-center gap-6 text-sm text-muted-foreground mb-2">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          {format(new Date(depense.date), 'dd MMM yyyy', { locale: fr })}
+                          {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(depense.date))}
                         </div>
                         <div className="flex items-center gap-1">
                           <Tag className="h-4 w-4" />
@@ -293,7 +292,7 @@ export default function DepensesPage() {
                         {formatCurrency(depense.montant)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {format(new Date(depense.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                        {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(depense.createdAt))}
                       </div>
                     </div>
                   </div>

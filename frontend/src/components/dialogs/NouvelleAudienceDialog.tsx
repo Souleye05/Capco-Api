@@ -12,6 +12,7 @@ import { useAffaires } from '@/hooks/useAffaires';
 import { useCreateAudience } from '@/hooks/useAudiences';
 import { useJuridictionsActives } from '@/hooks/useJuridictions';
 import { isWeekend, getDayName, getWeekendAlternatives } from '@/lib/date-validation';
+import { parseDateString, getStartOfDay, isBefore } from '@/lib/date-utils';
 
 // Types d'audience alignés avec le backend (TypeAudience enum)
 const TYPES_AUDIENCE = [
@@ -201,7 +202,11 @@ export function NouvelleAudienceDialog({ open, onOpenChange, preselectedAffaireI
                   value={formData.date}
                   onChange={(e) => handleDateChange(e.target.value)}
                 />
-                {formData.date && new Date(formData.date) < new Date() && !showWeekendWarning && (
+                {formData.date && (() => {
+                  const selectedDate = parseDateString(formData.date);
+                  const today = getStartOfDay(new Date());
+                  return isBefore(selectedDate, today);
+                })() && !showWeekendWarning && (
                   <p className="text-[11px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200">
                     ⚠️ Date passée : le statut sera automatique.
                   </p>

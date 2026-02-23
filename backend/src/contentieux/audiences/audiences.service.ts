@@ -475,4 +475,50 @@ export class AudiencesService {
       nonRenseignees,
     };
   }
+
+    /**
+     * Parse une date du DTO frontend vers UTC midi
+     * Format attendu: "YYYY-MM-DD" (ex: "2026-02-01")
+     * Stockage: UTC à 12:00 pour éviter les décalages timezone
+     *
+     * @param dateInput - Format "YYYY-MM-DD" ou Date object
+     * @returns Date en UTC à 12:00:00
+     * @throws BadRequestException si format invalide
+     *
+     * @example
+     * parseDateFromDTO("2026-02-01") // → Date("2026-02-01T12:00:00.000Z")
+     */
+    private parseDateFromDTO(dateInput: string | Date): Date {
+      if (dateInput instanceof Date) {
+        return dateInput;
+      }
+
+      // Si format YYYY-MM-DD (date calendrier utilisateur)
+      if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+        const [year, month, day] = dateInput.split('-').map(Number);
+
+        // Validation basique
+        if (month < 1 || month > 12 || day < 1 || day > 31) {
+          throw new BadRequestException('Format de date invalide');
+        }
+
+        // ✅ CRITIQUE: Créer en UTC à midi (12:00)
+        // Cela garantit que tous les timezones (-12 à +14) voient le bon jour
+        const result = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+
+        // Validation de la date réelle (attrape "31 février", etc.)
+        if (result.getUTCFullYear() !== year ||
+            result.getUTCMonth() !== month - 1 ||
+            result.getUTCDate() !== day) {
+          throw new BadRequestException('Date invalide (ex: 31 février)');
+        }
+
+        // Log utile pour debug production
+        this.logger.debug(`[UTC] parseDateFromDTO: ${dateInput} → ${result.toISOString()}`);
+        return result;
+      }
+
+      // Fallback pour format ISO complet
+      return new Date(dateInput);
+    }
 }

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Calendar, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCreateResultatAudience } from '@/hooks/useAudiences';
+import { parseDateFromAPI, formatDateShort } from '@/lib/date-utils';
 
 interface AudienceInfo {
   reference: string;
@@ -114,7 +115,7 @@ export function ResultatAudienceDialog({
               <div className="flex justify-between items-start">
                 <span className="font-semibold text-foreground">{audienceInfo.reference}</span>
                 <span className="text-muted-foreground tabular-nums">
-                  {new Date(audienceInfo.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {formatDateShort(parseDateFromAPI(audienceInfo.date))}
                 </span>
               </div>
               <p className="text-muted-foreground truncate leading-relaxed">{audienceInfo.intitule}</p>

@@ -2,8 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Receipt, Plus, History } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 import { TypeDepenseDossier } from '@/types';
 
 const typeDepenseLabels: Record<TypeDepenseDossier, string> = {
@@ -62,7 +61,7 @@ export function ExpensesHistory({ depenses, onAddDepense, total }: ExpensesHisto
                                                 {typeDepenseLabels[d.typeDepense as TypeDepenseDossier] || d.typeDepense}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground font-medium italic opacity-60">
-                                                {format(new Date(d.date), 'dd MMM yyyy', { locale: fr })}
+                                                {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(d.date))}
                                             </span>
                                         </div>
                                     </div>

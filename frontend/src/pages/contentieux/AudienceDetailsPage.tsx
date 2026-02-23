@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -11,15 +12,13 @@ import {
   Clock, 
   FileText, 
   Plus,
-  Edit,
   Building2
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
 import { useAudience } from '@/hooks/useAudiences';
-import { ResultatAudienceCard } from '@/components/audiences/ResultatAudienceCard';
+import { Header } from '@/components/layout/Header';
 import { ResultatAudienceDialog } from '@/components/dialogs/ResultatAudienceDialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { ResultatAudienceCard } from '@/components/audiences/ResultatAudienceCard';
+import { parseDateFromAPI, formatDateWithWeekday, formatDateShort, formatDateTimeUTC } from '@/lib/date-utils';
 
 const getStatutBadge = (statut: string) => {
   switch (statut) {
@@ -182,7 +181,7 @@ export function AudienceDetailsPage() {
     <div className="min-h-screen">
       <Header 
         title="Détails de l'audience" 
-        subtitle={`${audience.affaire?.reference} - ${new Date(audience.date).toLocaleDateString('fr-FR')}`}
+        subtitle={`${audience.affaire?.reference} - ${formatDateShort(parseDateFromAPI(audience.date))}`}
         breadcrumbs={[
           { label: 'Contentieux', href: '/contentieux/affaires' },
           { label: 'Audiences', href: '/contentieux/audiences' },
@@ -255,12 +254,7 @@ export function AudienceDetailsPage() {
                 <div className="text-sm font-medium text-muted-foreground">Date</div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{new Date(audience.date).toLocaleDateString('fr-FR', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}</span>
+                  <span>{formatDateWithWeekday(parseDateFromAPI(audience.date))}</span>
                 </div>
               </div>
               
@@ -361,20 +355,12 @@ export function AudienceDetailsPage() {
           <CardContent className="space-y-2">
             <div className="text-sm">
               <span className="text-muted-foreground">Créée le :</span>{' '}
-              {new Date(audience.createdAt).toLocaleDateString('fr-FR')} à{' '}
-              {new Date(audience.createdAt).toLocaleTimeString('fr-FR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
+              {formatDateTimeUTC(parseDateFromAPI(audience.createdAt))}
             </div>
             {audience.updatedAt && audience.updatedAt !== audience.createdAt && (
               <div className="text-sm">
                 <span className="text-muted-foreground">Modifiée le :</span>{' '}
-                {new Date(audience.updatedAt).toLocaleDateString('fr-FR')} à{' '}
-                {new Date(audience.updatedAt).toLocaleTimeString('fr-FR', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })}
+                {formatDateTimeUTC(parseDateFromAPI(audience.updatedAt))}
               </div>
             )}
           </CardContent>

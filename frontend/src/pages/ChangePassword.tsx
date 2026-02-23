@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Scale, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import capcoLogo from '@/assets/capco-logo.png';
 
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -55,8 +57,12 @@ export default function ChangePassword() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 w-fit">
-            <Scale className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 w-fit">
+            <img 
+              src={capcoLogo} 
+              alt="CAPCO Logo" 
+              className="h-16 w-auto mx-auto"
+            />
           </div>
           <CardTitle className="text-2xl">Changement de mot de passe</CardTitle>
           <CardDescription>
@@ -67,9 +73,8 @@ export default function ChangePassword() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-              <Input
+              <PasswordInput
                 id="currentPassword"
-                type="password"
                 placeholder="••••••••"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -78,9 +83,8 @@ export default function ChangePassword() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="newPassword">Nouveau mot de passe</Label>
-              <Input
+              <PasswordInput
                 id="newPassword"
-                type="password"
                 placeholder="••••••••"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -89,9 +93,8 @@ export default function ChangePassword() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

@@ -217,6 +217,45 @@ export function formatDateShort(date: Date, locale: string = 'fr-FR'): string {
 }
 
 /**
+ * Formate une date avec jour de la semaine (ex: "lundi 15 février 2026")
+ * FORCE UTC
+ */
+export function formatDateWithWeekday(date: Date, locale: string = 'fr-FR'): string {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',  // ✅ CRITIQUE : Force UTC
+  }).format(date);
+}
+
+/**
+ * Formate une heure en UTC
+ */
+export function formatTimeUTC(date: Date, locale: string = 'fr-FR'): string {
+  return new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'UTC',  // ✅ CRITIQUE : Force UTC
+  }).format(date);
+}
+
+/**
+ * Formate une date et heure complète en UTC
+ */
+export function formatDateTimeUTC(date: Date, locale: string = 'fr-FR'): string {
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'UTC',  // ✅ CRITIQUE : Force UTC
+  }).format(date);
+}
+
+/**
  * Parse une date string YYYY-MM-DD en Date UTC
  * 
  * @example

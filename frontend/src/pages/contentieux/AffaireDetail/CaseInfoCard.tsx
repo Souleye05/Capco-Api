@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge, StatusVariant } from '@/components/ui/status-badge';
 import { Scale, Building2, Users } from 'lucide-react';
-import { fr } from 'date-fns/locale';
-import { format } from 'date-fns';
+import { parseDateFromAPI, formatDateShort } from '@/lib/date-utils';
 
 const statutLabels: Record<string, { label: string; variant: StatusVariant }> = {
     ACTIVE: { label: 'Active', variant: 'success' },
@@ -49,7 +48,7 @@ export function CaseInfoCard({ affaire }: { affaire: any }) {
                             Date de Création
                         </h4>
                         <p className="font-bold text-foreground text-lg">
-                            {format(new Date(affaire.createdAt), 'dd MMMM yyyy', { locale: fr })}
+                            {formatDateShort(parseDateFromAPI(affaire.createdAt))}
                         </p>
                     </div>
                 </div>

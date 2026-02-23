@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useDeleteAudience } from '@/hooks/useAudiences';
+import { parseDateFromAPI, formatDateWithWeekday } from '@/lib/date-utils';
 
 interface AudienceData {
   id: string;
@@ -35,13 +36,8 @@ export function SupprimerAudienceDialog({ open, onOpenChange, audience }: Suppri
 
   if (!audience) return null;
 
-  const audienceDate = new Date(audience.date);
-  const formattedDate = audienceDate.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const audienceDate = parseDateFromAPI(audience.date);
+  const formattedDate = formatDateWithWeekday(audienceDate);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

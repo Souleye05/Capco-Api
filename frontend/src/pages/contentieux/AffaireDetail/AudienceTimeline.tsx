@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/status-badge';
 
@@ -77,7 +76,7 @@ export function AudienceTimeline({ audiences, onSaisirResultat, onPlanifier, der
                                                             </span>
                                                         </div>
                                                         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold text-foreground">
-                                                            <div className="flex items-center gap-1.5 shrink-0 opacity-80"><Calendar className="h-4 w-4 text-primary" /> {format(new Date(a.date), 'EEEE dd MMM yyyy', { locale: fr })}</div>
+                                                            <div className="flex items-center gap-1.5 shrink-0 opacity-80"><Calendar className="h-4 w-4 text-primary" /> {new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(a.date))}</div>
                                                             {a.heure && <div className="flex items-center gap-1.5 shrink-0 opacity-80"><Clock className="h-4 w-4 text-primary" /> {a.heure}</div>}
                                                             <div className="flex items-center gap-1.5 min-w-0 opacity-80"><MapPin className="h-4 w-4 text-primary shrink-0" /> <span className="truncate">{a.juridiction || derniereJuridiction}</span></div>
                                                         </div>

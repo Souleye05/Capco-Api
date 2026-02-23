@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { AudienceDB } from '@/hooks/useAudiences';
+import { format, parseDateFromAPI } from '@/lib/date-utils';
 
 export type ViewType = 'agenda' | 'list';
 export type ViewMode = 'month' | 'week' | 'day' | 'list';
@@ -54,7 +53,9 @@ export function useAudienceUI(audiences: AudienceDB[]) {
         const groups: Record<string, typeof events> = {};
 
         events.forEach(event => {
-            const dateKey = format(new Date(event.date), 'yyyy-MM-dd');
+            // ✅ Parse la date en UTC et formate en YYYY-MM-DD
+            const eventDate = parseDateFromAPI(event.date);
+            const dateKey = `${eventDate.getUTCFullYear()}-${String(eventDate.getUTCMonth() + 1).padStart(2, '0')}-${String(eventDate.getUTCDate()).padStart(2, '0')}`;
             if (!groups[dateKey]) groups[dateKey] = [];
             groups[dateKey].push(event);
         });
@@ -62,7 +63,8 @@ export function useAudienceUI(audiences: AudienceDB[]) {
         return Object.entries(groups)
             .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
             .map(([date, items]) => ({
-                title: format(new Date(date), 'EEEE d MMMM yyyy', { locale: fr }),
+                // ✅ Utilise le wrapper UTC pour le formatage
+                title: format(parseDateFromAPI(date), 'EEEE d MMMM yyyy'),
                 date,
                 events: items.sort((a, b) => (a.time || '').localeCompare(b.time || ''))
             }));

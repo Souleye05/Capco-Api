@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { mockAlertes } from '@/data/mockData';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Navbar() {
@@ -161,7 +162,13 @@ export function Navbar() {
                                         </p>
                                         <div className="flex items-center gap-2 mt-2 ml-10 text-[10px] font-bold text-muted-foreground/40">
                                             <Clock className="h-3 w-3" />
-                                            {format(new Date(alert.dateCreation), 'dd MMM HH:mm', { locale: fr })}
+                                            {new Intl.DateTimeFormat('fr-FR', { 
+                                              day: '2-digit', 
+                                              month: 'short', 
+                                              hour: '2-digit', 
+                                              minute: '2-digit',
+                                              timeZone: 'UTC'
+                                            }).format(parseDateFromAPI(alert.dateCreation))}
                                         </div>
                                     </DropdownMenuItem>
                                 ))}

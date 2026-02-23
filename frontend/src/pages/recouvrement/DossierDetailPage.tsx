@@ -72,13 +72,15 @@ import {
   useUpdateHonorairesRecouvrement
 } from '@/hooks/useHonorairesRecouvrement';
 import { generateRapportActionsPDF } from '@/utils/generateRapportActionsPDF';
+import { parseDateFromAPI } from '@/lib/date-utils';
 
 const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('fr-FR', {
+  return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: 'long',
-    year: 'numeric'
-  });
+    year: 'numeric',
+    timeZone: 'UTC'
+  }).format(parseDateFromAPI(dateStr));
 };
 
 const typeActionLabels: Record<TypeAction, string> = {

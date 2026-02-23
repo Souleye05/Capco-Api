@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { parseDateFromAPI, formatDateShort } from '@/lib/date-utils';
 import { 
   Plus, 
   Search, 
@@ -190,7 +191,12 @@ export default function PaiementsPage() {
                   <p className="text-sm text-muted-foreground">Dernier paiement</p>
                   <p className="text-2xl font-bold">
                     {filteredPaiements.length > 0 
-                      ? format(new Date(filteredPaiements[0].date), 'dd/MM/yyyy')
+                      ? new Intl.DateTimeFormat('fr-FR', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric',
+                          timeZone: 'UTC'
+                        }).format(parseDateFromAPI(filteredPaiements[0].date))
                       : '-'
                     }
                   </p>
@@ -253,7 +259,12 @@ export default function PaiementsPage() {
                 filteredPaiements.map(paiement => (
                   <TableRow key={paiement.id}>
                     <TableCell>
-                      {format(new Date(paiement.date), 'dd/MM/yyyy', { locale: fr })}
+                      {new Intl.DateTimeFormat('fr-FR', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        timeZone: 'UTC'
+                      }).format(parseDateFromAPI(paiement.date))}
                     </TableCell>
                     <TableCell>
                       <span 

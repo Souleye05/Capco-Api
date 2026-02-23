@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Calendar, 
-  FileText, 
-  AlertTriangle, 
-  Edit, 
-  Trash2, 
-  Clock,
-  CheckCircle
+import {
+  Calendar,
+  FileText,
+  AlertTriangle,
+  Edit,
+  Trash2,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
+import { formatDate, parseDateFromAPI } from '@/lib/date-utils';
 import { useResultatAudience, useDeleteResultatAudience } from '@/hooks/useResultatsAudiences';
 import { ResultatAudienceDialog } from '@/components/dialogs/ResultatAudienceDialog';
 import {
@@ -64,11 +65,11 @@ const getResultatBadge = (type: TypeResultatAudience) => {
   }
 };
 
-export function ResultatAudienceCard({ 
-  audienceId, 
-  audienceInfo, 
-  canEdit = true, 
-  canDelete = false 
+export function ResultatAudienceCard({
+  audienceId,
+  audienceInfo,
+  canEdit = true,
+  canDelete = false
 }: ResultatAudienceCardProps) {
   // Safety check: don't render if audienceId is invalid
   if (!audienceId) {
@@ -157,7 +158,7 @@ export function ResultatAudienceCard({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Supprimer le résultat</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir supprimer ce résultat d'audience ? 
+                        Êtes-vous sûr de vouloir supprimer ce résultat d'audience ?
                         Cette action est irréversible et remettra l'audience au statut "Non renseignée".
                       </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -183,7 +184,7 @@ export function ResultatAudienceCard({
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Nouvelle date :</span>
-                  <span>{new Date(resultat.nouvelleDate).toLocaleDateString('fr-FR')}</span>
+                  <span>{formatDate(parseDateFromAPI(resultat.nouvelleDate))}</span>
                 </div>
               )}
               {resultat.motifRenvoi && (
@@ -217,7 +218,16 @@ export function ResultatAudienceCard({
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
             <CheckCircle className="h-3 w-3" />
-            Enregistré le {new Date(resultat.createdAt).toLocaleDateString('fr-FR')} à {new Date(resultat.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            Enregistré le {(() => {
+              const createdDate = parseDateFromAPI(resultat.createdAt);
+              return createdDate.toLocaleDateString('fr-FR', { timeZone: 'UTC' }) +
+                ' à ' +
+                createdDate.toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZone: 'UTC'
+                });
+            })()}
           </div>
         </CardContent>
       </Card>

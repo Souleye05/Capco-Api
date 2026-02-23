@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 import {
   Search,
   FileText,
@@ -332,13 +333,23 @@ export default function FacturesPage() {
                       </TableCell>
                       <TableCell className="font-mono text-sm">{facture.mois_concerne}</TableCell>
                       <TableCell>
-                        {format(new Date(facture.date_emission), 'dd/MM/yyyy', { locale: fr })}
+                        {new Intl.DateTimeFormat('fr-FR', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric',
+                          timeZone: 'UTC'
+                        }).format(parseDateFromAPI(facture.date_emission))}
                       </TableCell>
                       <TableCell>
                         <span className={cn(
                           new Date(facture.date_echeance) < new Date() && facture.statut !== 'PAYEE' && 'text-destructive font-medium'
                         )}>
-                          {format(new Date(facture.date_echeance), 'dd/MM/yyyy', { locale: fr })}
+                          {new Intl.DateTimeFormat('fr-FR', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric',
+                            timeZone: 'UTC'
+                          }).format(parseDateFromAPI(facture.date_echeance))}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-medium">

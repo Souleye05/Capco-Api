@@ -35,8 +35,7 @@ import {
 import { NouvelleAffaireDialog } from '@/components/dialogs/NouvelleAffaireDialog';
 import { useAffaires } from '@/hooks/useAffaires';
 import { cn, formatCurrency } from '@/lib/utils';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 
 const statutConfig = {
   ACTIVE: { label: 'Active', className: 'bg-success/10 text-success border-success/20' },
@@ -202,7 +201,7 @@ export default function AffairesPage() {
                             <div className="text-xs">
                               <div className="flex items-center gap-1 text-muted-foreground">
                                 <Calendar className="h-3 w-3" />
-                                {format(new Date(affaire.derniereAudience.date), 'dd/MM/yyyy', { locale: fr })}
+                                {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(affaire.derniereAudience.date))}
                               </div>
                               <div className="text-muted-foreground mt-0.5">
                                 {affaire.derniereAudience.juridiction}
@@ -229,7 +228,7 @@ export default function AffairesPage() {
                           </Badge>
                         </td>
                         <td className="py-3 px-4 text-xs text-muted-foreground hidden sm:table-cell">
-                          {format(new Date(affaire.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                          {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(affaire.createdAt))}
                         </td>
                         <td className="py-3 px-2">
                           <DropdownMenu>

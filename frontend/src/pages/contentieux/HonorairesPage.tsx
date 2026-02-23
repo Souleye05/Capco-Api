@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Filter,
   Banknote,
   Calendar,
@@ -18,8 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useHonoraires, useHonorairesStats } from '@/hooks/useHonoraires';
 import { NouvelHonoraireDialog } from '@/components/dialogs/NouvelHonoraireDialog';
 import { formatCurrency } from '@/lib/currency';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseDateFromAPI } from '@/lib/date-utils';
 
 interface Honoraire {
   id: string;
@@ -83,13 +82,13 @@ export default function HonorairesPage() {
   if (honorairesLoading || statsLoading) {
     return (
       <div className="min-h-screen">
-        <Header 
-          title="Honoraires" 
-          subtitle="Chargement..." 
+        <Header
+          title="Honoraires"
+          subtitle="Chargement..."
           breadcrumbs={[
-            { label: 'Contentieux' }, 
+            { label: 'Contentieux' },
             { label: 'Honoraires' }
-          ]} 
+          ]}
         />
         <div className="p-6 lg:p-8 space-y-4">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full rounded-lg" />)}
@@ -100,8 +99,8 @@ export default function HonorairesPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Honoraires Contentieux" 
+      <Header
+        title="Honoraires Contentieux"
         subtitle={`${stats.nombreHonoraires} honoraires • ${formatCurrency(stats.totalRestant)} en attente`}
         breadcrumbs={[
           { label: 'Contentieux', href: '/contentieux/affaires' },
@@ -116,9 +115,9 @@ export default function HonorairesPage() {
       />
 
       <div className="p-6 lg:p-8 space-y-6">
-        <NouvelHonoraireDialog 
-          open={showNouvelHonoraire} 
-          onOpenChange={setShowNouvelHonoraire} 
+        <NouvelHonoraireDialog
+          open={showNouvelHonoraire}
+          onOpenChange={setShowNouvelHonoraire}
         />
 
         {/* Statistics Cards */}
@@ -219,7 +218,7 @@ export default function HonorairesPage() {
                           {honoraire.affaire.parties?.length || 0} partie(s)
                         </Badge>
                       </div>
-                      
+
                       <p className="text-muted-foreground mb-3">
                         {honoraire.affaire.intitule}
                       </p>
@@ -228,7 +227,7 @@ export default function HonorairesPage() {
                         {honoraire.dateFacturation && (
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            {format(new Date(honoraire.dateFacturation), 'dd MMM yyyy', { locale: fr })}
+                            {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(honoraire.dateFacturation!))}
                           </div>
                         )}
                         <div className="flex items-center gap-1">

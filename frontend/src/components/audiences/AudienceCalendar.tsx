@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ViewMode } from '@/hooks/useAudienceUI';
 import { DayView } from './DayView';
+import { parseDateFromAPI, getUTCYear, getUTCMonth, getUTCDay, isSameDay, format } from '@/lib/date-utils';
 
 interface CalendarViewProps {
     currentMonth: Date;
@@ -27,18 +28,21 @@ export function AudienceCalendar({
     onEventClick
 }: CalendarViewProps) {
 
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
+    const year = getUTCYear(currentMonth);
+    const month = getUTCMonth(currentMonth);
     const today = new Date();
 
-    // Calendar Helpers
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    // Calendar Helpers - utilise UTC pour éviter les décalages timezone
+    const firstDayOfMonth = new Date(Date.UTC(year, month, 1)).getUTCDay();
     const startingDayOfWeek = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
     const getDayEvents = (day: number) => events.filter(e => {
-        const d = new Date(e.date);
-        return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
+        // ✅ Parse la date en UTC et compare avec UTC
+        const eventDate = parseDateFromAPI(e.date);
+        return getUTCDay(eventDate) === day &&
+            getUTCMonth(eventDate) === month &&
+            getUTCYear(eventDate) === year;
     });
 
     const navigateMonth = (step: number) => {
@@ -108,7 +112,11 @@ export function AudienceCalendar({
                     {Array.from({ length: daysInMonth }).map((_, i) => {
                         const day = i + 1;
                         const dayEvents = getDayEvents(day);
-                        const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+                        const isToday = (() => {
+                            const todayUTC = new Date();
+                            const dayDateUTC = new Date(Date.UTC(year, month, day, 12, 0, 0));
+                            return isSameDay(todayUTC, dayDateUTC);
+                        })();
 
                         return (
                             <div key={day} className={cn('h-28 bg-card p-2 transition-colors hover:bg-muted/30 cursor-pointer', isToday && 'bg-primary/5 ring-2 ring-primary/20')}>

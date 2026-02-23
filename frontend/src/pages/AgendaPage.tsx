@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Filter,
   Plus,
   Gavel,
@@ -17,6 +17,7 @@ import { NouvelEvenementDialog } from '@/components/dialogs/NouvelEvenementDialo
 import { cn } from '@/lib/utils';
 import { useAudiences } from '@/hooks/useAudiences';
 import { useActionsRecouvrement } from '@/hooks/useDossiersRecouvrement';
+import { parseDateFromAPI } from '@/lib/date-utils';
 
 interface CalendarEvent {
   id: string;
@@ -52,7 +53,7 @@ export default function AgendaPage() {
       evts.push({
         id: a.id,
         title: `${a.affaires?.reference || 'Audience'} - ${a.affaires?.intitule || ''}`,
-        date: new Date(a.date),
+        date: parseDateFromAPI(a.date),
         time: a.heure || undefined,
         type: 'audience',
         status: a.statut,
@@ -66,7 +67,7 @@ export default function AgendaPage() {
         evts.push({
           id: `ech-${action.id}`,
           title: `${action.dossiers_recouvrement?.reference || 'Dossier'} - ${action.prochaine_etape || 'Échéance'}`,
-          date: new Date(action.echeance_prochaine_etape),
+          date: parseDateFromAPI(action.echeance_prochaine_etape),
           type: 'echeance',
           linkTo: action.dossier_id ? `/recouvrement/dossiers/${action.dossier_id}` : undefined
         });
@@ -84,7 +85,7 @@ export default function AgendaPage() {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-    
+
     return { daysInMonth, startingDayOfWeek, year, month };
   };
 
@@ -93,15 +94,15 @@ export default function AgendaPage() {
 
   const getEventsForDay = (day: number) => {
     return events.filter(e => {
-      const eventDate = new Date(e.date);
-      const matchesDate = eventDate.getDate() === day && 
-                         eventDate.getMonth() === month && 
-                         eventDate.getFullYear() === year;
-      
+      // ✅ Utilise UTC pour éviter les décalages de timezone
+      const matchesDate = e.date.getUTCDate() === day &&
+        e.date.getUTCMonth() === month &&
+        e.date.getUTCFullYear() === year;
+
       // Apply filters
       if (e.type === 'audience' && !filters.audiences) return false;
       if (e.type === 'echeance' && !filters.echeances) return false;
-      
+
       return matchesDate;
     });
   };
@@ -127,8 +128,8 @@ export default function AgendaPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Agenda" 
+      <Header
+        title="Agenda"
         subtitle="Vue unifiée de tous les événements"
         actions={
           <Button className="gap-2" onClick={() => setShowNouvelEvenement(true)}>
@@ -138,9 +139,9 @@ export default function AgendaPage() {
         }
       />
 
-      <NouvelEvenementDialog 
-        open={showNouvelEvenement} 
-        onOpenChange={setShowNouvelEvenement} 
+      <NouvelEvenementDialog
+        open={showNouvelEvenement}
+        onOpenChange={setShowNouvelEvenement}
       />
 
       <div className="p-6 animate-fade-in">
@@ -150,8 +151,8 @@ export default function AgendaPage() {
             {/* Navigation */}
             <div className="bg-card rounded-lg p-4 border">
               <div className="flex items-center justify-between mb-4">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
                 >
@@ -160,17 +161,17 @@ export default function AgendaPage() {
                 <h3 className="font-semibold">
                   {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
                 </h3>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="w-full"
                 onClick={() => setCurrentMonth(new Date())}
               >
@@ -186,8 +187,8 @@ export default function AgendaPage() {
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="audiences" 
+                  <Checkbox
+                    id="audiences"
                     checked={filters.audiences}
                     onCheckedChange={(checked) => setFilters(f => ({ ...f, audiences: !!checked }))}
                   />
@@ -197,7 +198,7 @@ export default function AgendaPage() {
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
+                  <Checkbox
                     id="echeances"
                     checked={filters.echeances}
                     onCheckedChange={(checked) => setFilters(f => ({ ...f, echeances: !!checked }))}
@@ -222,23 +223,23 @@ export default function AgendaPage() {
                     {day}
                   </div>
                 ))}
-                
+
                 {/* Empty cells before first day */}
                 {Array.from({ length: startingDayOfWeek }).map((_, i) => (
                   <div key={`empty-${i}`} className="h-28 bg-muted/20 p-2" />
                 ))}
-                
+
                 {/* Days */}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const day = i + 1;
                   const dayEvents = getEventsForDay(day);
-                  const isToday = today.getDate() === day && 
-                                 today.getMonth() === month && 
-                                 today.getFullYear() === year;
-                  
+                  const isToday = today.getDate() === day &&
+                    today.getMonth() === month &&
+                    today.getFullYear() === year;
+
                   return (
-                    <div 
-                      key={day} 
+                    <div
+                      key={day}
                       className={cn(
                         'h-28 bg-card p-2 transition-colors hover:bg-muted/30',
                         isToday && 'bg-primary/5 ring-1 ring-primary'
@@ -254,12 +255,12 @@ export default function AgendaPage() {
                         {dayEvents.slice(0, 3).map((event) => {
                           const style = eventTypeStyles[event.type];
                           return (
-                            <div 
+                            <div
                               key={event.id}
                               className={cn(
                                 'text-xs p-1 rounded truncate cursor-pointer transition-opacity hover:opacity-80',
-                                event.status === 'PASSEE_NON_RENSEIGNEE' 
-                                  ? 'bg-destructive text-destructive-foreground' 
+                                event.status === 'PASSEE_NON_RENSEIGNEE'
+                                  ? 'bg-destructive text-destructive-foreground'
                                   : `${style.bg} ${style.text}`
                               )}
                               title={event.title}

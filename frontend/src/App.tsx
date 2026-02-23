@@ -32,6 +32,8 @@ import AlertesPage from "@/pages/AlertesPage";
 import NestJSLogin from "@/pages/NestJSLogin";
 import ChangePassword from "@/pages/ChangePassword";
 import SignUpPage from "@/pages/auth/SignUpPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import UsersPage from "@/pages/admin/UsersPage";
 import JuridictionsPage from "@/pages/admin/JuridictionsPage";
 import NotFound from "@/pages/NotFound";
@@ -59,6 +61,8 @@ const App = () => (
             {/* Auth routes */}
             <Route path="/auth/login" element={<NestJSLogin />} />
             <Route path="/auth/signup" element={<SignUpPage />} />
+            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             <Route path="/change-password" element={<ChangePassword />} />
             
             {/* Protected routes */}

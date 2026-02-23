@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Scale, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import capcoLogo from '@/assets/capco-logo.png';
 
 export default function NestJSLogin() {
   const [email, setEmail] = useState('');
@@ -42,12 +44,16 @@ export default function NestJSLogin() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 w-fit">
-            <Scale className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 w-fit">
+            <img 
+              src={capcoLogo} 
+              alt="CAPCO Logo" 
+              className="h-16 w-auto mx-auto"
+            />
           </div>
-          <CardTitle className="text-2xl">CAPCO</CardTitle>
+          <CardTitle className="text-2xl">Connexion</CardTitle>
           <CardDescription>
-            Connectez-vous à votre espace de gestion
+            Connectez-vous à votre espace CAPCO
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -65,9 +71,8 @@ export default function NestJSLogin() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -90,6 +95,11 @@ export default function NestJSLogin() {
               Pas encore de compte ?{' '}
               <Link to="/auth/signup" className="text-primary hover:underline">
                 Créer un compte
+              </Link>
+            </p>
+            <p className="text-sm text-muted-foreground text-center">
+              <Link to="/auth/forgot-password" className="text-primary hover:underline">
+                Mot de passe oublié ?
               </Link>
             </p>
           </CardFooter>

@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  Plus, 
+import { parseDateFromAPI } from '@/lib/date-utils';
+import {
+  Plus,
   FileText,
   Building2,
   Download,
@@ -42,11 +43,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { generateRapportPDF } from '@/utils/generateRapportPDF';
-import { 
-  useRapportsGestion, 
-  useImmeubles, 
-  useLots, 
-  useEncaissementsLoyers, 
+import {
+  useRapportsGestion,
+  useImmeubles,
+  useLots,
+  useEncaissementsLoyers,
   useDepensesImmeubles,
   useCreateRapportGestion,
   RapportGestionDB,
@@ -70,7 +71,7 @@ export default function RapportsPage() {
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [selectedRapport, setSelectedRapport] = useState<RapportGestionDB | null>(null);
-  
+
   // Generate dialog state
   const [genImmeuble, setGenImmeuble] = useState<string>('');
   const [genDateDebut, setGenDateDebut] = useState<Date | undefined>();
@@ -91,7 +92,7 @@ export default function RapportsPage() {
   // Calculate detailed report data for preview
   const reportDetails = useMemo(() => {
     if (!selectedRapport) return null;
-    
+
     const immeubleLots = lots.filter(l => l.immeuble_id === selectedRapport.immeuble_id);
     const immeubleEncaissements = encaissements.filter(e => {
       const lot = lots.find(l => l.id === e.lot_id);
@@ -101,7 +102,7 @@ export default function RapportsPage() {
 
     // Group encaissements by lot to determine who paid
     const paidLotIds = new Set(immeubleEncaissements.map(e => e.lot_id));
-    
+
     const locatairesStatus = immeubleLots.filter(l => l.statut === 'OCCUPE').map(lot => ({
       lot,
       locataire: lot.locataires,
@@ -137,14 +138,14 @@ export default function RapportsPage() {
     // Calculate totals for the period
     const immeubleLots = lots.filter(l => l.immeuble_id === genImmeuble);
     const selectedImmeubleData = immeubles.find(i => i.id === genImmeuble);
-    
+
     const immeubleEncaissements = encaissements.filter(e => {
       const lot = lots.find(l => l.id === e.lot_id);
       if (!lot || lot.immeuble_id !== genImmeuble) return false;
       const encDate = new Date(e.date_encaissement);
       return encDate >= genDateDebut && encDate <= genDateFin;
     });
-    
+
     const immeubleDepenses = depenses.filter(d => {
       if (d.immeuble_id !== genImmeuble) return false;
       const depDate = new Date(d.date);
@@ -168,7 +169,7 @@ export default function RapportsPage() {
       generer_par: user.id,
       statut: 'GENERE'
     });
-    
+
     setShowGenerateDialog(false);
     setGenImmeuble('');
     setGenDateDebut(undefined);
@@ -190,7 +191,7 @@ export default function RapportsPage() {
     const immeubleDepenses = depenses.filter(d => d.immeuble_id === rapport.immeuble_id);
 
     const paidLotIds = new Set(immeubleEncaissements.map(e => e.lot_id));
-    
+
     const locatairesStatus = immeubleLots.filter(l => l.statut === 'OCCUPE').map(lot => ({
       lot: {
         id: lot.id,
@@ -268,8 +269,8 @@ export default function RapportsPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Rapports de gestion" 
+      <Header
+        title="Rapports de gestion"
         subtitle={`${rapports.length} rapports générés`}
         actions={
           <Button className="gap-2" onClick={() => setShowGenerateDialog(true)}>
@@ -330,13 +331,13 @@ export default function RapportsPage() {
                           {rapport.immeubles?.nom}
                         </h3>
                         <p className="text-lg font-medium mt-1">
-                          Rapport {format(new Date(rapport.periode_debut), 'MMMM yyyy', { locale: fr })}
+                          Rapport {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_debut))}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Période: {format(new Date(rapport.periode_debut), 'dd/MM/yyyy')} - {format(new Date(rapport.periode_fin), 'dd/MM/yyyy')}
+                          Période: {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_debut))} - {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_fin))}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Généré le {format(new Date(rapport.date_generation), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                          Généré le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.date_generation))}
                         </p>
                       </div>
                     </div>
@@ -348,7 +349,7 @@ export default function RapportsPage() {
                       {rapport.statut}
                     </Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 p-4 bg-muted/50 rounded-lg">
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Loyers encaissés</p>
@@ -367,7 +368,7 @@ export default function RapportsPage() {
                       <p className="text-lg font-bold">{formatCurrency(rapport.net_proprietaire)}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2 mt-4">
                     <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePreview(rapport)}>
                       <Eye className="h-4 w-4" />
@@ -398,7 +399,7 @@ export default function RapportsPage() {
               Sélectionnez l'immeuble et la période pour générer le rapport.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Immeuble</Label>
@@ -413,7 +414,7 @@ export default function RapportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Date début</Label>
@@ -435,7 +436,7 @@ export default function RapportsPage() {
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Date fin</Label>
                 <Popover>
@@ -458,7 +459,7 @@ export default function RapportsPage() {
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowGenerateDialog(false)}>Annuler</Button>
             <Button onClick={handleGenerate} disabled={createRapport.isPending}>
@@ -475,7 +476,7 @@ export default function RapportsPage() {
           <DialogHeader>
             <DialogTitle>Rapport de gestion détaillé</DialogTitle>
           </DialogHeader>
-          
+
           {selectedRapport && reportDetails && (
             <div className="space-y-6 py-4">
               {/* Header */}
@@ -483,7 +484,7 @@ export default function RapportsPage() {
                 <h2 className="text-2xl font-bold">CABINET CAPCO</h2>
                 <p className="text-muted-foreground">Rapport de gestion immobilière</p>
               </div>
-              
+
               {/* Building info */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
@@ -496,14 +497,14 @@ export default function RapportsPage() {
                   <p className="font-medium text-lg">{selectedRapport.immeubles?.proprietaires?.nom}</p>
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Période</h3>
                 <p className="font-medium">
-                  Du {format(new Date(selectedRapport.periode_debut), 'dd MMMM yyyy', { locale: fr })} au {format(new Date(selectedRapport.periode_fin), 'dd MMMM yyyy', { locale: fr })}
+                  Du {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.periode_debut))} au {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.periode_fin))}
                 </p>
               </div>
-              
+
               <Separator />
 
               <Tabs defaultValue="locataires" className="w-full">
@@ -532,7 +533,7 @@ export default function RapportsPage() {
                       {reportDetails.totalUnpaid} impayé(s)
                     </Badge>
                   </div>
-                  
+
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-muted/50">
@@ -602,7 +603,7 @@ export default function RapportsPage() {
                               <tr key={dep.id} className={idx % 2 === 0 ? '' : 'bg-muted/10'}>
                                 <td className="px-4 py-2 pl-8 text-muted-foreground">└</td>
                                 <td className="px-4 py-2">{dep.nature}</td>
-                                <td className="px-4 py-2">{format(new Date(dep.date), 'dd/MM/yyyy')}</td>
+                                <td className="px-4 py-2">{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(dep.date))}</td>
                                 <td className="px-4 py-2 text-right">{formatCurrency(dep.montant)}</td>
                               </tr>
                             ))}
@@ -644,17 +645,17 @@ export default function RapportsPage() {
                   </div>
                 </TabsContent>
               </Tabs>
-              
+
               <Separator />
-              
+
               {/* Footer */}
               <div className="text-center text-sm text-muted-foreground">
-                <p>Rapport généré le {format(new Date(selectedRapport.date_generation), 'dd/MM/yyyy à HH:mm', { locale: fr })}</p>
+                <p>Rapport généré le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.date_generation))}</p>
                 <p>Cabinet CAPCO - Gestion Immobilière</p>
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>Fermer</Button>
             <Button onClick={() => selectedRapport && handleDownload(selectedRapport)} className="gap-2">

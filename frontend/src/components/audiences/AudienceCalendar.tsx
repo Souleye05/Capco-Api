@@ -131,10 +131,10 @@ export function AudienceCalendar({
                                                     event.status === 'A_VENIR' ? 'bg-info/20 text-info-foreground border border-info/30' :
                                                         'bg-success/20 text-success-foreground border border-success/30'
                                             )}
-                                            title={`${event.caseReference} - ${event.parties}`}
+                                            title={`${event.parties} - ${event.caseReference}`}
                                             onClick={(e) => { e.stopPropagation(); onEventClick(event); }}
                                         >
-                                            {event.time && `${event.time} - `}{event.caseReference}
+                                            {event.time && `${event.time} - `}{event.parties}
                                         </div>
                                     ))}
                                     {dayEvents.length > 3 && (

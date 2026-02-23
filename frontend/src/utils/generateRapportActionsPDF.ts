@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { TypeAction } from '@/types';
-import { 
+import {
   DossierRecouvrementDB,
   ActionRecouvrementWithDossierDB,
   PaiementRecouvrementDB
@@ -47,9 +47,9 @@ const formatFCFA = (amount: number): string => {
   return formatted + ' FCFA';
 };
 
-export async function generateRapportActionsPDF({ 
-  dossier, 
-  actions, 
+export async function generateRapportActionsPDF({
+  dossier,
+  actions,
   paiements,
   honoraires,
   depenses = [],
@@ -64,7 +64,7 @@ export async function generateRapportActionsPDF({
   try {
     const logoImg = new Image();
     logoImg.crossOrigin = 'anonymous';
-    
+
     await new Promise<void>((resolve) => {
       logoImg.onload = () => {
         const logoWidth = 50;
@@ -88,7 +88,7 @@ export async function generateRapportActionsPDF({
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
   doc.text('RAPPORT D\'ACTIONS - RECOUVREMENT', pageWidth / 2 + 15, yPosition + 8, { align: 'center' });
-  
+
   // Decorative line
   yPosition += 20;
   doc.setDrawColor(212, 175, 55);
@@ -101,31 +101,31 @@ export async function generateRapportActionsPDF({
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
   doc.text('DOSSIER : ' + dossier.reference, 20, yPosition);
-  
+
   yPosition += 8;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
-  const dateCreation = format(new Date(dossier.created_at), 'dd/MM/yyyy');
+  const dateCreation = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(dossier.created_at));
   doc.text('Ouvert le : ' + dateCreation, 20, yPosition);
 
   // Parties section
   yPosition += 12;
   doc.setFillColor(241, 245, 249);
   doc.roundedRect(20, yPosition, pageWidth - 40, 30, 3, 3, 'F');
-  
+
   yPosition += 10;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
   doc.text('CREANCIER :', 30, yPosition);
   doc.text('DEBITEUR :', pageWidth / 2 + 10, yPosition);
-  
+
   yPosition += 6;
   doc.setFont('helvetica', 'normal');
   doc.text(dossier.creancier_nom, 30, yPosition);
   doc.text(dossier.debiteur_nom, pageWidth / 2 + 10, yPosition);
-  
+
   if (dossier.debiteur_telephone) {
     yPosition += 5;
     doc.setTextColor(100, 116, 139);
@@ -169,7 +169,7 @@ export async function generateRapportActionsPDF({
       1: { cellWidth: 60, halign: 'right' }
     },
     margin: { left: 20, right: pageWidth - 160 },
-    didParseCell: function(data) {
+    didParseCell: function (data) {
       if (data.section === 'body') {
         if (data.row.index === 3) {
           data.cell.styles.textColor = [34, 197, 94];
@@ -247,7 +247,7 @@ export async function generateRapportActionsPDF({
 
     const totalDepenses = depenses.reduce((sum, d) => sum + Number(d.montant), 0);
     const depensesData = depenses.map(d => [
-      format(new Date(d.date), 'dd/MM/yyyy'),
+      new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(d.date)),
       typeDepenseLabels[d.type_depense] || d.type_depense,
       d.nature,
       formatFCFA(Number(d.montant))
@@ -305,7 +305,7 @@ export async function generateRapportActionsPDF({
     const actionsData = actions
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .map(action => [
-        format(new Date(action.date), 'dd/MM/yyyy'),
+        new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(action.date)),
         typeActionLabels[action.type_action],
         action.resume.substring(0, 60) + (action.resume.length > 60 ? '...' : ''),
         action.prochaine_etape || '-'
@@ -370,7 +370,7 @@ export async function generateRapportActionsPDF({
     const paiementsData = paiements
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .map(p => [
-        format(new Date(p.date), 'dd/MM/yyyy'),
+        new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(p.date)),
         formatFCFA(p.montant),
         modeLabels[p.mode] || p.mode,
         p.reference || '-',
@@ -424,7 +424,7 @@ export async function generateRapportActionsPDF({
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
-  
+
   const dateGeneration = new Date();
   const dateGenText = 'Rapport genere le ' + format(dateGeneration, 'dd/MM/yyyy') + ' a ' + format(dateGeneration, 'HH:mm');
   doc.text(dateGenText, pageWidth / 2, yPosition, { align: 'center' });

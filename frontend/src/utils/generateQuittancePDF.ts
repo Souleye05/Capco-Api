@@ -36,7 +36,7 @@ const numberToWords = (num: number): string => {
   const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
   const teens = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
   const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
-  
+
   if (num === 0) return 'zéro';
   if (num >= 1000000) {
     const millions = Math.floor(num / 1000000);
@@ -68,17 +68,17 @@ const numberToWords = (num: number): string => {
 export const generateQuittancePDF = async (data: QuittanceData): Promise<void> => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  
+
   const isQuittance = data.type === 'QUITTANCE';
   const title = isQuittance ? 'QUITTANCE DE LOYER' : 'REÇU DE PAIEMENT PARTIEL';
   const periodeDate = new Date(data.periode + '-01');
   const periodeLabel = format(periodeDate, 'MMMM yyyy', { locale: fr }).toUpperCase();
-  
+
   // Logo CAPCO - async loading
   try {
     const logoImg = new Image();
     logoImg.crossOrigin = 'anonymous';
-    
+
     await new Promise<void>((resolve) => {
       logoImg.onload = () => {
         const logoWidth = 40;
@@ -101,50 +101,50 @@ export const generateQuittancePDF = async (data: QuittanceData): Promise<void> =
     doc.setFont('helvetica', 'bold');
     doc.text('CAPCO', 15, 25);
   }
-  
+
   // Header
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.text('CAPCO - Cabinet Conseil', pageWidth - 15, 15, { align: 'right' });
   doc.text('Gestion Immobilière', pageWidth - 15, 21, { align: 'right' });
   doc.text('Dakar, Sénégal', pageWidth - 15, 27, { align: 'right' });
-  
+
   // Title
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(isQuittance ? 0 : 180, isQuittance ? 100 : 100, isQuittance ? 0 : 0);
   doc.text(title, pageWidth / 2, 50, { align: 'center' });
-  
+
   doc.setFontSize(14);
   doc.setTextColor(100, 100, 100);
   doc.text(periodeLabel, pageWidth / 2, 58, { align: 'center' });
-  
+
   doc.setTextColor(0, 0, 0);
-  
+
   // Reference
   if (data.reference) {
     doc.setFontSize(10);
     doc.text(`Référence : ${data.reference}`, pageWidth / 2, 66, { align: 'center' });
   }
-  
+
   // Content
   let yPos = 80;
-  
+
   // Propriétaire box
   doc.setDrawColor(200, 200, 200);
   doc.setFillColor(248, 248, 248);
   doc.roundedRect(15, yPos, (pageWidth - 40) / 2, 35, 3, 3, 'F');
-  
+
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text('PROPRIÉTAIRE', 20, yPos + 10);
   doc.setFont('helvetica', 'normal');
   doc.text(data.proprietaire.nom, 20, yPos + 18);
-  
+
   // Locataire box
   const rightBoxX = 15 + (pageWidth - 40) / 2 + 10;
   doc.roundedRect(rightBoxX, yPos, (pageWidth - 40) / 2, 35, 3, 3, 'F');
-  
+
   doc.setFont('helvetica', 'bold');
   doc.text('LOCATAIRE', rightBoxX + 5, yPos + 10);
   doc.setFont('helvetica', 'normal');
@@ -152,44 +152,44 @@ export const generateQuittancePDF = async (data: QuittanceData): Promise<void> =
   if (data.locataire.adresse) {
     doc.text(data.locataire.adresse, rightBoxX + 5, yPos + 26);
   }
-  
+
   yPos += 50;
-  
+
   // Bien concerné
   doc.setFillColor(240, 245, 250);
   doc.roundedRect(15, yPos, pageWidth - 30, 30, 3, 3, 'F');
-  
+
   doc.setFont('helvetica', 'bold');
   doc.text('BIEN CONCERNÉ', 20, yPos + 10);
   doc.setFont('helvetica', 'normal');
   doc.text(`Immeuble : ${data.immeuble.nom}`, 20, yPos + 18);
   doc.text(`Adresse : ${data.immeuble.adresse}`, 20, yPos + 26);
   doc.text(`Lot : ${data.lot.numero}${data.lot.type ? ` (${data.lot.type})` : ''}`, pageWidth / 2, yPos + 18);
-  
+
   yPos += 45;
-  
+
   // Détails du paiement
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.text('DÉTAILS DU PAIEMENT', 15, yPos);
   yPos += 10;
-  
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  
+
   // Table
   const tableData = [
     ['Période concernée', format(periodeDate, 'MMMM yyyy', { locale: fr })],
     ['Loyer mensuel', formatCurrencyPDF(data.loyerMensuel)],
     ['Montant payé', formatCurrencyPDF(data.montantPaye)],
-    ['Date de paiement', format(new Date(data.datePaiement), 'dd MMMM yyyy', { locale: fr })],
+    ['Date de paiement', new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(data.datePaiement))],
     ['Mode de paiement', data.modePaiement],
   ];
-  
+
   if (!isQuittance) {
     tableData.push(['Reste à payer', formatCurrencyPDF(data.loyerMensuel - data.montantPaye)]);
   }
-  
+
   (doc as any).autoTable({
     startY: yPos,
     head: [],
@@ -205,22 +205,22 @@ export const generateQuittancePDF = async (data: QuittanceData): Promise<void> =
     },
     margin: { left: 15 },
   });
-  
+
   yPos = (doc as any).lastAutoTable.finalY + 20;
-  
+
   // Montant en lettres
   doc.setFillColor(isQuittance ? 232 : 255, isQuittance ? 245 : 243, isQuittance ? 233 : 232);
   doc.roundedRect(15, yPos, pageWidth - 30, 25, 3, 3, 'F');
-  
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.text('MONTANT EN LETTRES :', 20, yPos + 10);
   doc.setFont('helvetica', 'italic');
   const amountWords = numberToWords(data.montantPaye).charAt(0).toUpperCase() + numberToWords(data.montantPaye).slice(1) + ' francs CFA';
   doc.text(amountWords, 20, yPos + 18);
-  
+
   yPos += 35;
-  
+
   // Mention légale
   if (isQuittance) {
     doc.setFontSize(9);
@@ -247,26 +247,26 @@ export const generateQuittancePDF = async (data: QuittanceData): Promise<void> =
       15, yPos + 6
     );
   }
-  
+
   yPos += 25;
-  
+
   // Signature
   doc.setFontSize(10);
   doc.text(`Fait à Dakar, le ${format(new Date(), 'dd MMMM yyyy', { locale: fr })}`, pageWidth - 15, yPos, { align: 'right' });
   yPos += 20;
   doc.text('Le Gestionnaire', pageWidth - 50, yPos, { align: 'center' });
   doc.text('CAPCO', pageWidth - 50, yPos + 25, { align: 'center' });
-  
+
   // Footer
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
   doc.text('Document généré automatiquement par CAPCO - Cabinet Conseil', pageWidth / 2, 285, { align: 'center' });
-  
+
   // Download
-  const fileName = isQuittance 
+  const fileName = isQuittance
     ? `Quittance_${data.lot.numero}_${data.periode}.pdf`
     : `Recu_${data.lot.numero}_${data.periode}.pdf`;
-  
+
   doc.save(fileName);
 };
 

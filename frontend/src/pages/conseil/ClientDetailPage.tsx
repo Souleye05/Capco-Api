@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { parseDateFromAPI } from '@/lib/date-utils';
+import { format } from 'date-fns';
 import {
   ArrowLeft,
   Plus,
@@ -123,7 +122,7 @@ export default function ClientDetailPage() {
   const [activeTab, setActiveTab] = useState('taches');
   const [isNewTacheDialogOpen, setIsNewTacheDialogOpen] = useState(false);
   const [isNewFactureDialogOpen, setIsNewFactureDialogOpen] = useState(false);
-  
+
   const [newTache, setNewTache] = useState({
     type: 'CONSULTATION' as TypeTache,
     description: '',
@@ -134,7 +133,7 @@ export default function ClientDetailPage() {
   const client = mockClientsConseil.find(c => c.id === id);
   const tachesClient = mockTachesConseil.filter(t => t.clientId === id);
   const facturesClient = mockFacturesConseil.filter(f => f.clientId === id);
-  const paiementsClient = mockPaiementsConseil.filter(p => 
+  const paiementsClient = mockPaiementsConseil.filter(p =>
     facturesClient.some(f => f.id === p.factureId)
   );
 
@@ -384,9 +383,9 @@ export default function ClientDetailPage() {
                       {tachesClient.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((tache) => (
                         <TableRow key={tache.id}>
                           <TableCell>
-                            {new Intl.DateTimeFormat('fr-FR', { 
-                              day: '2-digit', 
-                              month: '2-digit', 
+                            {new Intl.DateTimeFormat('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit',
                               year: 'numeric',
                               timeZone: 'UTC'
                             }).format(parseDateFromAPI(tache.date))}
@@ -464,17 +463,17 @@ export default function ClientDetailPage() {
                           <TableCell className="font-mono">{facture.reference}</TableCell>
                           <TableCell>{facture.moisConcerne}</TableCell>
                           <TableCell>
-                            {new Intl.DateTimeFormat('fr-FR', { 
-                              day: '2-digit', 
-                              month: '2-digit', 
+                            {new Intl.DateTimeFormat('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit',
                               year: 'numeric',
                               timeZone: 'UTC'
                             }).format(parseDateFromAPI(facture.dateEmission))}
                           </TableCell>
                           <TableCell>
-                            {new Intl.DateTimeFormat('fr-FR', { 
-                              day: '2-digit', 
-                              month: '2-digit', 
+                            {new Intl.DateTimeFormat('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit',
                               year: 'numeric',
                               timeZone: 'UTC'
                             }).format(parseDateFromAPI(facture.dateEcheance))}

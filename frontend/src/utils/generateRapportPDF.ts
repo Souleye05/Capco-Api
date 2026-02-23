@@ -81,7 +81,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   try {
     const logoImg = new Image();
     logoImg.crossOrigin = 'anonymous';
-    
+
     await new Promise<void>((resolve, reject) => {
       logoImg.onload = () => {
         // Add logo - positioned at top left
@@ -107,7 +107,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59); // Navy color
   doc.text('RAPPORT DE GESTION IMMOBILIERE', pageWidth / 2 + 15, yPosition + 8, { align: 'center' });
-  
+
   // Decorative line
   yPosition += 20;
   doc.setDrawColor(212, 175, 55); // Gold color
@@ -143,7 +143,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   yPosition += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  
+
   // Format dates without accents
   const dateDebut = new Date(rapport.periodeDebut);
   const dateFin = new Date(rapport.periodeFin);
@@ -169,7 +169,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   yPosition += 8;
   const totalPaid = locatairesStatus.filter(l => l.hasPaid).length;
   const totalUnpaid = locatairesStatus.filter(l => !l.hasPaid).length;
-  
+
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(34, 197, 94); // Green
@@ -211,7 +211,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
       4: { cellWidth: 25, halign: 'center' }
     },
     margin: { left: 20, right: 20 },
-    didParseCell: function(data) {
+    didParseCell: function (data) {
       if (data.column.index === 4 && data.section === 'body') {
         const value = data.cell.raw as string;
         if (value === 'Paye') {
@@ -259,7 +259,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
       depensesData.push([
         '   > ' + dep.nature,
         dep.description || '-',
-        format(new Date(dep.date), 'dd/MM/yyyy'),
+        new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(dep.date)),
         formatFCFA(dep.montant)
       ]);
     });
@@ -294,7 +294,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
       3: { cellWidth: 35, halign: 'right' }
     },
     margin: { left: 20, right: 20 },
-    didParseCell: function(data) {
+    didParseCell: function (data) {
       if (data.section === 'body') {
         const value = data.cell.raw as string;
         // Style for category headers (no indent)
@@ -391,7 +391,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
-  
+
   const dateGeneration = new Date();
   const dateGenText = 'Rapport genere le ' + format(dateGeneration, 'dd/MM/yyyy') + ' a ' + format(dateGeneration, 'HH:mm');
   doc.text(dateGenText, pageWidth / 2, yPosition, { align: 'center' });
@@ -399,7 +399,8 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
 
   // Save the PDF
   const immName = (rapport.immeuble?.nom || 'Immeuble').replace(/\s+/g, '_').replace(/[éèê]/g, 'e').replace(/[àâ]/g, 'a');
-  const moisStr = format(new Date(rapport.periodeDebut), 'MM_yyyy');
+  const d = new Date(rapport.periodeDebut);
+  const moisStr = String(d.getUTCMonth() + 1).padStart(2, '0') + '_' + d.getUTCFullYear();
   const fileName = `Rapport_Gestion_${immName}_${moisStr}.pdf`;
   doc.save(fileName);
 }

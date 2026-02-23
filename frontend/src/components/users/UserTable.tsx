@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { parseDateFromAPI } from '@/lib/date-utils';
 import {
     Users,
@@ -182,20 +180,20 @@ export const UserTable = ({ users, loading, sortBy, sortOrder, onSort, onEdit, o
                                 <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                                     <div className="flex items-center gap-1">
                                         <CalendarIcon className="h-3 w-3" />
-                                        {u.lastSignIn ? new Intl.DateTimeFormat('fr-FR', { 
-                                          day: '2-digit', 
-                                          month: '2-digit', 
-                                          year: 'numeric',
-                                          timeZone: 'UTC'
+                                        {u.lastSignIn ? new Intl.DateTimeFormat('fr-FR', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            timeZone: 'UTC'
                                         }).format(parseDateFromAPI(u.lastSignIn)) : 'Jamais'}
                                     </div>
                                     {u.lastSignIn && (
                                         <div className="flex items-center gap-1 opacity-70">
                                             <Clock className="h-3 w-3" />
-                                            {new Intl.DateTimeFormat('fr-FR', { 
-                                              hour: '2-digit', 
-                                              minute: '2-digit',
-                                              timeZone: 'UTC'
+                                            {new Intl.DateTimeFormat('fr-FR', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                timeZone: 'UTC'
                                             }).format(parseDateFromAPI(u.lastSignIn))}
                                         </div>
                                     )}

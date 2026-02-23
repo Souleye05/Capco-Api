@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  Plus, 
-  Search, 
+import { parseDateFromAPI } from '@/lib/date-utils';
+import {
+  Plus,
+  Search,
   Receipt,
   Building2,
   Filter,
@@ -51,12 +52,12 @@ import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 export default function LoyersPage() {
   const navigate = useNavigate();
   const { user } = useNestJSAuth();
-  
+
   const { data: encaissements = [], isLoading: encLoading } = useEncaissementsLoyers();
   const { data: immeubles = [], isLoading: immLoading } = useImmeubles();
   const { data: lots = [], isLoading: lotsLoading } = useLots();
   const createEncaissement = useCreateEncaissementLoyer();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
   const [selectedLot, setSelectedLot] = useState<string>('all');
@@ -81,7 +82,7 @@ export default function LoyersPage() {
   }));
 
   // Lots disponibles pour le dialog en fonction de l'immeuble sélectionné
-  const lotsForDialog = encaissementImmeuble 
+  const lotsForDialog = encaissementImmeuble
     ? enrichedLots.filter(l => l.immeuble_id === encaissementImmeuble && l.statut === 'OCCUPE')
     : [];
 
@@ -89,8 +90,8 @@ export default function LoyersPage() {
   const uniqueMois = [...new Set(encaissements.map(e => e.mois_concerne))].sort().reverse();
 
   // Filter lots based on selected immeuble
-  const availableLots = selectedImmeuble === 'all' 
-    ? enrichedLots 
+  const availableLots = selectedImmeuble === 'all'
+    ? enrichedLots
     : enrichedLots.filter(l => l.immeuble_id === selectedImmeuble);
 
   // Enrichir les encaissements avec lot et immeuble
@@ -101,16 +102,16 @@ export default function LoyersPage() {
 
   const filteredEncaissements = useMemo(() => {
     return enrichedEncaissements.filter(enc => {
-      const matchesSearch = 
+      const matchesSearch =
         enc.lot?.numero.toLowerCase().includes(searchQuery.toLowerCase()) ||
         enc.lot?.immeuble?.nom.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesImmeuble = selectedImmeuble === 'all' || enc.lot?.immeuble_id === selectedImmeuble;
       const matchesLot = selectedLot === 'all' || enc.lot_id === selectedLot;
       const matchesMois = selectedMois === 'all' || enc.mois_concerne === selectedMois;
       const matchesDateDebut = !dateDebut || new Date(enc.date_encaissement) >= dateDebut;
       const matchesDateFin = !dateFin || new Date(enc.date_encaissement) <= dateFin;
-      
+
       return matchesSearch && matchesImmeuble && matchesLot && matchesMois && matchesDateDebut && matchesDateFin;
     });
   }, [enrichedEncaissements, searchQuery, selectedImmeuble, selectedLot, selectedMois, dateDebut, dateFin]);
@@ -150,12 +151,12 @@ export default function LoyersPage() {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     const selectedImmeubleData = immeubles.find(i => i.id === encaissementImmeuble);
     const tauxCommission = selectedImmeubleData?.taux_commission_capco || 5;
     const commission = montant * (tauxCommission / 100);
     const netProprietaire = montant - commission;
-    
+
     try {
       await createEncaissement.mutateAsync({
         lot_id: encaissementLot,
@@ -168,7 +169,7 @@ export default function LoyersPage() {
         observation: null,
         created_by: user?.id || ''
       });
-      
+
       setEncaissementDialogOpen(false);
       setEncaissementImmeuble('');
       setEncaissementLot('');
@@ -190,8 +191,8 @@ export default function LoyersPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Encaissements de loyers" 
+      <Header
+        title="Encaissements de loyers"
         subtitle={`${encaissements.length} encaissements`}
         actions={
           <div className="flex gap-2">
@@ -223,7 +224,7 @@ export default function LoyersPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -237,7 +238,7 @@ export default function LoyersPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -276,7 +277,7 @@ export default function LoyersPage() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label className="mb-2 block">Immeuble</Label>
                 <Select value={selectedImmeuble} onValueChange={(v) => { setSelectedImmeuble(v); setSelectedLot('all'); }}>
@@ -291,7 +292,7 @@ export default function LoyersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label className="mb-2 block">Lot</Label>
                 <Select value={selectedLot} onValueChange={setSelectedLot}>
@@ -306,7 +307,7 @@ export default function LoyersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label className="mb-2 block">Mois</Label>
                 <Select value={selectedMois} onValueChange={setSelectedMois}>
@@ -317,20 +318,20 @@ export default function LoyersPage() {
                     <SelectItem value="all">Tous les mois</SelectItem>
                     {uniqueMois.map(mois => (
                       <SelectItem key={mois} value={mois}>
-                        {format(new Date(mois + '-01'), 'MMMM yyyy', { locale: fr })}
+                        {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(mois + '-01'))}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-end">
                 <Button variant="ghost" onClick={clearFilters} className="w-full">
                   Effacer
                 </Button>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <Label className="mb-2 block">Date début</Label>
@@ -352,7 +353,7 @@ export default function LoyersPage() {
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div>
                 <Label className="mb-2 block">Date fin</Label>
                 <Popover>
@@ -402,9 +403,9 @@ export default function LoyersPage() {
               ) : (
                 filteredEncaissements.map(enc => (
                   <TableRow key={enc.id}>
-                    <TableCell>{format(new Date(enc.date_encaissement), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.date_encaissement))}</TableCell>
                     <TableCell>
-                      <div 
+                      <div
                         className="flex items-center gap-2 hover:text-primary cursor-pointer"
                         onClick={() => navigate(`/immobilier/immeubles/${enc.lot?.immeuble_id}`)}
                       >
@@ -416,7 +417,7 @@ export default function LoyersPage() {
                       <Badge variant="outline">{enc.lot?.numero}</Badge>
                     </TableCell>
                     <TableCell>
-                      {format(new Date(enc.mois_concerne + '-01'), 'MMM yyyy', { locale: fr })}
+                      {new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.mois_concerne + '-01'))}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{enc.mode_paiement}</Badge>
@@ -436,7 +437,7 @@ export default function LoyersPage() {
             </TableBody>
           </Table>
         </div>
-        
+
         {filteredEncaissements.length > 0 && (
           <div className="flex justify-end gap-8 p-4 bg-muted/50 rounded-lg">
             <div className="text-right">
@@ -483,11 +484,11 @@ export default function LoyersPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="encaissement-lot">Lot (occupé)</Label>
-              <Select 
-                value={encaissementLot} 
+              <Select
+                value={encaissementLot}
                 onValueChange={setEncaissementLot}
                 disabled={!encaissementImmeuble}
               >
@@ -503,7 +504,7 @@ export default function LoyersPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Mois concerné</Label>
               <Input
@@ -512,7 +513,7 @@ export default function LoyersPage() {
                 onChange={(e) => setEncaissementMois(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label>Montant encaissé (FCFA)</Label>
               <Input
@@ -522,7 +523,7 @@ export default function LoyersPage() {
                 onChange={(e) => setEncaissementMontant(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label>Mode de paiement</Label>
               <Select value={encaissementMode} onValueChange={(v) => setEncaissementMode(v as typeof encaissementMode)}>

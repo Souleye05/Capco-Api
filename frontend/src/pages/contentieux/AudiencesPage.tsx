@@ -47,7 +47,7 @@ export default function AudiencesPage() {
         breadcrumbs={[{ label: 'Contentieux', href: '/contentieux/affaires' }, { label: 'Audiences' }]}
         actions={
           <div className="flex items-center gap-2">
-            <Button size="sm" className="gap-1.5 bg-[#433878] hover:bg-[#433878]/90 text-white" onClick={() => setShowNouvelleAudience(true)}>
+            <Button size="sm" className="gap-1.5" onClick={() => setShowNouvelleAudience(true)}>
               <Plus className="h-4 w-4" /> Nouvelle audience
             </Button>
           </div>

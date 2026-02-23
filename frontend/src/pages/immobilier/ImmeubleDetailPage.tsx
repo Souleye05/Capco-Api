@@ -2,11 +2,12 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  ArrowLeft, 
-  Building2, 
-  MapPin, 
-  Users, 
+import { parseDateFromAPI } from '@/lib/date-utils';
+import {
+  ArrowLeft,
+  Building2,
+  MapPin,
+  Users,
   Home,
   FileText,
   Receipt,
@@ -54,11 +55,11 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { TypeDepenseImmeuble } from '@/types';
-import { 
-  useImmeuble, 
-  useLotsByImmeuble, 
-  useEncaissementsLoyers, 
-  useDepensesImmeubles, 
+import {
+  useImmeuble,
+  useLotsByImmeuble,
+  useEncaissementsLoyers,
+  useDepensesImmeubles,
   useRapportsGestion,
   useCreateEncaissementLoyer,
   useCreateDepenseImmeuble,
@@ -80,47 +81,47 @@ export default function ImmeubleDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useNestJSAuth();
-  
+
   // Fetch data from Supabase
   const { data: immeuble, isLoading: immeubleLoading } = useImmeuble(id || '');
   const { data: lots = [], isLoading: lotsLoading } = useLotsByImmeuble(id || '');
   const { data: allEncaissements = [] } = useEncaissementsLoyers();
   const { data: depenses = [] } = useDepensesImmeubles(id);
   const { data: rapports = [] } = useRapportsGestion(id);
-  
+
   const createEncaissement = useCreateEncaissementLoyer();
   const createDepense = useCreateDepenseImmeuble();
   const createRapport = useCreateRapportGestion();
-  
+
   // Filter encaissements for this building's lots
   const lotIds = useMemo(() => lots.map(l => l.id), [lots]);
-  const encaissements = useMemo(() => 
+  const encaissements = useMemo(() =>
     allEncaissements.filter(e => lotIds.includes(e.lot_id)),
     [allEncaissements, lotIds]
   );
-  
+
   // Filters
   const [selectedLot, setSelectedLot] = useState<string>('all');
   const [selectedMois, setSelectedMois] = useState<string>('all');
   const [dateDebut, setDateDebut] = useState<Date | undefined>();
   const [dateFin, setDateFin] = useState<Date | undefined>();
-  
+
   // Dialog nouvelle dépense
   const [depenseDialogOpen, setDepenseDialogOpen] = useState(false);
   const [depenseType, setDepenseType] = useState<TypeDepenseImmeuble>('AUTRES_DEPENSES');
   const [depenseNature, setDepenseNature] = useState('');
   const [depenseDescription, setDepenseDescription] = useState('');
   const [depenseMontant, setDepenseMontant] = useState('');
-  
+
   // Dialog nouvel encaissement
   const [encaissementDialogOpen, setEncaissementDialogOpen] = useState(false);
   const [encaissementLot, setEncaissementLot] = useState('');
   const [encaissementMois, setEncaissementMois] = useState('');
   const [encaissementMontant, setEncaissementMontant] = useState('');
   const [encaissementMode, setEncaissementMode] = useState('VIREMENT');
-  
+
   const isLoading = immeubleLoading || lotsLoading;
-  
+
   // Filter encaissements
   const filteredEncaissements = useMemo(() => {
     return encaissements.filter(e => {
@@ -131,7 +132,7 @@ export default function ImmeubleDetailPage() {
       return true;
     });
   }, [encaissements, selectedLot, selectedMois, dateDebut, dateFin]);
-  
+
   // Filter depenses
   const filteredDepenses = useMemo(() => {
     return depenses.filter(d => {
@@ -140,24 +141,24 @@ export default function ImmeubleDetailPage() {
       return true;
     });
   }, [depenses, dateDebut, dateFin]);
-  
+
   // Calculate totals
   const totalLoyers = filteredEncaissements.reduce((sum, e) => sum + Number(e.montant_encaisse), 0);
   const totalCommissions = filteredEncaissements.reduce((sum, e) => sum + Number(e.commission_capco), 0);
   const totalDepenses = filteredDepenses.reduce((sum, d) => sum + Number(d.montant), 0);
   const netProprietaire = totalLoyers - totalCommissions - totalDepenses;
-  
+
   // Get unique months
   const uniqueMois = [...new Set(encaissements.map(e => e.mois_concerne))].sort().reverse();
-  
+
   const handleGenererRapport = async () => {
     if (!immeuble || !id) return;
-    
+
     try {
       // Prepare data for the report
       const periodeDebut = dateDebut ? format(dateDebut, 'yyyy-MM-dd') : format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd');
       const periodeFin = dateFin ? format(dateFin, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-      
+
       // Create rapport in database
       await createRapport.mutateAsync({
         immeuble_id: id,
@@ -170,13 +171,13 @@ export default function ImmeubleDetailPage() {
         statut: 'GENERE',
         generer_par: user?.id || ''
       });
-      
+
       // Prepare locataires status for PDF
       const locatairesStatus = lots.map(lot => {
         const lotEncaissements = filteredEncaissements.filter(e => e.lot_id === lot.id);
         const totalPaid = lotEncaissements.reduce((sum, e) => sum + Number(e.montant_encaisse), 0);
         const hasPaid = totalPaid >= Number(lot.loyer_mensuel_attendu);
-        
+
         return {
           lot: {
             id: lot.id,
@@ -189,7 +190,7 @@ export default function ImmeubleDetailPage() {
           paiement: lotEncaissements.length > 0 ? { montantEncaisse: totalPaid } : undefined
         };
       });
-      
+
       // Group expenses by type
       const expensesByType: Record<string, { total: number; items: any[] }> = {
         PLOMBERIE_ASSAINISSEMENT: { total: 0, items: [] },
@@ -198,7 +199,7 @@ export default function ImmeubleDetailPage() {
         SECURITE_GARDIENNAGE_ASSURANCE: { total: 0, items: [] },
         AUTRES_DEPENSES: { total: 0, items: [] }
       };
-      
+
       filteredDepenses.forEach(dep => {
         const type = dep.type_depense as string;
         if (expensesByType[type]) {
@@ -213,7 +214,7 @@ export default function ImmeubleDetailPage() {
           });
         }
       });
-      
+
       // Generate PDF
       await generateRapportPDF({
         rapport: {
@@ -238,14 +239,14 @@ export default function ImmeubleDetailPage() {
         locatairesStatus,
         expensesByType: expensesByType as any
       });
-      
+
       toast.success('Rapport de gestion généré avec succès');
     } catch (error) {
       console.error('Error generating report:', error);
       toast.error('Erreur lors de la génération du rapport');
     }
   };
-  
+
   const clearFilters = () => {
     setSelectedLot('all');
     setSelectedMois('all');
@@ -255,7 +256,7 @@ export default function ImmeubleDetailPage() {
 
   const handleSubmitDepense = async () => {
     if (!id) return;
-    
+
     const montant = parseFloat(depenseMontant);
     if (!depenseNature.trim()) {
       toast.error('Veuillez saisir la nature de la dépense');
@@ -265,7 +266,7 @@ export default function ImmeubleDetailPage() {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     try {
       await createDepense.mutateAsync({
         justificatif: null,
@@ -277,7 +278,7 @@ export default function ImmeubleDetailPage() {
         date: format(new Date(), 'yyyy-MM-dd'),
         created_by: user?.id || ''
       });
-      
+
       toast.success('Dépense enregistrée avec succès');
       setDepenseDialogOpen(false);
       setDepenseType('AUTRES_DEPENSES');
@@ -291,7 +292,7 @@ export default function ImmeubleDetailPage() {
 
   const handleSubmitEncaissement = async () => {
     if (!immeuble) return;
-    
+
     const montant = parseFloat(encaissementMontant);
     if (!encaissementLot) {
       toast.error('Veuillez sélectionner un lot');
@@ -305,11 +306,11 @@ export default function ImmeubleDetailPage() {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     const selectedLotData = lots.find(l => l.id === encaissementLot);
     const commission = montant * (immeuble.taux_commission_capco / 100);
     const net = montant - commission;
-    
+
     try {
       await createEncaissement.mutateAsync({
         lot_id: encaissementLot,
@@ -322,14 +323,14 @@ export default function ImmeubleDetailPage() {
         observation: null,
         created_by: user?.id || ''
       });
-      
+
       toast.success('Encaissement enregistré avec succès');
-      
+
       // Generate quittance or receipt
       if (selectedLotData) {
         const loyerAttendu = Number(selectedLotData.loyer_mensuel_attendu);
         const documentType = shouldGenerateQuittance(montant, loyerAttendu);
-        
+
         generateQuittancePDF({
           type: documentType,
           locataire: {
@@ -352,13 +353,13 @@ export default function ImmeubleDetailPage() {
           datePaiement: format(new Date(), 'yyyy-MM-dd'),
           modePaiement: encaissementMode
         });
-        
-        toast.success(documentType === 'QUITTANCE' 
-          ? 'Quittance de loyer générée' 
+
+        toast.success(documentType === 'QUITTANCE'
+          ? 'Quittance de loyer générée'
           : 'Reçu de paiement partiel généré'
         );
       }
-      
+
       setEncaissementDialogOpen(false);
       setEncaissementLot('');
       setEncaissementMois('');
@@ -372,11 +373,11 @@ export default function ImmeubleDetailPage() {
   const handleDownloadQuittance = (enc: any) => {
     const lot = lots.find(l => l.id === enc.lot_id);
     if (!lot || !immeuble) return;
-    
+
     const loyerAttendu = Number(lot.loyer_mensuel_attendu);
     const montantPaye = Number(enc.montant_encaisse);
     const documentType = shouldGenerateQuittance(montantPaye, loyerAttendu);
-    
+
     generateQuittancePDF({
       type: documentType,
       locataire: {
@@ -433,7 +434,7 @@ export default function ImmeubleDetailPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
+      <Header
         title={immeuble.nom}
         subtitle={immeuble.adresse}
         actions={
@@ -466,7 +467,7 @@ export default function ImmeubleDetailPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -480,7 +481,7 @@ export default function ImmeubleDetailPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -494,7 +495,7 @@ export default function ImmeubleDetailPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -536,7 +537,7 @@ export default function ImmeubleDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Mois</Label>
                 <Select value={selectedMois} onValueChange={setSelectedMois}>
@@ -547,13 +548,13 @@ export default function ImmeubleDetailPage() {
                     <SelectItem value="all">Tous les mois</SelectItem>
                     {uniqueMois.map(mois => (
                       <SelectItem key={mois} value={mois}>
-                        {format(new Date(mois + '-01'), 'MMMM yyyy', { locale: fr })}
+                        {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(mois + '-01'))}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Date début</Label>
                 <Popover>
@@ -574,7 +575,7 @@ export default function ImmeubleDetailPage() {
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Date fin</Label>
                 <Popover>
@@ -595,7 +596,7 @@ export default function ImmeubleDetailPage() {
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div className="flex items-end">
                 <Button variant="ghost" onClick={clearFilters} className="w-full">
                   Effacer filtres
@@ -664,15 +665,15 @@ export default function ImmeubleDetailPage() {
                         const loyerAttendu = lot ? Number(lot.loyer_mensuel_attendu) : 0;
                         const montantPaye = Number(enc.montant_encaisse);
                         const isFullPayment = montantPaye >= loyerAttendu;
-                        
+
                         return (
                           <TableRow key={enc.id}>
-                            <TableCell>{format(new Date(enc.date_encaissement), 'dd/MM/yyyy')}</TableCell>
+                            <TableCell>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.date_encaissement))}</TableCell>
                             <TableCell>
                               <Badge variant="outline">{lot?.numero || 'N/A'}</Badge>
                             </TableCell>
                             <TableCell>{(lot as any)?.locataires?.nom || '-'}</TableCell>
-                            <TableCell>{format(new Date(enc.mois_concerne + '-01'), 'MMM yyyy', { locale: fr })}</TableCell>
+                            <TableCell>{new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.mois_concerne + '-01'))}</TableCell>
                             <TableCell>
                               <Badge variant="secondary">{enc.mode_paiement}</Badge>
                             </TableCell>
@@ -680,9 +681,9 @@ export default function ImmeubleDetailPage() {
                             <TableCell className="text-right text-immobilier">{formatCurrency(Number(enc.commission_capco))}</TableCell>
                             <TableCell className="text-right font-medium">{formatCurrency(Number(enc.net_proprietaire))}</TableCell>
                             <TableCell>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="gap-1"
                                 onClick={() => handleDownloadQuittance(enc)}
                               >
@@ -696,7 +697,7 @@ export default function ImmeubleDetailPage() {
                     )}
                   </TableBody>
                 </Table>
-                
+
                 {filteredEncaissements.length > 0 && (
                   <div className="mt-4 pt-4 border-t flex justify-end gap-8">
                     <div className="text-right">
@@ -744,7 +745,7 @@ export default function ImmeubleDetailPage() {
                     ) : (
                       filteredDepenses.map(dep => (
                         <TableRow key={dep.id}>
-                          <TableCell>{format(new Date(dep.date), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(dep.date))}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{typeDepenseLabels[dep.type_depense as TypeDepenseImmeuble] || dep.type_depense}</Badge>
                           </TableCell>
@@ -758,7 +759,7 @@ export default function ImmeubleDetailPage() {
                     )}
                   </TableBody>
                 </Table>
-                
+
                 {filteredDepenses.length > 0 && (
                   <div className="mt-4 pt-4 border-t flex justify-end">
                     <div className="text-right">
@@ -790,7 +791,7 @@ export default function ImmeubleDetailPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -807,11 +808,11 @@ export default function ImmeubleDetailPage() {
                       const lot = lots.find(l => l.id === enc.lot_id);
                       return (
                         <TableRow key={enc.id}>
-                          <TableCell>{format(new Date(enc.date_encaissement), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.date_encaissement))}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{lot?.numero || 'N/A'}</Badge>
                           </TableCell>
-                          <TableCell>{format(new Date(enc.mois_concerne + '-01'), 'MMM yyyy', { locale: fr })}</TableCell>
+                          <TableCell>{new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.mois_concerne + '-01'))}</TableCell>
                           <TableCell className="text-right">{formatCurrency(Number(enc.montant_encaisse))}</TableCell>
                           <TableCell className="text-right">{immeuble.taux_commission_capco}%</TableCell>
                           <TableCell className="text-right font-medium text-immobilier">
@@ -846,20 +847,20 @@ export default function ImmeubleDetailPage() {
                 ) : (
                   <div className="space-y-4">
                     {rapports.map(rapport => (
-                      <div 
-                        key={rapport.id} 
+                      <div
+                        key={rapport.id}
                         className="p-4 border rounded-lg hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-start justify-between">
                           <div>
                             <h4 className="font-semibold">
-                              Rapport {format(new Date(rapport.periode_debut), 'MMMM yyyy', { locale: fr })}
+                              Rapport {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_debut))}
                             </h4>
                             <p className="text-sm text-muted-foreground mt-1">
-                              Période: {format(new Date(rapport.periode_debut), 'dd/MM/yyyy')} - {format(new Date(rapport.periode_fin), 'dd/MM/yyyy')}
+                              Période: {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_debut))} - {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_fin))}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Généré le {format(new Date(rapport.date_generation), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                              Généré le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.date_generation))}
                             </p>
                           </div>
                           <Badge className={cn(
@@ -870,7 +871,7 @@ export default function ImmeubleDetailPage() {
                             {rapport.statut}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-4 gap-4 mt-4 pt-4 border-t">
                           <div>
                             <p className="text-xs text-muted-foreground">Loyers</p>
@@ -889,7 +890,7 @@ export default function ImmeubleDetailPage() {
                             <p className="font-bold">{formatCurrency(Number(rapport.net_proprietaire))}</p>
                           </div>
                         </div>
-                        
+
                         <div className="flex gap-2 mt-4">
                           <Button variant="outline" size="sm" className="gap-2">
                             <Download className="h-4 w-4" />
@@ -1002,7 +1003,7 @@ export default function ImmeubleDetailPage() {
                 <SelectContent>
                   {monthOptions.map(mois => (
                     <SelectItem key={mois} value={mois}>
-                      {format(new Date(mois + '-01'), 'MMMM yyyy', { locale: fr })}
+                      {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(mois + '-01'))}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   ArrowLeft,
   Phone,
   Mail,
@@ -56,7 +56,7 @@ import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { TypeAction, TypeDepenseDossier } from '@/types';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
-import { 
+import {
   useDossierRecouvrement,
   useActionsRecouvrement,
   usePaiementsRecouvrement,
@@ -133,59 +133,59 @@ export default function DossierDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useNestJSAuth();
-  
+
   // Fetch dossier from database
   const { data: dossier, isLoading: isLoadingDossier } = useDossierRecouvrement(id || '');
-  
+
   // Fetch actions from database
   const { data: actionsData = [] } = useActionsRecouvrement(id);
-  
+
   // Fetch payments from database
   const { data: paiementsData = [] } = usePaiementsRecouvrement(id);
-  
+
   // Fetch honoraires from database
   const { data: honoraires } = useHonorairesRecouvrement(id);
-  
+
   // Fetch depenses from database
   const { data: depensesData = [] } = useDepensesDossier(id);
-  
+
   // Mutations
   const createAction = useCreateActionRecouvrement();
   const createPaiement = useCreatePaiementRecouvrement();
   const createDepense = useCreateDepenseDossier();
   const updateHonoraires = useUpdateHonorairesRecouvrement();
-  
+
   // Dialog states
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [paiementDialogOpen, setPaiementDialogOpen] = useState(false);
   const [depenseDialogOpen, setDepenseDialogOpen] = useState(false);
   const [paiementHonDialogOpen, setPaiementHonDialogOpen] = useState(false);
-  
+
   // Form states
   const [actionType, setActionType] = useState<TypeAction>('APPEL_TELEPHONIQUE');
   const [actionResume, setActionResume] = useState('');
   const [actionProchaineEtape, setActionProchaineEtape] = useState('');
   const [actionEcheance, setActionEcheance] = useState('');
-  
+
   const [paiementMontant, setPaiementMontant] = useState('');
   const [paiementMode, setPaiementMode] = useState<'CASH' | 'VIREMENT' | 'CHEQUE' | 'WAVE' | 'OM'>('VIREMENT');
   const [paiementReference, setPaiementReference] = useState('');
   const [paiementCommentaire, setPaiementCommentaire] = useState('');
-  
+
   // Depense form states
   const [depenseType, setDepenseType] = useState<TypeDepenseDossier>('FRAIS_HUISSIER');
   const [depenseNature, setDepenseNature] = useState('');
   const [depenseMontant, setDepenseMontant] = useState('');
-  
+
   // Paiement honoraires form states
   const [paiementHonMontant, setPaiementHonMontant] = useState('');
-  
+
   // Calculate totals from real data
   const totalEncaisse = paiementsData.reduce((sum, p) => sum + p.montant, 0);
   const soldeRestant = dossier ? Number(dossier.total_a_recouvrer) - totalEncaisse : 0;
   const progress = dossier ? (totalEncaisse / Number(dossier.total_a_recouvrer)) * 100 : 0;
   const totalDepenses = depensesData.reduce((sum, d) => sum + Number(d.montant), 0);
-  
+
   // Honoraires calculations
   const honorairesPrevu = honoraires ? Number(honoraires.montant_prevu) : 0;
   const honorairesPaye = honoraires ? Number(honoraires.montant_paye) : 0;
@@ -218,7 +218,7 @@ export default function DossierDetailPage() {
       toast.error('Veuillez saisir un résumé de l\'action');
       return;
     }
-    
+
     await createAction.mutateAsync({
       dossier_id: dossier.id,
       date: new Date().toISOString().split('T')[0],
@@ -229,7 +229,7 @@ export default function DossierDetailPage() {
       piece_jointe: null,
       created_by: user.id
     });
-    
+
     setActionDialogOpen(false);
     setActionResume('');
     setActionProchaineEtape('');
@@ -242,7 +242,7 @@ export default function DossierDetailPage() {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     await createPaiement.mutateAsync({
       dossier_id: dossier.id,
       date: new Date().toISOString().split('T')[0],
@@ -252,20 +252,20 @@ export default function DossierDetailPage() {
       commentaire: paiementCommentaire || null,
       created_by: user.id
     });
-    
+
     setPaiementDialogOpen(false);
     setPaiementMontant('');
     setPaiementReference('');
     setPaiementCommentaire('');
   };
-  
+
   const handleSubmitDepense = async () => {
     const montant = parseFloat(depenseMontant);
     if (isNaN(montant) || montant <= 0 || !depenseNature.trim() || !user) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
-    
+
     await createDepense.mutateAsync({
       dossier_id: dossier.id,
       date: new Date().toISOString().split('T')[0],
@@ -275,29 +275,29 @@ export default function DossierDetailPage() {
       justificatif: null,
       created_by: user.id
     });
-    
+
     setDepenseDialogOpen(false);
     setDepenseNature('');
     setDepenseMontant('');
   };
-  
+
   const handleSubmitPaiementHonoraires = async () => {
     const montant = parseFloat(paiementHonMontant);
     if (isNaN(montant) || montant <= 0 || !honoraires) {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     const newMontantPaye = Number(honoraires.montant_paye) + montant;
     await updateHonoraires.mutateAsync({
       id: honoraires.id,
       montant_paye: newMontantPaye
     });
-    
+
     setPaiementHonDialogOpen(false);
     setPaiementHonMontant('');
   };
-  
+
   const handleGenerateRapport = async () => {
     try {
       await generateRapportActionsPDF({
@@ -317,26 +317,26 @@ export default function DossierDetailPage() {
 
   // Combine actions and payments into a single timeline
   const timeline = [
-    ...actionsData.map(a => ({ 
-      type: 'action' as const, 
-      date: new Date(a.date), 
-      data: a 
+    ...actionsData.map(a => ({
+      type: 'action' as const,
+      date: parseDateFromAPI(a.date),
+      data: a
     })),
-    ...paiementsData.map(p => ({ 
-      type: 'paiement' as const, 
-      date: new Date(p.date), 
-      data: p 
+    ...paiementsData.map(p => ({
+      type: 'paiement' as const,
+      date: parseDateFromAPI(p.date),
+      data: p
     }))
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return (
     <div className="min-h-screen">
-      <Header 
+      <Header
         title={
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate('/recouvrement/dossiers')}
               className="shrink-0"
             >
@@ -346,8 +346,8 @@ export default function DossierDetailPage() {
               <span className="font-mono text-primary">{dossier.reference}</span>
               <Badge className={cn(
                 "ml-3",
-                dossier.statut === 'EN_COURS' 
-                  ? 'bg-success/10 text-success' 
+                dossier.statut === 'EN_COURS'
+                  ? 'bg-success/10 text-success'
                   : 'bg-muted text-muted-foreground'
               )}>
                 {dossier.statut === 'EN_COURS' ? 'En cours' : 'Clôturé'}
@@ -456,11 +456,11 @@ export default function DossierDetailPage() {
                             <div className="flex flex-col items-center">
                               <div className={cn(
                                 "w-8 h-8 rounded-full flex items-center justify-center",
-                                item.type === 'action' 
+                                item.type === 'action'
                                   ? typeActionColors[(item.data as ActionRecouvrementWithDossierDB).type_action]
                                   : 'bg-success/10 text-success'
                               )}>
-                                {item.type === 'action' 
+                                {item.type === 'action'
                                   ? typeActionIcons[(item.data as ActionRecouvrementWithDossierDB).type_action]
                                   : <Banknote className="h-4 w-4" />
                                 }
@@ -472,7 +472,7 @@ export default function DossierDetailPage() {
                             <div className="flex-1 pb-4">
                               <div className="flex items-center justify-between">
                                 <span className="font-medium">
-                                  {item.type === 'action' 
+                                  {item.type === 'action'
                                     ? typeActionLabels[(item.data as ActionRecouvrementWithDossierDB).type_action]
                                     : 'Paiement reçu'
                                   }
@@ -482,7 +482,7 @@ export default function DossierDetailPage() {
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
-                                {item.type === 'action' 
+                                {item.type === 'action'
                                   ? (item.data as ActionRecouvrementWithDossierDB).resume
                                   : `${formatCurrency((item.data as PaiementRecouvrementDB).montant)} - ${(item.data as PaiementRecouvrementDB).mode}`
                                 }
@@ -712,10 +712,10 @@ export default function DossierDetailPage() {
                     <span className="text-sm">Reste à payer</span>
                     <span className="font-semibold">{formatCurrency(honorairesRestant)}</span>
                   </div>
-                  
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="w-full mt-2 border-purple-300 text-purple-700 hover:bg-purple-100"
                     onClick={() => setPaiementHonDialogOpen(true)}
                   >
@@ -750,7 +750,7 @@ export default function DossierDetailPage() {
               Enregistrer une nouvelle action pour ce dossier de recouvrement.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="actionType">Type d'action *</Label>
@@ -765,10 +765,10 @@ export default function DossierDetailPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="resume">Résumé de l'action *</Label>
-              <Textarea 
+              <Textarea
                 id="resume"
                 placeholder="Décrivez l'action effectuée..."
                 value={actionResume}
@@ -776,20 +776,20 @@ export default function DossierDetailPage() {
                 rows={3}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="prochaineEtape">Prochaine étape (optionnel)</Label>
-              <Input 
+              <Input
                 id="prochaineEtape"
                 placeholder="Ex: Relancer par courrier si pas de réponse"
                 value={actionProchaineEtape}
                 onChange={(e) => setActionProchaineEtape(e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="echeance">Échéance prochaine étape (optionnel)</Label>
-              <Input 
+              <Input
                 id="echeance"
                 type="date"
                 value={actionEcheance}
@@ -797,7 +797,7 @@ export default function DossierDetailPage() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setActionDialogOpen(false)}>
               Annuler
@@ -818,11 +818,11 @@ export default function DossierDetailPage() {
               Enregistrer un paiement reçu pour ce dossier.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="montant">Montant encaissé (FCFA) *</Label>
-              <Input 
+              <Input
                 id="montant"
                 type="number"
                 placeholder="Ex: 500000"
@@ -830,7 +830,7 @@ export default function DossierDetailPage() {
                 onChange={(e) => setPaiementMontant(e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="mode">Mode de paiement *</Label>
               <Select value={paiementMode} onValueChange={(value) => setPaiementMode(value as 'CASH' | 'VIREMENT' | 'CHEQUE' | 'WAVE' | 'OM')}>
@@ -846,20 +846,20 @@ export default function DossierDetailPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="reference">Référence (optionnel)</Label>
-              <Input 
+              <Input
                 id="reference"
                 placeholder="Ex: Numéro de chèque, référence virement..."
                 value={paiementReference}
                 onChange={(e) => setPaiementReference(e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="commentaire">Commentaire (optionnel)</Label>
-              <Textarea 
+              <Textarea
                 id="commentaire"
                 placeholder="Notes supplémentaires..."
                 value={paiementCommentaire}
@@ -868,7 +868,7 @@ export default function DossierDetailPage() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setPaiementDialogOpen(false)}>
               Annuler
@@ -889,7 +889,7 @@ export default function DossierDetailPage() {
               Enregistrer une dépense engagée pour ce dossier.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="depenseType">Type de dépense *</Label>
@@ -904,20 +904,20 @@ export default function DossierDetailPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="depenseNature">Nature de la dépense *</Label>
-              <Input 
+              <Input
                 id="depenseNature"
                 placeholder="Ex: Frais de signification huissier"
                 value={depenseNature}
                 onChange={(e) => setDepenseNature(e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="depenseMontant">Montant (FCFA) *</Label>
-              <Input 
+              <Input
                 id="depenseMontant"
                 type="number"
                 placeholder="Ex: 50000"
@@ -926,7 +926,7 @@ export default function DossierDetailPage() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDepenseDialogOpen(false)}>
               Annuler
@@ -947,16 +947,16 @@ export default function DossierDetailPage() {
               Enregistrer un paiement d'honoraires reçu.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="p-3 bg-purple-100 rounded-lg text-center">
               <p className="text-sm text-purple-600">Reste à payer</p>
               <p className="text-lg font-bold text-purple-700">{formatCurrency(honorairesRestant)}</p>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="paiementHonMontant">Montant reçu (FCFA) *</Label>
-              <Input 
+              <Input
                 id="paiementHonMontant"
                 type="number"
                 placeholder="Ex: 500000"
@@ -965,7 +965,7 @@ export default function DossierDetailPage() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setPaiementHonDialogOpen(false)}>
               Annuler

@@ -47,17 +47,25 @@ export function AudienceListView({ groupedEvents, searchQuery, statusFilter, onE
 
     if (groupedEvents.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-24 text-center space-y-4 animate-in fade-in slide-in-from-bottom-4">
-                <div className="p-6 bg-muted/20 rounded-full">
-                    <CalendarIcon className="h-12 w-12 text-muted-foreground/40" />
+            <div className="card-elevated p-12 text-center space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                <div className="flex justify-center">
+                    <div className="p-4 bg-muted rounded-full">
+                        <CalendarIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
                 </div>
                 <div>
-                    <h3 className="text-xl font-medium text-muted-foreground/80">
-                        {searchQuery
-                            ? "Aucune audience trouvée"
-                            : `Aucune audience ${statusFilter === 'A_VENIR' ? 'à venir' : statusFilter === 'PASSEE_NON_RENSEIGNEE' ? 'non renseignée' : ''}`}
-                    </h3>
+                    <h3 className="text-lg font-medium">Aucune audience trouvée</h3>
+                    <p className="text-muted-foreground">
+                        {searchQuery || statusFilter !== 'all'
+                            ? "Aucune audience ne correspond à vos critères de recherche."
+                            : "Vous n'avez pas encore d'audiences programmées."}
+                    </p>
                 </div>
+                {!searchQuery && statusFilter === 'all' && (
+                    <Button onClick={onAddAudience} variant="outline" size="sm" className="hover:scale-105 active:scale-95 transition-all">
+                        Ajouter une audience
+                    </Button>
+                )}
             </div>
         );
     }

@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { parseDateFromAPI, formatDateShort } from '@/lib/date-utils';
-import { 
-  Plus, 
-  Search, 
+import { parseDateFromAPI } from '@/lib/date-utils';
+import {
+  Plus,
+  Search,
   Banknote,
   Calendar,
   Eye,
@@ -42,10 +40,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  usePaiementsRecouvrement, 
+import {
+  usePaiementsRecouvrement,
   useDossiersRecouvrement,
-  useCreatePaiementRecouvrement 
+  useCreatePaiementRecouvrement
 } from '@/hooks/useDossiersRecouvrement';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { formatCurrency } from '@/lib/utils';
@@ -64,7 +62,7 @@ export default function PaiementsPage() {
   const { user } = useNestJSAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDossier, setSelectedDossier] = useState<string>('all');
-  
+
   // Dialog nouveau paiement
   const [paiementDialogOpen, setPaiementDialogOpen] = useState(false);
   const [paiementDossier, setPaiementDossier] = useState('');
@@ -78,13 +76,13 @@ export default function PaiementsPage() {
   const createPaiement = useCreatePaiementRecouvrement();
 
   const filteredPaiements = paiements.filter(paiement => {
-    const matchesSearch = 
+    const matchesSearch =
       paiement.dossiers_recouvrement?.reference?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       paiement.dossiers_recouvrement?.debiteur_nom?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       paiement.reference?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesDossier = selectedDossier === 'all' || paiement.dossier_id === selectedDossier;
-    
+
     return matchesSearch && matchesDossier;
   });
 
@@ -100,7 +98,7 @@ export default function PaiementsPage() {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     try {
       await createPaiement.mutateAsync({
         dossier_id: paiementDossier,
@@ -111,7 +109,7 @@ export default function PaiementsPage() {
         date: new Date().toISOString().split('T')[0],
         created_by: user.id,
       });
-      
+
       setPaiementDialogOpen(false);
       setPaiementDossier('');
       setPaiementMontant('');
@@ -141,8 +139,8 @@ export default function PaiementsPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Paiements Recouvrement" 
+      <Header
+        title="Paiements Recouvrement"
         subtitle={`${paiements.length} paiements enregistrés`}
         actions={
           <Button className="gap-2" onClick={() => setPaiementDialogOpen(true)}>
@@ -190,13 +188,13 @@ export default function PaiementsPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Dernier paiement</p>
                   <p className="text-2xl font-bold">
-                    {filteredPaiements.length > 0 
-                      ? new Intl.DateTimeFormat('fr-FR', { 
-                          day: '2-digit', 
-                          month: '2-digit', 
-                          year: 'numeric',
-                          timeZone: 'UTC'
-                        }).format(parseDateFromAPI(filteredPaiements[0].date))
+                    {filteredPaiements.length > 0
+                      ? new Intl.DateTimeFormat('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        timeZone: 'UTC'
+                      }).format(parseDateFromAPI(filteredPaiements[0].date))
                       : '-'
                     }
                   </p>
@@ -218,7 +216,7 @@ export default function PaiementsPage() {
               className="pl-9"
             />
           </div>
-          
+
           <Select value={selectedDossier} onValueChange={setSelectedDossier}>
             <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Tous les dossiers" />
@@ -259,15 +257,15 @@ export default function PaiementsPage() {
                 filteredPaiements.map(paiement => (
                   <TableRow key={paiement.id}>
                     <TableCell>
-                      {new Intl.DateTimeFormat('fr-FR', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
+                      {new Intl.DateTimeFormat('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
                         year: 'numeric',
                         timeZone: 'UTC'
                       }).format(parseDateFromAPI(paiement.date))}
                     </TableCell>
                     <TableCell>
-                      <span 
+                      <span
                         className="font-mono text-sm text-primary cursor-pointer hover:underline"
                         onClick={() => navigate(`/recouvrement/dossiers/${paiement.dossier_id}`)}
                       >
@@ -287,8 +285,8 @@ export default function PaiementsPage() {
                       {formatCurrency(paiement.montant)}
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         onClick={() => navigate(`/recouvrement/dossiers/${paiement.dossier_id}`)}
                       >
@@ -300,7 +298,7 @@ export default function PaiementsPage() {
               )}
             </TableBody>
           </Table>
-          
+
           {filteredPaiements.length > 0 && (
             <div className="p-4 border-t bg-muted/30 flex justify-end">
               <div className="text-right">

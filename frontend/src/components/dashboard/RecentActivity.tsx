@@ -1,8 +1,8 @@
-import { 
-  Phone, 
-  Mail, 
-  FileText, 
-  AlertCircle, 
+import {
+  Phone,
+  Mail,
+  FileText,
+  AlertCircle,
   Gavel,
   CreditCard,
   Clock,
@@ -68,7 +68,7 @@ export function RecentActivity() {
       {activities.map((activity, index) => {
         const Icon = actionIcons[activity.action?.toLowerCase()] || actionIcons.default;
         const moduleColor = moduleColors[activity.module?.toLowerCase()] || moduleColors.default;
-        
+
         return (
           <div key={activity.id} className="flex gap-4">
             {/* Timeline */}
@@ -80,7 +80,7 @@ export function RecentActivity() {
                 <div className="w-px h-full bg-border mt-2" />
               )}
             </div>
-            
+
             {/* Content */}
             <div className="flex-1 pb-4">
               <div className="flex items-center justify-between">

@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { parseDateFromAPI } from '@/lib/date-utils';
+import { format } from 'date-fns';
 import {
   Search,
   FileText,
@@ -80,12 +79,12 @@ type FilterType = 'all' | 'impayees' | 'payees' | 'en_retard';
 export default function FacturesPage() {
   const navigate = useNavigate();
   const { user } = useNestJSAuth();
-  
+
   const { data: factures = [], isLoading: facturesLoading } = useFacturesConseil();
   const { data: clients = [], isLoading: clientsLoading } = useClientsConseil();
   const createPaiement = useCreatePaiementConseil();
   const updateFacture = useUpdateFactureConseil();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatut, setFilterStatut] = useState<FilterType>('all');
   const [isPaiementDialogOpen, setIsPaiementDialogOpen] = useState(false);
@@ -111,7 +110,7 @@ export default function FacturesPage() {
     const facturesPayees = enrichedFactures.filter(f => f.statut === 'PAYEE');
     const facturesImpayees = enrichedFactures.filter(f => f.statut === 'ENVOYEE' || f.statut === 'EN_RETARD');
     const facturesEnRetard = enrichedFactures.filter(f => f.statut === 'EN_RETARD');
-    
+
     const montantTotal = enrichedFactures.reduce((sum, f) => sum + f.montant_ttc, 0);
     const montantPaye = facturesPayees.reduce((sum, f) => sum + f.montant_ttc, 0);
     const montantImpaye = facturesImpayees.reduce((sum, f) => sum + f.montant_ttc, 0);
@@ -171,7 +170,7 @@ export default function FacturesPage() {
       toast.error('Veuillez saisir le montant');
       return;
     }
-    
+
     try {
       await createPaiement.mutateAsync({
         facture_id: selectedFacture,
@@ -182,13 +181,13 @@ export default function FacturesPage() {
         commentaire: null,
         created_by: user?.id || ''
       });
-      
+
       // Mettre à jour le statut de la facture
       await updateFacture.mutateAsync({
         id: selectedFacture,
         statut: 'PAYEE'
       });
-      
+
       setIsPaiementDialogOpen(false);
       setSelectedFacture(null);
     } catch (error) {
@@ -333,9 +332,9 @@ export default function FacturesPage() {
                       </TableCell>
                       <TableCell className="font-mono text-sm">{facture.mois_concerne}</TableCell>
                       <TableCell>
-                        {new Intl.DateTimeFormat('fr-FR', { 
-                          day: '2-digit', 
-                          month: '2-digit', 
+                        {new Intl.DateTimeFormat('fr-FR', {
+                          day: '2-digit',
+                          month: '2-digit',
                           year: 'numeric',
                           timeZone: 'UTC'
                         }).format(parseDateFromAPI(facture.date_emission))}
@@ -344,9 +343,9 @@ export default function FacturesPage() {
                         <span className={cn(
                           new Date(facture.date_echeance) < new Date() && facture.statut !== 'PAYEE' && 'text-destructive font-medium'
                         )}>
-                          {new Intl.DateTimeFormat('fr-FR', { 
-                            day: '2-digit', 
-                            month: '2-digit', 
+                          {new Intl.DateTimeFormat('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
                             year: 'numeric',
                             timeZone: 'UTC'
                           }).format(parseDateFromAPI(facture.date_echeance))}

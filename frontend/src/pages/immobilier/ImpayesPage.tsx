@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, isSameMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  AlertTriangle, 
-  Search, 
+import { parseDateFromAPI } from '@/lib/date-utils';
+import {
+  AlertTriangle,
+  Search,
   Building2,
   Filter,
   Loader2,
@@ -65,12 +66,12 @@ interface LoyerAttendu {
 export default function ImpayesPage() {
   const navigate = useNavigate();
   const { user } = useNestJSAuth();
-  
+
   const { data: encaissements = [], isLoading: encLoading } = useEncaissementsLoyers();
   const { data: immeubles = [], isLoading: immLoading } = useImmeubles();
   const { data: lots = [], isLoading: lotsLoading } = useLots();
   const createEncaissement = useCreateEncaissementLoyer();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
   const [selectedMois, setSelectedMois] = useState<string>(format(new Date(), 'yyyy-MM'));
@@ -99,18 +100,18 @@ export default function ImpayesPage() {
   // Générer la liste des loyers attendus pour le mois sélectionné
   const loyersAttendus: LoyerAttendu[] = useMemo(() => {
     const [year, month] = selectedMois.split('-').map(Number);
-    
+
     return lots
       .filter(lot => lot.statut === 'OCCUPE')
       .map(lot => {
         const immeuble = immeubles.find(i => i.id === lot.immeuble_id);
-        
+
         // Vérifier si un encaissement existe pour ce lot et ce mois
-        const encaissement = encaissements.find(e => 
-          e.lot_id === lot.id && 
+        const encaissement = encaissements.find(e =>
+          e.lot_id === lot.id &&
           e.mois_concerne === selectedMois
         );
-        
+
         return {
           id: `${lot.id}-${selectedMois}`,
           lot_id: lot.id,
@@ -128,21 +129,21 @@ export default function ImpayesPage() {
       .filter(loyer => {
         // Filtre par immeuble
         if (selectedImmeuble !== 'all' && loyer.immeuble_id !== selectedImmeuble) return false;
-        
+
         // Filtre par recherche
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          if (!loyer.lot_numero.toLowerCase().includes(query) && 
-              !loyer.immeuble_nom.toLowerCase().includes(query) &&
-              !loyer.locataire_nom.toLowerCase().includes(query)) {
+          if (!loyer.lot_numero.toLowerCase().includes(query) &&
+            !loyer.immeuble_nom.toLowerCase().includes(query) &&
+            !loyer.locataire_nom.toLowerCase().includes(query)) {
             return false;
           }
         }
-        
+
         // Filtre par statut
         if (showPaidOnly === 'impayes' && loyer.statut === 'PAYE') return false;
         if (showPaidOnly === 'payes' && loyer.statut === 'IMPAYE') return false;
-        
+
         return true;
       });
   }, [lots, immeubles, encaissements, selectedMois, selectedImmeuble, searchQuery, showPaidOnly]);
@@ -162,16 +163,16 @@ export default function ImpayesPage() {
 
   const handleSubmitPaiement = async () => {
     if (!selectedLoyer) return;
-    
+
     const montant = parseFloat(paiementMontant);
     if (isNaN(montant) || montant <= 0) {
       toast.error('Veuillez saisir un montant valide');
       return;
     }
-    
+
     const commission = montant * (selectedLoyer.taux_commission / 100);
     const netProprietaire = montant - commission;
-    
+
     try {
       await createEncaissement.mutateAsync({
         lot_id: selectedLoyer.lot_id,
@@ -184,7 +185,7 @@ export default function ImpayesPage() {
         observation: null,
         created_by: user?.id || ''
       });
-      
+
       setPaiementDialogOpen(false);
       setSelectedLoyer(null);
       toast.success('Paiement enregistré avec succès');
@@ -209,9 +210,9 @@ export default function ImpayesPage() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Impayés de loyers" 
-        subtitle={`${nbImpayes} impayé(s) pour ${format(new Date(selectedMois + '-01'), 'MMMM yyyy', { locale: fr })}`}
+      <Header
+        title="Impayés de loyers"
+        subtitle={`${nbImpayes} impayé(s) pour ${new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedMois + '-01'))}`}
       />
 
       <div className="p-6 animate-fade-in space-y-6">
@@ -230,7 +231,7 @@ export default function ImpayesPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className={cn(nbImpayes > 0 && "border-destructive/50")}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -244,7 +245,7 @@ export default function ImpayesPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -279,13 +280,13 @@ export default function ImpayesPage() {
                   <SelectContent>
                     {availableMonths.map(mois => (
                       <SelectItem key={mois} value={mois}>
-                        {format(new Date(mois + '-01'), 'MMMM yyyy', { locale: fr })}
+                        {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(mois + '-01'))}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label className="mb-2 block">Immeuble</Label>
                 <Select value={selectedImmeuble} onValueChange={setSelectedImmeuble}>
@@ -300,7 +301,7 @@ export default function ImpayesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label className="mb-2 block">Statut</Label>
                 <Select value={showPaidOnly} onValueChange={setShowPaidOnly}>
@@ -314,7 +315,7 @@ export default function ImpayesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label className="mb-2 block">Recherche</Label>
                 <div className="relative">
@@ -328,7 +329,7 @@ export default function ImpayesPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex items-end">
                 <Button variant="ghost" onClick={clearFilters} className="w-full">
                   Effacer
@@ -363,7 +364,7 @@ export default function ImpayesPage() {
                 loyersAttendus.map(loyer => (
                   <TableRow key={loyer.id} className={cn(loyer.statut === 'IMPAYE' && 'bg-destructive/5')}>
                     <TableCell>
-                      <div 
+                      <div
                         className="flex items-center gap-2 hover:text-primary cursor-pointer"
                         onClick={() => navigate(`/immobilier/immeubles/${loyer.immeuble_id}`)}
                       >
@@ -376,7 +377,7 @@ export default function ImpayesPage() {
                     </TableCell>
                     <TableCell>{loyer.locataire_nom}</TableCell>
                     <TableCell>
-                      {format(new Date(loyer.mois + '-01'), 'MMM yyyy', { locale: fr })}
+                      {new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(loyer.mois + '-01'))}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {formatCurrency(loyer.montant_attendu)}
@@ -396,8 +397,8 @@ export default function ImpayesPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {loyer.statut === 'IMPAYE' && (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           onClick={() => openPaiementDialog(loyer)}
                         >
                           Enregistrer paiement
@@ -419,11 +420,11 @@ export default function ImpayesPage() {
             <DialogTitle>Enregistrer un paiement</DialogTitle>
             <DialogDescription>
               {selectedLoyer && (
-                <>Lot {selectedLoyer.lot_numero} - {selectedLoyer.immeuble_nom} - {format(new Date(selectedLoyer.mois + '-01'), 'MMMM yyyy', { locale: fr })}</>
+                <>Lot {selectedLoyer.lot_numero} - {selectedLoyer.immeuble_nom} - {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedLoyer.mois + '-01'))}</>
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div>
               <Label>Date de paiement</Label>
@@ -445,7 +446,7 @@ export default function ImpayesPage() {
                 </PopoverContent>
               </Popover>
             </div>
-            
+
             <div>
               <Label>Montant (FCFA)</Label>
               <Input
@@ -460,7 +461,7 @@ export default function ImpayesPage() {
                 </p>
               )}
             </div>
-            
+
             <div>
               <Label>Mode de paiement</Label>
               <Select value={paiementMode} onValueChange={(v) => setPaiementMode(v as any)}>
@@ -476,7 +477,7 @@ export default function ImpayesPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {selectedLoyer && paiementMontant && (
               <div className="bg-muted p-4 rounded-lg space-y-2">
                 <div className="flex justify-between text-sm">
@@ -494,7 +495,7 @@ export default function ImpayesPage() {
               </div>
             )}
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setPaiementDialogOpen(false)}>
               Annuler

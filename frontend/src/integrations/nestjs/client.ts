@@ -72,7 +72,7 @@ class NestJSApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     try {
       const response = await fetch(url, {
         ...options,
@@ -179,7 +179,7 @@ class NestJSApiClient {
 
     const queryString = searchParams.toString();
     const endpoint = queryString ? `/users?${queryString}` : '/users';
-    
+
     return this.request(endpoint);
   }
 
@@ -225,8 +225,20 @@ class NestJSApiClient {
   }
 
   // Méthode générique publique pour les hooks
-  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint);
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const finalEndpoint = queryString ? `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryString}` : endpoint;
+
+    return this.request<T>(finalEndpoint);
   }
 
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
@@ -285,7 +297,7 @@ class NestJSApiClient {
 
     const queryString = searchParams.toString();
     const endpoint = queryString ? `/contentieux/affaires?${queryString}` : '/contentieux/affaires';
-    
+
     return this.request(endpoint);
   }
 
@@ -337,7 +349,7 @@ class NestJSApiClient {
 
     const queryString = searchParams.toString();
     const endpoint = queryString ? `/contentieux/audiences?${queryString}` : '/contentieux/audiences';
-    
+
     return this.request(endpoint);
   }
 
@@ -394,7 +406,7 @@ class NestJSApiClient {
 
     const queryString = searchParams.toString();
     const endpoint = queryString ? `/contentieux/honoraires?${queryString}` : '/contentieux/honoraires';
-    
+
     return this.request(endpoint);
   }
 
@@ -456,7 +468,7 @@ class NestJSApiClient {
 
     const queryString = searchParams.toString();
     const endpoint = queryString ? `/contentieux/depenses?${queryString}` : '/contentieux/depenses';
-    
+
     return this.request(endpoint);
   }
 

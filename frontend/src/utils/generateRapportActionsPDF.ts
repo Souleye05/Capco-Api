@@ -1,47 +1,30 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
-import { TypeAction } from '@/types';
 import {
-  DossierRecouvrementDB,
-  ActionRecouvrementWithDossierDB,
-  PaiementRecouvrementDB
-} from '@/hooks/useDossiersRecouvrement';
-import { HonorairesRecouvrementDB, DepenseDossierDB } from '@/hooks/useHonorairesDepenses';
+  DossierRecouvrement,
+  TypeAction,
+  PaiementRecouvrement
+} from '@/hooks/useRecouvrement';
 
-const typeActionLabels: Record<TypeAction, string> = {
+const typeActionLabels: Record<string, string> = {
   APPEL_TELEPHONIQUE: 'Appel telephonique',
-  COURRIER: 'Courrier',
-  LETTRE_RELANCE: 'Lettre de relance',
+  COURRIER_SIMPLE: 'Courrier simple',
   MISE_EN_DEMEURE: 'Mise en demeure',
-  COMMANDEMENT_PAYER: 'Commandement de payer',
   ASSIGNATION: 'Assignation',
-  REQUETE: 'Requete',
-  AUDIENCE_PROCEDURE: 'Audience / Procedure',
+  COMMANDEMENT: 'Commandement de payer',
+  SAISIE: 'Saisie / Execution',
   AUTRE: 'Autre'
 };
 
-const typeDepenseLabels: Record<string, string> = {
-  FRAIS_HUISSIER: 'Frais d\'huissier',
-  FRAIS_GREFFE: 'Frais de greffe',
-  TIMBRES_FISCAUX: 'Timbres fiscaux',
-  FRAIS_COURRIER: 'Frais de courrier',
-  FRAIS_DEPLACEMENT: 'Frais de deplacement',
-  FRAIS_EXPERTISE: 'Frais d\'expertise',
-  AUTRES: 'Autres frais'
-};
-
 interface GenerateRapportActionsPDFParams {
-  dossier: DossierRecouvrementDB;
-  actions: ActionRecouvrementWithDossierDB[];
-  paiements: PaiementRecouvrementDB[];
-  honoraires?: HonorairesRecouvrementDB | null;
-  depenses?: DepenseDossierDB[];
+  dossier: DossierRecouvrement;
+  actions: any[]; // On pourra typer plus tard si besoin
+  paiements: PaiementRecouvrement[];
   totalEncaisse: number;
   soldeRestant: number;
 }
 
-// Helper function to format currency - simple format without special chars
 const formatFCFA = (amount: number): string => {
   const formatted = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   return formatted + ' FCFA';
@@ -51,8 +34,6 @@ export async function generateRapportActionsPDF({
   dossier,
   actions,
   paiements,
-  honoraires,
-  depenses = [],
   totalEncaisse,
   soldeRestant
 }: GenerateRapportActionsPDFParams): Promise<void> {
@@ -60,379 +41,157 @@ export async function generateRapportActionsPDF({
   const pageWidth = doc.internal.pageSize.getWidth();
   let yPosition = 15;
 
-  // Load and add logo
-  try {
-    const logoImg = new Image();
-    logoImg.crossOrigin = 'anonymous';
-
-    await new Promise<void>((resolve) => {
-      logoImg.onload = () => {
-        const logoWidth = 50;
-        const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-        doc.addImage(logoImg, 'PNG', 15, yPosition, logoWidth, logoHeight);
-        resolve();
-      };
-      logoImg.onerror = () => {
-        console.warn('Could not load logo');
-        resolve();
-      };
-      logoImg.src = '/images/capco-logo.png';
-    });
-  } catch (error) {
-    console.warn('Error loading logo:', error);
-  }
-
   // Header
-  yPosition += 5;
-  doc.setFontSize(18);
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
-  doc.text('RAPPORT D\'ACTIONS - RECOUVREMENT', pageWidth / 2 + 15, yPosition + 8, { align: 'center' });
+  doc.text('RAPPORT DE RECOUVREMENT', 20, yPosition + 10);
 
-  // Decorative line
-  yPosition += 20;
-  doc.setDrawColor(212, 175, 55);
-  doc.setLineWidth(1);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(147, 51, 234); // Indigo color for branding
+  doc.text('CABINET CAPCO - GESTION DES CREANCES', 20, yPosition + 18);
+
+  yPosition += 25;
+  doc.setDrawColor(30, 41, 59);
+  doc.setLineWidth(0.5);
   doc.line(20, yPosition, pageWidth - 20, yPosition);
 
-  // Dossier info
-  yPosition += 12;
+  // Dossier summary
+  yPosition += 15;
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
-  doc.text('DOSSIER : ' + dossier.reference, 20, yPosition);
+  doc.text(`REFERENCE : ${dossier.reference}`, 20, yPosition);
 
-  yPosition += 8;
-  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
-  const dateCreation = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(dossier.created_at));
-  doc.text('Ouvert le : ' + dateCreation, 20, yPosition);
+  doc.setFontSize(10);
+  doc.text(`Statut : ${dossier.statut.replace('_', ' ')}`, 20, yPosition + 6);
+  doc.text(`Date d'ouverture : ${new Date(dossier.createdAt).toLocaleDateString()}`, 20, yPosition + 12);
 
-  // Parties section
-  yPosition += 12;
-  doc.setFillColor(241, 245, 249);
-  doc.roundedRect(20, yPosition, pageWidth - 40, 30, 3, 3, 'F');
+  // Parties box
+  yPosition += 22;
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(20, yPosition, pageWidth - 40, 35, 2, 2, 'F');
 
   yPosition += 10;
-  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 41, 59);
-  doc.text('CREANCIER :', 30, yPosition);
-  doc.text('DEBITEUR :', pageWidth / 2 + 10, yPosition);
+  doc.text('CREANCIER', 25, yPosition);
+  doc.text('DEBITEUR', pageWidth / 2 + 5, yPosition);
 
   yPosition += 6;
   doc.setFont('helvetica', 'normal');
-  doc.text(dossier.creancier_nom, 30, yPosition);
-  doc.text(dossier.debiteur_nom, pageWidth / 2 + 10, yPosition);
+  doc.text(dossier.creancierNom, 25, yPosition);
+  doc.text(dossier.debiteurNom, pageWidth / 2 + 5, yPosition);
 
-  if (dossier.debiteur_telephone) {
-    yPosition += 5;
-    doc.setTextColor(100, 116, 139);
-    doc.text('Tel: ' + dossier.debiteur_telephone, pageWidth / 2 + 10, yPosition);
-  }
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  if (dossier.creancierTelephone) doc.text(dossier.creancierTelephone, 25, yPosition + 5);
+  if (dossier.debiteurTelephone) doc.text(dossier.debiteurTelephone, pageWidth / 2 + 5, yPosition + 5);
+  if (dossier.debiteurAdresse) doc.text(dossier.debiteurAdresse, pageWidth / 2 + 5, yPosition + 10);
 
-  // Financial summary
-  yPosition += 20;
+  // Financial status
+  yPosition += 30;
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
   doc.text('SITUATION FINANCIERE', 20, yPosition);
 
-  yPosition += 8;
-
   const financialData = [
-    ['Montant principal', formatFCFA(Number(dossier.montant_principal))],
-    ['Penalites / Interets', formatFCFA(Number(dossier.penalites_interets) || 0)],
-    ['Total a recouvrer', formatFCFA(Number(dossier.total_a_recouvrer))],
-    ['Total encaisse', formatFCFA(totalEncaisse)],
-    ['Reste a encaisser', formatFCFA(soldeRestant)]
+    ['Montant principal', formatFCFA(dossier.montantPrincipal)],
+    ['Penalites / Interets', formatFCFA(dossier.penalitesInterets)],
+    ['TOTAL DU', formatFCFA(dossier.totalARecouvrer)],
+    ['TOTAL ENCAISSE', formatFCFA(totalEncaisse)],
+    ['SOLDE RESTANT', formatFCFA(soldeRestant)]
   ];
 
   autoTable(doc, {
-    startY: yPosition,
+    startY: yPosition + 5,
     head: [['Designation', 'Montant']],
     body: financialData,
-    theme: 'striped',
-    headStyles: {
-      fillColor: [30, 41, 59],
-      textColor: [255, 255, 255],
-      fontSize: 9,
-      fontStyle: 'bold'
-    },
-    bodyStyles: {
-      fontSize: 9,
-      textColor: [30, 41, 59]
-    },
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [30, 41, 59], fontStyle: 'bold' },
     columnStyles: {
-      0: { cellWidth: 80 },
-      1: { cellWidth: 60, halign: 'right' }
+      0: { cellWidth: 100 },
+      1: { cellWidth: 70, halign: 'right' }
     },
-    margin: { left: 20, right: pageWidth - 160 },
-    didParseCell: function (data) {
-      if (data.section === 'body') {
-        if (data.row.index === 3) {
-          data.cell.styles.textColor = [34, 197, 94];
-          data.cell.styles.fontStyle = 'bold';
-        }
-        if (data.row.index === 4) {
-          data.cell.styles.textColor = [239, 68, 68];
-          data.cell.styles.fontStyle = 'bold';
-        }
-      }
-    }
+    didParseCell: (data) => {
+      if (data.row.index === 3) data.cell.styles.textColor = [34, 197, 94];
+      if (data.row.index === 4) data.cell.styles.textColor = [220, 38, 38];
+    },
+    margin: { left: 20 }
   });
 
   yPosition = (doc as any).lastAutoTable.finalY + 15;
 
-  // Honoraires section if available
-  if (honoraires) {
-    if (yPosition > 200) {
-      doc.addPage();
-      yPosition = 20;
-    }
+  // Actions
+  doc.text('CHRONOLOGIE DES ACTIONS', 20, yPosition);
 
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(30, 41, 59);
-    doc.text('HONORAIRES CAPCO', 20, yPosition);
-
-    yPosition += 8;
-
-    const resteAPayer = Number(honoraires.montant_prevu) - Number(honoraires.montant_paye);
-    const honorairesData = [
-      ['Honoraires prevus', formatFCFA(Number(honoraires.montant_prevu))],
-      ['Honoraires payes', formatFCFA(Number(honoraires.montant_paye))],
-      ['Reste a payer', formatFCFA(resteAPayer)]
-    ];
-
-    autoTable(doc, {
-      startY: yPosition,
-      head: [['Designation', 'Montant']],
-      body: honorairesData,
-      theme: 'striped',
-      headStyles: {
-        fillColor: [147, 51, 234],
-        textColor: [255, 255, 255],
-        fontSize: 9,
-        fontStyle: 'bold'
-      },
-      bodyStyles: {
-        fontSize: 9,
-        textColor: [30, 41, 59]
-      },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 60, halign: 'right' }
-      },
-      margin: { left: 20, right: pageWidth - 160 }
-    });
-
-    yPosition = (doc as any).lastAutoTable.finalY + 15;
-  }
-
-  // Depenses section if available
-  if (depenses.length > 0) {
-    if (yPosition > 180) {
-      doc.addPage();
-      yPosition = 20;
-    }
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(30, 41, 59);
-    doc.text('DEPENSES ENGAGEES (' + depenses.length + ')', 20, yPosition);
-
-    yPosition += 8;
-
-    const totalDepenses = depenses.reduce((sum, d) => sum + Number(d.montant), 0);
-    const depensesData = depenses.map(d => [
-      new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(d.date)),
-      typeDepenseLabels[d.type_depense] || d.type_depense,
-      d.nature,
-      formatFCFA(Number(d.montant))
+  if (actions.length > 0) {
+    const actionsData = actions.map(a => [
+      new Date(a.date).toLocaleDateString(),
+      typeActionLabels[a.typeAction] || a.typeAction,
+      a.resume,
+      a.prochaineEtape || '-'
     ]);
 
     autoTable(doc, {
-      startY: yPosition,
-      head: [['Date', 'Type', 'Nature', 'Montant']],
-      body: depensesData,
-      foot: [['', '', 'TOTAL', formatFCFA(totalDepenses)]],
-      theme: 'striped',
-      headStyles: {
-        fillColor: [234, 88, 12],
-        textColor: [255, 255, 255],
-        fontSize: 8,
-        fontStyle: 'bold'
-      },
-      bodyStyles: {
-        fontSize: 8,
-        textColor: [30, 41, 59]
-      },
-      footStyles: {
-        fillColor: [254, 243, 199],
-        textColor: [234, 88, 12],
-        fontSize: 9,
-        fontStyle: 'bold'
-      },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 60 },
-        3: { cellWidth: 35, halign: 'right' }
-      },
-      margin: { left: 20, right: 20 }
-    });
-
-    yPosition = (doc as any).lastAutoTable.finalY + 15;
-  }
-
-  // Check if we need a new page
-  if (yPosition > 180) {
-    doc.addPage();
-    yPosition = 20;
-  }
-
-  // Actions timeline
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 41, 59);
-  doc.text('HISTORIQUE DES ACTIONS (' + actions.length + ')', 20, yPosition);
-
-  yPosition += 8;
-
-  if (actions.length > 0) {
-    const actionsData = actions
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .map(action => [
-        new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(action.date)),
-        typeActionLabels[action.type_action],
-        action.resume.substring(0, 60) + (action.resume.length > 60 ? '...' : ''),
-        action.prochaine_etape || '-'
-      ]);
-
-    autoTable(doc, {
-      startY: yPosition,
-      head: [['Date', 'Type', 'Resume', 'Prochaine etape']],
+      startY: yPosition + 5,
+      head: [['Date', 'Type', 'Resume', 'Echeance']],
       body: actionsData,
       theme: 'striped',
-      headStyles: {
-        fillColor: [30, 41, 59],
-        textColor: [255, 255, 255],
-        fontSize: 8,
-        fontStyle: 'bold'
-      },
-      bodyStyles: {
-        fontSize: 8,
-        textColor: [30, 41, 59]
-      },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 65 },
-        3: { cellWidth: 45 }
-      },
-      margin: { left: 20, right: 20 }
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [79, 70, 229] },
+      columnStyles: { 0: { cellWidth: 25 }, 1: { cellWidth: 35 }, 2: { cellWidth: 70 }, 3: { cellWidth: 40 } },
+      margin: { left: 20 }
     });
-
     yPosition = (doc as any).lastAutoTable.finalY + 15;
   } else {
-    doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
-    doc.setTextColor(100, 116, 139);
-    doc.text('Aucune action enregistree', 20, yPosition);
-    yPosition += 15;
+    doc.text('Aucune action enregistree.', 20, yPosition + 10);
+    yPosition += 20;
   }
 
-  // Check if we need a new page for payments
-  if (yPosition > 200) {
+  // Payments
+  if (yPosition > 230) {
     doc.addPage();
     yPosition = 20;
   }
 
-  // Payments section
-  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 41, 59);
-  doc.text('PAIEMENTS RECUS (' + paiements.length + ')', 20, yPosition);
-
-  yPosition += 8;
+  doc.text('DETAIL DES PAIEMENTS RECUS', 20, yPosition);
 
   if (paiements.length > 0) {
-    const modeLabels: Record<string, string> = {
-      CASH: 'Especes',
-      VIREMENT: 'Virement',
-      CHEQUE: 'Cheque',
-      WAVE: 'Wave',
-      OM: 'Orange Money'
-    };
-
-    const paiementsData = paiements
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .map(p => [
-        new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(new Date(p.date)),
-        formatFCFA(p.montant),
-        modeLabels[p.mode] || p.mode,
-        p.reference || '-',
-        p.commentaire || '-'
-      ]);
+    const paiementsData = paiements.map(p => [
+      new Date(p.date).toLocaleDateString(),
+      formatFCFA(p.montant),
+      p.mode,
+      p.reference || '-'
+    ]);
 
     autoTable(doc, {
-      startY: yPosition,
-      head: [['Date', 'Montant', 'Mode', 'Reference', 'Commentaire']],
+      startY: yPosition + 5,
+      head: [['Date', 'Montant', 'Mode', 'Reference']],
       body: paiementsData,
-      foot: [['TOTAL', formatFCFA(totalEncaisse), '', '', '']],
       theme: 'striped',
-      headStyles: {
-        fillColor: [34, 197, 94],
-        textColor: [255, 255, 255],
-        fontSize: 8,
-        fontStyle: 'bold'
-      },
-      bodyStyles: {
-        fontSize: 8,
-        textColor: [30, 41, 59]
-      },
-      footStyles: {
-        fillColor: [220, 252, 231],
-        textColor: [34, 197, 94],
-        fontSize: 9,
-        fontStyle: 'bold'
-      },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 35, halign: 'right' },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 35 },
-        4: { cellWidth: 50 }
-      },
-      margin: { left: 20, right: 20 }
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [5, 150, 105] },
+      margin: { left: 20 }
     });
-
-    yPosition = (doc as any).lastAutoTable.finalY + 15;
   } else {
-    doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
-    doc.setTextColor(100, 116, 139);
-    doc.text('Aucun paiement enregistre', 20, yPosition);
-    yPosition += 15;
+    doc.text('Aucun paiement enregistre.', 20, yPosition + 10);
   }
 
-  // Footer
-  const pageHeight = doc.internal.pageSize.getHeight();
-  yPosition = pageHeight - 20;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
+  // Footer on all pages
+  const pageCount = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Genere par CAPCOS le ${format(new Date(), 'dd/MM/yyyy HH:mm')} - Page ${i}/${pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+  }
 
-  const dateGeneration = new Date();
-  const dateGenText = 'Rapport genere le ' + format(dateGeneration, 'dd/MM/yyyy') + ' a ' + format(dateGeneration, 'HH:mm');
-  doc.text(dateGenText, pageWidth / 2, yPosition, { align: 'center' });
-  doc.text('Cabinet CAPCO - Recouvrement de creances', pageWidth / 2, yPosition + 5, { align: 'center' });
-
-  // Save the PDF
-  const refName = dossier.reference.replace(/\s+/g, '_');
-  const dateStr = format(new Date(), 'dd_MM_yyyy');
-  const fileName = `Rapport_Actions_${refName}_${dateStr}.pdf`;
-  doc.save(fileName);
+  doc.save(`Rapport_Recouvrement_${dossier.reference}.pdf`);
 }

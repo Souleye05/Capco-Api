@@ -9,6 +9,7 @@ import { ApiModule } from './api/api.module';
 import { AuditModule } from './audit/audit.module';
 import { ConseilModule } from './conseil/conseil.module';
 import { ContentieuxModule } from './contentieux/contentieux.module';
+import { RecouvrementModule } from './recouvrement/recouvrement.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ContentieuxModule } from './contentieux/contentieux.module';
     AuditModule,
     ConseilModule,
     ContentieuxModule,
+    RecouvrementModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

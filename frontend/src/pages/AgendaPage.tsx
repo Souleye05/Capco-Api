@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { NouvelEvenementDialog } from '@/components/dialogs/NouvelEvenementDialog';
 import { cn } from '@/lib/utils';
 import { useAudiences } from '@/hooks/useAudiences';
-import { useActionsRecouvrement } from '@/hooks/useDossiersRecouvrement';
+import { useActionsRecouvrement } from '@/hooks/useRecouvrement';
 import { parseDateFromAPI } from '@/lib/date-utils';
 
 interface CalendarEvent {
@@ -40,7 +40,7 @@ export default function AgendaPage() {
 
   // Fetch data from database
   const { data: audiences = [], isLoading: audiencesLoading } = useAudiences();
-  const { data: actions = [], isLoading: actionsLoading } = useActionsRecouvrement(undefined);
+  const { data: actions = [], isLoading: actionsLoading } = useActionsRecouvrement();
 
   const isLoading = audiencesLoading || actionsLoading;
 

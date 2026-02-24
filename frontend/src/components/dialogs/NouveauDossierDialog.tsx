@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
-import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Building2, Phone, Mail, MapPin, Calculator, Plus } from 'lucide-react';
+import { useCreateDossierRecouvrement } from '@/hooks/useRecouvrement';
 
 interface NouveauDossierDialogProps {
   open: boolean;
@@ -17,281 +17,301 @@ interface NouveauDossierDialogProps {
 }
 
 export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialogProps) {
-  const { user } = useNestJSAuth();
-  const [loading, setLoading] = useState(false);
-  
+  const createDossier = useCreateDossierRecouvrement();
+
   const [formData, setFormData] = useState({
     creancierNom: '',
-    creancierType: 'morale',
     creancierTelephone: '',
     creancierEmail: '',
     debiteurNom: '',
-    debiteurType: 'morale',
     debiteurTelephone: '',
     debiteurEmail: '',
     debiteurAdresse: '',
     montantPrincipal: '',
-    penalites: '',
-    honorairesType: 'POURCENTAGE',
-    honorairesPourcentage: '10',
-    honorairesMontant: '',
+    penalitesInterets: '',
+    honoraireType: 'FORFAIT' as 'FORFAIT' | 'POURCENTAGE' | 'MIXTE',
+    honoraireMontant: '',
+    honorairePourcentage: '',
     notes: ''
   });
 
-  // Calculate total and suggested honoraires
-  const montantPrincipal = parseFloat(formData.montantPrincipal) || 0;
-  const penalites = parseFloat(formData.penalites) || 0;
-  const totalARecouvrer = montantPrincipal + penalites;
-  
-  const calculatedHonoraires = formData.honorairesType === 'POURCENTAGE'
-    ? totalARecouvrer * (parseFloat(formData.honorairesPourcentage) || 0) / 100
-    : parseFloat(formData.honorairesMontant) || 0;
-
   const resetForm = () => {
-    setFormData({ 
-      creancierNom: '', 
-      creancierType: 'morale', 
+    setFormData({
+      creancierNom: '',
       creancierTelephone: '',
       creancierEmail: '',
-      debiteurNom: '', 
-      debiteurType: 'morale',
+      debiteurNom: '',
       debiteurTelephone: '',
       debiteurEmail: '',
       debiteurAdresse: '',
-      montantPrincipal: '', 
-      penalites: '',
-      honorairesType: 'POURCENTAGE',
-      honorairesPourcentage: '10',
-      honorairesMontant: '',
-      notes: '' 
+      montantPrincipal: '',
+      penalitesInterets: '',
+      honoraireType: 'FORFAIT',
+      honoraireMontant: '',
+      honorairePourcentage: '',
+      notes: ''
     });
   };
 
-  const createHonoraires = null; // Temporairement désactivé - sera implémenté avec l'API recouvrement
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.creancierNom || !formData.debiteurNom || !formData.montantPrincipal || !user) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+
+    if (!formData.creancierNom || !formData.debiteurNom || !formData.montantPrincipal) {
+      toast.error('Veuillez remplir les champs obligatoires (*)');
       return;
     }
 
-    setLoading(true);
-    
     try {
-      // Pour l'instant, on simule la création du dossier
-      // Cette fonctionnalité sera implémentée quand le module recouvrement sera ajouté au backend
-      toast.info('Fonctionnalité en cours de développement - Module recouvrement à venir');
-      
+      await createDossier.mutateAsync({
+        creancierNom: formData.creancierNom,
+        creancierTelephone: formData.creancierTelephone || undefined,
+        creancierEmail: formData.creancierEmail || undefined,
+        debiteurNom: formData.debiteurNom,
+        debiteurTelephone: formData.debiteurTelephone || undefined,
+        debiteurEmail: formData.debiteurEmail || undefined,
+        debiteurAdresse: formData.debiteurAdresse || undefined,
+        montantPrincipal: parseFloat(formData.montantPrincipal),
+        penalitesInterets: formData.penalitesInterets ? parseFloat(formData.penalitesInterets) : 0,
+        notes: formData.notes || undefined,
+        honoraire: {
+          type: formData.honoraireType,
+          montantPrevu: formData.honoraireMontant ? parseFloat(formData.honoraireMontant) : 0,
+          pourcentage: formData.honorairePourcentage ? parseFloat(formData.honorairePourcentage) : undefined,
+        }
+      });
+
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      toast.error('Erreur lors de la création du dossier');
-    } finally {
-      setLoading(false);
+      // toast.error géré par le hook
     }
   };
 
+  // Calculs dynamiques pour l'UI
+  const totalARecouvrer = (parseFloat(formData.montantPrincipal) || 0) + (parseFloat(formData.penalitesInterets) || 0);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Nouveau dossier de recouvrement</DialogTitle>
-          <DialogDescription>
-            Ouvrir un nouveau dossier de recouvrement de créance
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+        <DialogHeader className="p-6 bg-primary text-white">
+          <DialogTitle className="text-xl flex items-center gap-2">
+            <Plus className="h-5 w-5 text-recouvrement" /> Nouveau Dossier de Recouvrement
+          </DialogTitle>
+          <DialogDescription className="text-slate-300">
+            Initialiser un nouveau dossier de créance pour recouvrement amiable ou judiciaire.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          {/* Créancier */}
-          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-            <h4 className="font-medium text-sm">Créancier</h4>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="creancierNom">Nom du créancier *</Label>
-                <Input
-                  id="creancierNom"
-                  value={formData.creancierNom}
-                  onChange={(e) => setFormData({ ...formData, creancierNom: e.target.value })}
-                  placeholder="Nom ou raison sociale"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select
-                  value={formData.creancierType}
-                  onValueChange={(value) => setFormData({ ...formData, creancierType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="morale">Personne morale</SelectItem>
-                    <SelectItem value="physique">Personne physique</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Débiteur */}
-          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-            <h4 className="font-medium text-sm">Débiteur</h4>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="debiteurNom">Nom du débiteur *</Label>
-                <Input
-                  id="debiteurNom"
-                  value={formData.debiteurNom}
-                  onChange={(e) => setFormData({ ...formData, debiteurNom: e.target.value })}
-                  placeholder="Nom ou raison sociale"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select
-                  value={formData.debiteurType}
-                  onValueChange={(value) => setFormData({ ...formData, debiteurType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="morale">Personne morale</SelectItem>
-                    <SelectItem value="physique">Personne physique</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="debiteurTelephone">Téléphone du débiteur</Label>
-              <Input
-                id="debiteurTelephone"
-                value={formData.debiteurTelephone}
-                onChange={(e) => setFormData({ ...formData, debiteurTelephone: e.target.value })}
-                placeholder="Numéro de téléphone"
-              />
-            </div>
-          </div>
-
-          {/* Montants */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="montantPrincipal">Montant principal (FCFA) *</Label>
-              <Input
-                id="montantPrincipal"
-                type="number"
-                value={formData.montantPrincipal}
-                onChange={(e) => setFormData({ ...formData, montantPrincipal: e.target.value })}
-                placeholder="Ex: 5000000"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="penalites">Pénalités/intérêts (FCFA)</Label>
-              <Input
-                id="penalites"
-                type="number"
-                value={formData.penalites}
-                onChange={(e) => setFormData({ ...formData, penalites: e.target.value })}
-                placeholder="Ex: 500000"
-              />
-            </div>
-          </div>
-
-          {totalARecouvrer > 0 && (
-            <div className="p-3 bg-success/10 rounded-lg text-center">
-              <p className="text-sm text-muted-foreground">Total à recouvrer</p>
-              <p className="text-xl font-bold text-success">{formatCurrency(totalARecouvrer)}</p>
-            </div>
-          )}
-
-          <Separator />
-
-          {/* Honoraires CAPCO */}
-          <div className="space-y-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <h4 className="font-medium text-sm text-purple-700">Honoraires CAPCO</h4>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Type de facturation</Label>
-                <Select
-                  value={formData.honorairesType}
-                  onValueChange={(value) => setFormData({ ...formData, honorairesType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="POURCENTAGE">Pourcentage</SelectItem>
-                    <SelectItem value="FORFAIT">Forfait</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {formData.honorairesType === 'POURCENTAGE' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="honorairesPourcentage">Pourcentage (%)</Label>
+        <form onSubmit={handleCreate} className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Section Créancier */}
+            <div className="space-y-4">
+              <h4 className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase tracking-wider">
+                <Building2 className="h-4 w-4" /> Créancier
+              </h4>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="creancierNom" className="text-xs font-semibold">Nom complet / Raison sociale *</Label>
                   <Input
-                    id="honorairesPourcentage"
-                    type="number"
-                    value={formData.honorairesPourcentage}
-                    onChange={(e) => setFormData({ ...formData, honorairesPourcentage: e.target.value })}
-                    placeholder="Ex: 10"
-                    min="0"
-                    max="100"
+                    id="creancierNom"
+                    value={formData.creancierNom}
+                    onChange={(e) => setFormData({ ...formData, creancierNom: e.target.value })}
+                    placeholder="Ex: Société Générale"
+                    className="bg-slate-50 border-slate-200"
                   />
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="honorairesMontant">Montant forfait (FCFA)</Label>
-                  <Input
-                    id="honorairesMontant"
-                    type="number"
-                    value={formData.honorairesMontant}
-                    onChange={(e) => setFormData({ ...formData, honorairesMontant: e.target.value })}
-                    placeholder="Ex: 500000"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="creancierTelephone" className="text-xs font-semibold">Téléphone</Label>
+                    <Input
+                      id="creancierTelephone"
+                      value={formData.creancierTelephone}
+                      onChange={(e) => setFormData({ ...formData, creancierTelephone: e.target.value })}
+                      placeholder="Ex: 77..."
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="creancierEmail" className="text-xs font-semibold">Email</Label>
+                    <Input
+                      id="creancierEmail"
+                      type="email"
+                      value={formData.creancierEmail}
+                      onChange={(e) => setFormData({ ...formData, creancierEmail: e.target.value })}
+                      placeholder="Ex: contact@..."
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
 
-            {calculatedHonoraires > 0 && (
-              <div className="p-3 bg-purple-100 rounded-lg text-center">
-                <p className="text-sm text-purple-600">Honoraires prévus</p>
-                <p className="text-lg font-bold text-purple-700">{formatCurrency(calculatedHonoraires)}</p>
+            {/* Section Débiteur */}
+            <div className="space-y-4">
+              <h4 className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase tracking-wider">
+                <User className="h-4 w-4" /> Débiteur
+              </h4>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="debiteurNom" className="text-xs font-semibold">Nom complet / Raison sociale *</Label>
+                  <Input
+                    id="debiteurNom"
+                    value={formData.debiteurNom}
+                    onChange={(e) => setFormData({ ...formData, debiteurNom: e.target.value })}
+                    placeholder="Ex: Jean Dupont"
+                    className="bg-slate-50 border-slate-200"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="debiteurTelephone" className="text-xs font-semibold">Téléphone</Label>
+                    <Input
+                      id="debiteurTelephone"
+                      value={formData.debiteurTelephone}
+                      onChange={(e) => setFormData({ ...formData, debiteurTelephone: e.target.value })}
+                      placeholder="Ex: 77..."
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="debiteurEmail" className="text-xs font-semibold">Email</Label>
+                    <Input
+                      id="debiteurEmail"
+                      type="email"
+                      value={formData.debiteurEmail}
+                      onChange={(e) => setFormData({ ...formData, debiteurEmail: e.target.value })}
+                      placeholder="Ex: client@..."
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="debiteurAdresse" className="text-xs font-semibold">Adresse physique</Label>
+                  <Input
+                    id="debiteurAdresse"
+                    value={formData.debiteurAdresse}
+                    onChange={(e) => setFormData({ ...formData, debiteurAdresse: e.target.value })}
+                    placeholder="Ex: Plateau, Dakar"
+                    className="bg-slate-50 border-slate-200"
+                  />
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Notes */}
+          <Separator className="bg-slate-100" />
+
+          {/* Section Créance et Honoraires */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 bg-recouvrement/5 p-4 rounded-xl border border-recouvrement/10">
+              <h4 className="flex items-center gap-2 text-sm font-bold text-recouvrement uppercase tracking-wider">
+                <Calculator className="h-4 w-4" /> Créance
+              </h4>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="principal" className="text-xs font-bold text-slate-700">Montant principal (FCFA) *</Label>
+                  <Input
+                    id="principal"
+                    type="number"
+                    value={formData.montantPrincipal}
+                    onChange={(e) => setFormData({ ...formData, montantPrincipal: e.target.value })}
+                    className="bg-white border-slate-200 focus-visible:ring-recouvrement font-bold"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="penalites" className="text-xs font-semibold">Pénalités / Intérêts (FCFA)</Label>
+                  <Input
+                    id="penalites"
+                    type="number"
+                    value={formData.penalitesInterets}
+                    onChange={(e) => setFormData({ ...formData, penalitesInterets: e.target.value })}
+                    className="bg-white border-slate-200 focus-visible:ring-recouvrement"
+                  />
+                </div>
+                <div className="pt-2">
+                  <div className="flex justify-between items-center bg-recouvrement text-white p-3 rounded-lg shadow-sm">
+                    <span className="text-xs font-medium">Total à recouvrer :</span>
+                    <span className="text-lg font-black">{formatCurrency(totalARecouvrer)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Convention Honoraires</h4>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Type honoraires</Label>
+                  <Select
+                    value={formData.honoraireType}
+                    onValueChange={(val) => setFormData({ ...formData, honoraireType: val as any })}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FORFAIT">Forfait fixe</SelectItem>
+                      <SelectItem value="POURCENTAGE">Pourcentage sur recouvrement</SelectItem>
+                      <SelectItem value="MIXTE">Mixte (Forfait + Pourcentage)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(formData.honoraireType === 'FORFAIT' || formData.honoraireType === 'MIXTE') && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Montant forfait prévisionnel</Label>
+                    <Input
+                      type="number"
+                      value={formData.honoraireMontant}
+                      onChange={(e) => setFormData({ ...formData, honoraireMontant: e.target.value })}
+                      placeholder="Ex: 500000"
+                      className="bg-white"
+                    />
+                  </div>
+                )}
+                {(formData.honoraireType === 'POURCENTAGE' || formData.honoraireType === 'MIXTE') && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Pourcentage (%)</Label>
+                    <Input
+                      type="number"
+                      value={formData.honorairePourcentage}
+                      onChange={(e) => setFormData({ ...formData, honorairePourcentage: e.target.value })}
+                      placeholder="Ex: 10"
+                      className="bg-white"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-xs font-semibold">Observations / Notes (Détails de la créance)</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Nature de la créance, informations complémentaires..."
-              rows={2}
+              placeholder="Saisissez des détails sur l'origine du litige, les factures concernées, etc."
+              className="bg-slate-50 border-slate-200 min-h-[100px]"
             />
           </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Création...
-                </>
-              ) : (
-                'Créer le dossier'
-              )}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100 flex gap-2">
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="hover:bg-slate-200">
+            Annuler
+          </Button>
+          <Button
+            onClick={handleCreate}
+            disabled={createDossier.isPending}
+            className="bg-recouvrement hover:bg-recouvrement/90 px-8 text-white shadow-lg transition-all"
+          >
+            {createDossier.isPending ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Création en cours...</>
+            ) : (
+              'Initialiser le dossier'
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

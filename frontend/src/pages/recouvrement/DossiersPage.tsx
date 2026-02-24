@@ -34,7 +34,7 @@ export default function DossiersPage() {
         title="Recouvrement"
         subtitle="Gestion des créances et dossiers de recouvrement"
         actions={
-          <Button className="gap-2 bg-recouvrement hover:bg-recouvrement/90 shadow-sm transition-all" onClick={() => setNouveauDossierOpen(true)}>
+          <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-sm transition-all text-white" onClick={() => setNouveauDossierOpen(true)}>
             <Plus className="h-4 w-4" /> Nouveau dossier
           </Button>
         }

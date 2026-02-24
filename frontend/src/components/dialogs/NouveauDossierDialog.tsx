@@ -93,11 +93,11 @@ export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialo
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
-        <DialogHeader className="p-6 bg-primary text-white">
+        <DialogHeader className="p-6">
           <DialogTitle className="text-xl flex items-center gap-2">
             <Plus className="h-5 w-5 text-recouvrement" /> Nouveau Dossier de Recouvrement
           </DialogTitle>
-          <DialogDescription className="text-slate-300">
+          <DialogDescription>
             Initialiser un nouveau dossier de créance pour recouvrement amiable ou judiciaire.
           </DialogDescription>
         </DialogHeader>
@@ -303,7 +303,7 @@ export function NouveauDossierDialog({ open, onOpenChange }: NouveauDossierDialo
           <Button
             onClick={handleCreate}
             disabled={createDossier.isPending}
-            className="bg-recouvrement hover:bg-recouvrement/90 px-8 text-white shadow-lg transition-all"
+            className="bg-primary hover:bg-primary/90 px-8 text-white shadow-lg transition-all"
           >
             {createDossier.isPending ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Création en cours...</>

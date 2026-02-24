@@ -27,9 +27,23 @@ import { DossierFinanceSidebar } from '@/pages/recouvrement/components/DossierFi
 import { ActionFormDialog, PaiementFormDialog } from '@/pages/recouvrement/components/DossierDialogs';
 
 const typeLabels: Record<string, string> = {
-  APPEL_TELEPHONIQUE: 'Appel téléphonique', COURRIER_SIMPLE: 'Courrier simple',
-  MISE_EN_DEMEURE: 'Mise en demeure', ASSIGNATION: 'Assignation',
-  COMMANDEMENT: 'Commandement de payer', SAISIE: 'Saisie / Exécution', AUTRE: 'Autre'
+  APPEL_TELEPHONIQUE: 'Appel téléphonique',
+  COURRIER: 'Courrier',
+  LETTRE_RELANCE: 'Lettre de relance',
+  MISE_DEMEURE: 'Mise en demeure',
+  COMMANDEMENT_PAYER: 'Commandement de payer',
+  ASSIGNATION: 'Assignation',
+  REQUETE: 'Requête',
+  AUDIENCE_PROCEDURE: 'Audience / Procédure',
+  AUTRE: 'Autre'
+};
+
+const modeLabels: Record<string, string> = {
+  CASH: 'Espèces',
+  VIREMENT: 'Virement',
+  CHEQUE: 'Chèque',
+  WAVE: 'Wave',
+  OM: 'Orange Money'
 };
 
 export default function DossierDetailPage() {
@@ -90,7 +104,7 @@ export default function DossierDetailPage() {
       <Header
         title={
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/recouvrement/dossiers')} className="rounded-full"><ArrowLeft className="h-5 w-5 text-recouvrement" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/recouvrement/dossiers')} className="rounded-full"><ArrowLeft className="h-5 w-5 text-primary" /></Button>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-slate-900">{dossier.reference}</h1>
@@ -104,8 +118,8 @@ export default function DossierDetailPage() {
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setDialogs({ ...dialogs, action: true })} className="border-slate-200 shadow-sm"><Plus className="h-4 w-4 mr-2 text-recouvrement" /> Action</Button>
-            <Button onClick={() => setDialogs({ ...dialogs, paiement: true })} className="bg-recouvrement hover:bg-recouvrement/90 shadow-md transition-all"><Banknote className="h-4 w-4 mr-2" /> Paiement</Button>
+            <Button variant="outline" onClick={() => setDialogs({ ...dialogs, action: true })} className="border-slate-200 shadow-sm text-primary hover:text-primary/90"><Plus className="h-4 w-4 mr-2" /> Action</Button>
+            <Button onClick={() => setDialogs({ ...dialogs, paiement: true })} className="bg-primary hover:bg-primary/90 shadow-md transition-all text-white"><Banknote className="h-4 w-4 mr-2" /> Paiement</Button>
           </div>
         }
       />
@@ -167,7 +181,7 @@ export default function DossierDetailPage() {
                         <div className="h-10 w-10 rounded-full bg-success/10 text-success flex items-center justify-center shrink-0"><Banknote className="h-5 w-5" /></div>
                         <div>
                           <p className="text-sm font-black text-slate-900">{formatCurrency(p.montant)}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{p.mode} • {new Date(p.date).toLocaleDateString()}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{modeLabels[p.mode] || p.mode} • {new Date(p.date).toLocaleDateString()}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -242,7 +256,7 @@ const NotFoundScreen = ({ onBack }: { onBack: () => void }) => (
       <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
       <h2 className="text-xl font-bold text-slate-900">Introuvable</h2>
       <p className="text-slate-400 mt-2 mb-6 text-sm">Ce dossier n'existe plus ou a changé de référence.</p>
-      <Button onClick={onBack} className="w-full bg-recouvrement hover:bg-recouvrement/90">Retour à la liste</Button>
+      <Button onClick={onBack} className="w-full bg-primary hover:bg-primary/90 text-white">Retour à la liste</Button>
     </Card>
   </div>
 );

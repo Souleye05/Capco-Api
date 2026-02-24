@@ -9,12 +9,30 @@ import { parseDate } from '../../common/utils/date.utils';
 export class PaiementsService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async findAll(params: { page?: number; limit?: number; search?: string }): Promise<{ data: PaiementResponseDto[]; total: number }> {
+    async findAll(params: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        dossierId?: string;
+        startDate?: string;
+        endDate?: string;
+    }): Promise<{ data: PaiementResponseDto[]; total: number }> {
         const page = Number(params.page) || 1;
         const limit = Number(params.limit) || 10;
         const skip = (page - 1) * limit;
 
         const where: any = {};
+
+        if (params.dossierId) {
+            where.dossierId = params.dossierId;
+        }
+
+        if (params.startDate || params.endDate) {
+            where.date = {};
+            if (params.startDate) where.date.gte = parseDate(params.startDate);
+            if (params.endDate) where.date.lte = parseDate(params.endDate);
+        }
+
         if (params.search) {
             where.OR = [
                 { reference: { contains: params.search, mode: 'insensitive' } },
@@ -137,10 +155,40 @@ export class PaiementsService {
         await this.prisma.paiementsRecouvrement.delete({ where: { id } });
     }
 
-    async getStatistics() {
+    async getStatistics(params: {
+        dossierId?: string;
+        startDate?: string;
+        endDate?: string;
+        search?: string;
+    } = {}) {
+        const where: any = {};
+
+        if (params.dossierId) where.dossierId = params.dossierId;
+        if (params.startDate || params.endDate) {
+            where.date = {};
+            if (params.startDate) where.date.gte = parseDate(params.startDate);
+            if (params.endDate) where.date.lte = parseDate(params.endDate);
+        }
+
+        if (params.search) {
+            where.OR = [
+                { reference: { contains: params.search, mode: 'insensitive' } },
+                {
+                    dossiersRecouvrement: {
+                        OR: [
+                            { reference: { contains: params.search, mode: 'insensitive' } },
+                            { debiteurNom: { contains: params.search, mode: 'insensitive' } },
+                        ]
+                    }
+                }
+            ];
+        }
+
         const result = await this.prisma.paiementsRecouvrement.aggregate({
+            where,
             _sum: { montant: true },
             _count: true,
+            _max: { date: true },
         });
 
         // Répartition par mode de paiement
@@ -153,6 +201,7 @@ export class PaiementsService {
         return {
             totalMontant: Number(result._sum.montant) || 0,
             nombrePaiements: result._count,
+            dernierPaiement: result._max.date,
             parMode: parMode.map(m => ({
                 mode: m.mode,
                 montant: Number(m._sum.montant) || 0,

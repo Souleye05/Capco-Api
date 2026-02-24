@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { nestjsApi } from '@/integrations/nestjs/client';
 import { toast } from 'sonner';
 
-export type StatutRecouvrement = 'EN_COURS' | 'SUSPENDU' | 'CLOTURE' | 'ANNULE';
-export type TypeAction = 'APPEL_TELEPHONIQUE' | 'COURRIER_SIMPLE' | 'MISE_EN_DEMEURE' | 'ASSIGNATION' | 'COMMANDEMENT' | 'SAISIE' | 'AUTRE';
-export type ModePaiement = 'ESPECES' | 'CHEQUE' | 'VIREMENT' | 'PRELEVEMENT' | 'AUTRE';
+export type StatutRecouvrement = 'EN_COURS' | 'CLOTURE';
+export type TypeAction = 'APPEL_TELEPHONIQUE' | 'COURRIER' | 'LETTRE_RELANCE' | 'MISE_DEMEURE' | 'COMMANDEMENT_PAYER' | 'ASSIGNATION' | 'REQUETE' | 'AUDIENCE_PROCEDURE' | 'AUTRE';
+export type ModePaiement = 'CASH' | 'VIREMENT' | 'CHEQUE' | 'WAVE' | 'OM';
 
 export interface DossierRecouvrement {
     id: string;
@@ -73,6 +73,17 @@ export interface RecouvrementDashboardStats {
         enCours: number;
         clotures: number;
     };
+}
+
+export interface PaiementsStatistics {
+    totalMontant: number;
+    nombrePaiements: number;
+    dernierPaiement: string | null;
+    parMode: Array<{
+        mode: ModePaiement;
+        montant: number;
+        nombre: number;
+    }>;
 }
 
 export interface CreateDossierData {
@@ -148,11 +159,32 @@ export function usePaiementsRecouvrementGlobal(params?: {
     page?: number;
     limit?: number;
     search?: string;
+    dossierId?: string;
+    startDate?: string;
+    endDate?: string;
 }) {
     return useQuery<PaginatedResponse<PaiementRecouvrement>>({
         queryKey: ['recouvrement', 'paiements', 'global', params],
         queryFn: async () => {
             const response = await nestjsApi.get<PaginatedResponse<PaiementRecouvrement>>('/recouvrement/paiements', params);
+            if (response.error) throw new Error(response.error);
+            return response.data!;
+        },
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
+// Hook pour les statistiques des paiements
+export function usePaiementsStatistics(params?: {
+    dossierId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+}) {
+    return useQuery<PaiementsStatistics>({
+        queryKey: ['recouvrement', 'paiements', 'statistics', params],
+        queryFn: async () => {
+            const response = await nestjsApi.get<PaiementsStatistics>('/recouvrement/paiements/statistics', params);
             if (response.error) throw new Error(response.error);
             return response.data!;
         },

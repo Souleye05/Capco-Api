@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { TypeAction, ModePaiement } from '@/hooks/useRecouvrement';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DialogProps {
     open: boolean;
@@ -50,14 +54,14 @@ export const ActionFormDialog = ({ open, onOpenChange, onSubmit, labels, initial
                         <Textarea value={data.resume} onChange={(e) => setData({ ...data, resume: e.target.value })} placeholder="..." rows={3} />
                     </div>
                 </div>
-                <DialogFooter><Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button><Button onClick={handle} className="bg-recouvrement hover:bg-recouvrement/90 transition-all">Enregistrer</Button></DialogFooter>
+                <DialogFooter><Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button><Button onClick={handle} className="bg-primary hover:bg-primary/90 transition-all text-white">Enregistrer</Button></DialogFooter>
             </DialogContent>
         </Dialog>
     );
 };
 
 export const PaiementFormDialog = ({ open, onOpenChange, onSubmit, initialData }: DialogProps) => {
-    const [data, setData] = useState({ montant: '', mode: 'VIREMENT' as ModePaiement, reference: '', commentaire: '' });
+    const [data, setData] = useState({ montant: '', mode: 'CASH' as ModePaiement, reference: '', commentaire: '' });
 
     useEffect(() => {
         if (open && initialData) {
@@ -68,7 +72,7 @@ export const PaiementFormDialog = ({ open, onOpenChange, onSubmit, initialData }
                 commentaire: initialData.commentaire || ''
             });
         } else if (open && !initialData) {
-            setData({ montant: '', mode: 'VIREMENT', reference: '', commentaire: '' });
+            setData({ montant: '', mode: 'CASH', reference: '', commentaire: '' });
         }
     }, [open, initialData]);
 
@@ -88,10 +92,111 @@ export const PaiementFormDialog = ({ open, onOpenChange, onSubmit, initialData }
                     </div>
                     <div className="grid gap-2">
                         <Label>Mode</Label>
-                        <Select value={data.mode} onValueChange={(v) => setData({ ...data, mode: v as any })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="VIREMENT">Virement</SelectItem><SelectItem value="ESPECES">Espèces</SelectItem><SelectItem value="CHEQUE">Chèque</SelectItem></SelectContent></Select>
+                        <Select value={data.mode} onValueChange={(v) => setData({ ...data, mode: v as any })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                            <SelectItem value="CASH">Espèces</SelectItem>
+                            <SelectItem value="VIREMENT">Virement</SelectItem>
+                            <SelectItem value="CHEQUE">Chèque</SelectItem>
+                            <SelectItem value="WAVE">Wave</SelectItem>
+                            <SelectItem value="OM">Orange Money</SelectItem>
+                        </SelectContent></Select>
                     </div>
                 </div>
-                <DialogFooter><Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button><Button onClick={handle} className="bg-success hover:bg-success/90 transition-all">Confirmer l'encaissement</Button></DialogFooter>
+                <DialogFooter><Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button><Button onClick={handle} className="bg-primary hover:bg-primary/90 transition-all text-white">Confirmer l'encaissement</Button></DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+export const GlobalPaiementFormDialog = ({ open, onOpenChange, onSubmit, dossiers }: DialogProps & { dossiers: any[] }) => {
+    const [data, setData] = useState({ dossierId: '', montant: '', mode: 'CASH' as ModePaiement, reference: '', commentaire: '' });
+    const [comboOpen, setComboOpen] = useState(false);
+
+    const handle = async () => {
+        if (!data.dossierId) return toast.error("Le dossier est obligatoire");
+        if (!data.montant) return toast.error("Le montant est obligatoire");
+        await onSubmit({ dossierId: data.dossierId, montant: parseFloat(data.montant), mode: data.mode, reference: data.reference || undefined, commentaire: data.commentaire || undefined });
+        setData({ dossierId: '', montant: '', mode: 'CASH', reference: '', commentaire: '' });
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[450px]">
+                <DialogHeader><DialogTitle>Enregistrer un paiement</DialogTitle><DialogDescription>Saisissez les détails de l'encaissement.</DialogDescription></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="grid gap-2">
+                        <Label>Dossier de recouvrement</Label>
+                        <Popover open={comboOpen} onOpenChange={setComboOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={comboOpen}
+                                    className="w-full justify-between bg-slate-50 border-none h-11 text-xs font-medium"
+                                >
+                                    {data.dossierId
+                                        ? dossiers.find((d) => d.id === data.dossierId)?.reference || "Sélectionner..."
+                                        : "Sélectionner le dossier..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[400px] p-0" align="start">
+                                <Command>
+                                    <CommandInput placeholder="Rechercher par référence ou débiteur..." className="h-9" />
+                                    <CommandList>
+                                        <CommandEmpty>Aucun dossier trouvé.</CommandEmpty>
+                                        <CommandGroup>
+                                            {dossiers.map((d) => (
+                                                <CommandItem
+                                                    key={d.id}
+                                                    value={`${d.reference} ${d.debiteurNom}`}
+                                                    onSelect={() => {
+                                                        setData({ ...data, dossierId: d.id });
+                                                        setComboOpen(false);
+                                                    }}
+                                                    className="text-xs"
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            data.dossierId === d.id ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold">{d.reference}</span>
+                                                        <span className="text-[10px] text-slate-400">{d.debiteurNom}</span>
+                                                    </div>
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Montant (FCFA)</Label>
+                        <Input type="number" value={data.montant} onChange={(e) => setData({ ...data, montant: e.target.value })} className="font-bold text-lg text-success" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label>Mode</Label>
+                            <Select value={data.mode} onValueChange={(v) => setData({ ...data, mode: v as any })}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="CASH">Espèces</SelectItem>
+                                    <SelectItem value="VIREMENT">Virement</SelectItem>
+                                    <SelectItem value="CHEQUE">Chèque</SelectItem>
+                                    <SelectItem value="WAVE">Wave</SelectItem>
+                                    <SelectItem value="OM">Orange Money</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Référence (Optionnel)</Label>
+                            <Input value={data.reference} onChange={(e) => setData({ ...data, reference: e.target.value })} placeholder="N° Chèque, reçu..." />
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter><Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button><Button onClick={handle} className="bg-primary hover:bg-primary/90 transition-all text-white">Confirmer l'encaissement</Button></DialogFooter>
             </DialogContent>
         </Dialog>
     );

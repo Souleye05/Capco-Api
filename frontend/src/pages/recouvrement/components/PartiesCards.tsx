@@ -9,10 +9,10 @@ export const PartiesCards = ({ dossier }: { dossier: DossierRecouvrement }) => (
             name={dossier.creancierNom}
             icon={<Building2 className="h-6 w-6" />}
             data={[{ icon: <Phone />, value: dossier.creancierTelephone }, { icon: <Mail />, value: dossier.creancierEmail }]}
-            headerColor="bg-indigo-50/50"
-            titleColor="text-indigo-700"
-            iconBg="bg-indigo-100"
-            iconColor="text-indigo-600"
+            headerColor="bg-primary/5"
+            titleColor="text-primary"
+            iconBg="bg-primary/10"
+            iconColor="text-primary"
         />
         <PartyCard
             title="Débiteur"

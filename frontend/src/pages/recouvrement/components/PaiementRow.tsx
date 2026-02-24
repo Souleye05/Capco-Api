@@ -10,11 +10,20 @@ import { formatCurrency } from '@/lib/utils';
 import { PaiementRecouvrement } from '@/hooks/useRecouvrement';
 
 const modeIcons: Record<string, React.ReactNode> = {
-    ESPECES: <Banknote className="h-4 w-4 text-success" />,
+    CASH: <Banknote className="h-4 w-4 text-success" />,
     VIREMENT: <Landmark className="h-4 w-4 text-primary" />,
     CHEQUE: <CreditCard className="h-4 w-4 text-warning" />,
-    PRELEVEMENT: <ArrowUpRight className="h-4 w-4 text-recouvrement" />,
+    WAVE: <ArrowUpRight className="h-4 w-4 text-cyan-500" />,
+    OM: <ArrowUpRight className="h-4 w-4 text-orange-500" />,
     DEFAULT: <Wallet className="h-4 w-4 text-slate-400" />
+};
+
+const modeLabels: Record<string, string> = {
+    CASH: 'Espèces',
+    VIREMENT: 'Virement',
+    CHEQUE: 'Chèque',
+    WAVE: 'Wave',
+    OM: 'Orange Money'
 };
 
 export const PaiementRow = ({ paiement }: { paiement: PaiementRecouvrement }) => {
@@ -57,7 +66,7 @@ export const PaiementRow = ({ paiement }: { paiement: PaiementRecouvrement }) =>
                     <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-white transition-colors">
                         {modeIcons[paiement.mode] || modeIcons.DEFAULT}
                     </div>
-                    <span className="text-xs font-semibold text-slate-600 uppercase tracking-tight">{paiement.mode}</span>
+                    <span className="text-xs font-semibold text-slate-600 uppercase tracking-tight">{modeLabels[paiement.mode] || paiement.mode}</span>
                 </div>
             </TableCell>
 

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge, StatusVariant } from '@/components/ui/status-badge';
-import { Scale, Building2, Users } from 'lucide-react';
+import { Scale, Building2, Users, Phone, MapPin } from 'lucide-react';
 import { parseDateFromAPI, formatDateShort } from '@/lib/date-utils';
 
 const statutLabels: Record<string, { label: string; variant: StatusVariant }> = {
@@ -59,13 +59,27 @@ export function CaseInfoCard({ affaire }: { affaire: any }) {
                             <Users className="h-3 w-3" />
                             Partie Demanderesse
                         </h4>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             {demandeurs.map((p: any, idx: number) => (
-                                <div key={idx} className="flex items-center gap-2 group min-w-0">
-                                    <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center font-bold text-success text-xs shrink-0">
-                                        {p.nom.charAt(0)}
+                                <div key={idx} className="space-y-1">
+                                    <div className="flex items-center gap-2 group min-w-0">
+                                        <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center font-bold text-success text-xs shrink-0">
+                                            {p.nom.charAt(0)}
+                                        </div>
+                                        <span className="font-bold group-hover:text-success transition-colors truncate" title={p.nom}>{p.nom}</span>
                                     </div>
-                                    <span className="font-bold group-hover:text-success transition-colors truncate" title={p.nom}>{p.nom}</span>
+                                    {p.telephone && (
+                                        <div className="flex items-center gap-2 pl-10 text-xs text-muted-foreground">
+                                            <Phone className="h-3 w-3 shrink-0" />
+                                            <span>{p.telephone}</span>
+                                        </div>
+                                    )}
+                                    {p.adresse && (
+                                        <div className="flex items-center gap-2 pl-10 text-xs text-muted-foreground">
+                                            <MapPin className="h-3 w-3 shrink-0" />
+                                            <span className="truncate" title={p.adresse}>{p.adresse}</span>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -75,13 +89,27 @@ export function CaseInfoCard({ affaire }: { affaire: any }) {
                             <Users className="h-3 w-3" />
                             Partie Défenderesse
                         </h4>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             {defendeurs.map((p: any, idx: number) => (
-                                <div key={idx} className="flex items-center gap-2 group min-w-0">
-                                    <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center font-bold text-destructive text-xs shrink-0">
-                                        {p.nom.charAt(0)}
+                                <div key={idx} className="space-y-1">
+                                    <div className="flex items-center gap-2 group min-w-0">
+                                        <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center font-bold text-destructive text-xs shrink-0">
+                                            {p.nom.charAt(0)}
+                                        </div>
+                                        <span className="font-bold group-hover:text-destructive transition-colors truncate" title={p.nom}>{p.nom}</span>
                                     </div>
-                                    <span className="font-bold group-hover:text-destructive transition-colors truncate" title={p.nom}>{p.nom}</span>
+                                    {p.telephone && (
+                                        <div className="flex items-center gap-2 pl-10 text-xs text-muted-foreground">
+                                            <Phone className="h-3 w-3 shrink-0" />
+                                            <span>{p.telephone}</span>
+                                        </div>
+                                    )}
+                                    {p.adresse && (
+                                        <div className="flex items-center gap-2 pl-10 text-xs text-muted-foreground">
+                                            <MapPin className="h-3 w-3 shrink-0" />
+                                            <span className="truncate" title={p.adresse}>{p.adresse}</span>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

@@ -191,25 +191,14 @@ export function NouvelleAffaireDialog({ open, onOpenChange, onSuccess }: Nouvell
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor={`demandeur-telephone-${index}`}>Téléphone</Label>
-                    <Input
-                      id={`demandeur-telephone-${index}`}
-                      value={demandeur.telephone || ''}
-                      onChange={(e) => updatePartie('demandeur', index, 'telephone', e.target.value)}
-                      placeholder="Numéro de téléphone"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor={`demandeur-adresse-${index}`}>Adresse</Label>
-                    <Input
-                      id={`demandeur-adresse-${index}`}
-                      value={demandeur.adresse || ''}
-                      onChange={(e) => updatePartie('demandeur', index, 'adresse', e.target.value)}
-                      placeholder="Adresse complète"
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`demandeur-adresse-${index}`}>Adresse</Label>
+                  <Input
+                    id={`demandeur-adresse-${index}`}
+                    value={demandeur.adresse || ''}
+                    onChange={(e) => updatePartie('demandeur', index, 'adresse', e.target.value)}
+                    placeholder="Adresse complète"
+                  />
                 </div>
               </div>
             ))}
@@ -271,25 +260,14 @@ export function NouvelleAffaireDialog({ open, onOpenChange, onSuccess }: Nouvell
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor={`defendeur-telephone-${index}`}>Téléphone</Label>
-                    <Input
-                      id={`defendeur-telephone-${index}`}
-                      value={defendeur.telephone || ''}
-                      onChange={(e) => updatePartie('defendeur', index, 'telephone', e.target.value)}
-                      placeholder="Numéro de téléphone"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor={`defendeur-adresse-${index}`}>Adresse</Label>
-                    <Input
-                      id={`defendeur-adresse-${index}`}
-                      value={defendeur.adresse || ''}
-                      onChange={(e) => updatePartie('defendeur', index, 'adresse', e.target.value)}
-                      placeholder="Adresse complète"
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`defendeur-adresse-${index}`}>Adresse</Label>
+                  <Input
+                    id={`defendeur-adresse-${index}`}
+                    value={defendeur.adresse || ''}
+                    onChange={(e) => updatePartie('defendeur', index, 'adresse', e.target.value)}
+                    placeholder="Adresse complète"
+                  />
                 </div>
               </div>
             ))}

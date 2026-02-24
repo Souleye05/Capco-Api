@@ -36,6 +36,7 @@ export class AffairesService {
         data: {
           reference,
           intitule: createAffaireDto.intitule,
+          nature: createAffaireDto.nature || 'CIVILE',
           statut: createAffaireDto.statut || 'ACTIVE',
           observations: createAffaireDto.observations,
           createdBy: userId,
@@ -63,6 +64,22 @@ export class AffairesService {
       if (parties.length > 0) {
         await tx.parties_affaires.createMany({
           data: parties,
+        });
+      }
+
+      // Créer l'honoraire initial si fourni
+      if (createAffaireDto.honoraire) {
+        await tx.honorairesContentieux.create({
+          data: {
+            affaireId: affaire.id,
+            montantFacture: createAffaireDto.honoraire.montantFacture,
+            montantEncaisse: createAffaireDto.honoraire.montantEncaisse || 0,
+            dateFacturation: createAffaireDto.honoraire.dateFacturation
+              ? new Date(createAffaireDto.honoraire.dateFacturation)
+              : null,
+            notes: createAffaireDto.honoraire.notes,
+            createdBy: userId,
+          },
         });
       }
 
@@ -160,6 +177,7 @@ export class AffairesService {
         where: { id },
         data: {
           intitule: updateAffaireDto.intitule,
+          nature: updateAffaireDto.nature,
           statut: updateAffaireDto.statut,
           observations: updateAffaireDto.observations,
         },
@@ -223,6 +241,7 @@ export class AffairesService {
       id: affaire.id,
       reference: affaire.reference,
       intitule: affaire.intitule,
+      nature: affaire.nature,
       statut: affaire.statut,
       observations: affaire.observations,
       demandeurs: affaire.parties_affaires?.filter(p => p.role === 'DEMANDEUR').map(partie => ({

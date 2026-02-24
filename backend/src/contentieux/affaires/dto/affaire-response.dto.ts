@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { StatutAffaire } from '@prisma/client';
+import { StatutAffaire, NatureAffaire } from '@prisma/client';
 import { PartieDto } from './create-affaire.dto';
 
 class DerniereAudienceDto {
@@ -34,6 +34,9 @@ export class AffaireResponseDto {
 
   @ApiProperty({ description: 'Titre/Intitulé de l\'affaire' })
   intitule: string;
+
+  @ApiProperty({ enum: NatureAffaire, description: 'Nature de l\'affaire' })
+  nature: NatureAffaire;
 
   @ApiProperty({ description: 'Demandeurs', type: [PartieDto] })
   demandeurs: PartieDto[];

@@ -7,6 +7,7 @@ export interface AffaireDB {
   id: string;
   reference: string;
   intitule: string;
+  nature: 'CIVILE' | 'COMMERCIALE' | 'PENALE' | 'ADMINISTRATIVE' | 'SOCIALE' | 'AUTRE';
   statut: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
   observations?: string;
   demandeurs: Array<{
@@ -49,6 +50,7 @@ export interface PaginatedAffairesResponse {
 
 export interface CreateAffaireData {
   intitule: string;
+  nature?: 'CIVILE' | 'COMMERCIALE' | 'PENALE' | 'ADMINISTRATIVE' | 'SOCIALE' | 'AUTRE';
   demandeurs: Array<{
     nom: string;
     role?: 'DEMANDEUR';
@@ -63,6 +65,12 @@ export interface CreateAffaireData {
   }>;
   statut?: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
   observations?: string;
+  honoraire?: {
+    montantFacture: number;
+    montantEncaisse?: number;
+    dateFacturation?: string;
+    notes?: string;
+  };
 }
 
 export interface UpdateAffaireData {

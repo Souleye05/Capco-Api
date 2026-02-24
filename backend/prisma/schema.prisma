@@ -72,6 +72,7 @@ model Affaires {
   id                      String                  @id @default(uuid())
   reference               String
   intitule                String
+  nature                  NatureAffaire           @default(CIVILE)
   statut                  StatutAffaire           @default(ACTIVE)
   notes                   String?
   observations            String?
@@ -543,6 +544,15 @@ enum AppRole {
   admin
   collaborateur
   compta
+}
+
+enum NatureAffaire {
+  CIVILE
+  COMMERCIALE
+  PENALE
+  ADMINISTRATIVE
+  SOCIALE
+  AUTRE
 }
 
 enum StatutAffaire {

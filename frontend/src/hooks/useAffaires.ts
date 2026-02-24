@@ -48,16 +48,14 @@ export interface CreateAffaireData {
   demandeurs: Array<{
     nom: string;
     role?: 'DEMANDEUR';
-    adresse?: string;
     telephone?: string;
-    email?: string;
+    adresse?: string;
   }>;
   defendeurs: Array<{
     nom: string;
     role?: 'DEFENDEUR';
-    adresse?: string;
     telephone?: string;
-    email?: string;
+    adresse?: string;
   }>;
   statut?: 'ACTIVE' | 'CLOTUREE' | 'RADIEE';
   observations?: string;
@@ -115,11 +113,11 @@ export function useCreateAffaire() {
   return useMutation({
     mutationFn: async (data: CreateAffaireData): Promise<AffaireDB> => {
       const response = await nestjsApi.post<AffaireDB>('/contentieux/affaires', data);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     onSuccess: (data) => {
@@ -139,11 +137,11 @@ export function useUpdateAffaire() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateAffaireData }): Promise<AffaireDB> => {
       const response = await nestjsApi.patch<AffaireDB>(`/contentieux/affaires/${id}`, data);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     onSuccess: (data) => {
@@ -164,7 +162,7 @@ export function useDeleteAffaire() {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const response = await nestjsApi.delete(`/contentieux/affaires/${id}`);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
@@ -190,11 +188,11 @@ export function useAffairesStats() {
         cloturees: number;
         radiees: number;
       }>('/contentieux/affaires/statistics');
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
-      
+
       return response.data!;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes

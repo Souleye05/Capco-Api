@@ -1,10 +1,10 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Param, 
-  Query, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
   UseGuards,
   HttpException,
   HttpStatus
@@ -20,7 +20,7 @@ import { PrismaService } from '../common/services/prisma.service';
 @Controller('api')
 @UseGuards(JwtAuthGuard)
 export class ApiController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Endpoint de test pour vérifier que l'API fonctionne
@@ -170,6 +170,7 @@ export class ApiController {
       const affaire = await this.prisma.affaires.findUnique({
         where: { id },
         include: {
+          parties_affaires: true,
           audiences: {
             orderBy: { date: 'desc' },
             take: 5
@@ -189,8 +190,15 @@ export class ApiController {
           id: affaire.id,
           reference: affaire.reference,
           intitule: affaire.intitule,
-          demandeurs: affaire.demandeurs,
-          defendeurs: affaire.defendeurs,
+          demandeurs: affaire.parties_affaires
+            .filter(p => p.role === 'DEMANDEUR')
+            .map(p => ({ nom: p.nom, role: p.role })),
+          defendeurs: affaire.parties_affaires
+            .filter(p => p.role === 'DEFENDEUR')
+            .map(p => ({ nom: p.nom, role: p.role })),
+          conseil_adverse: affaire.parties_affaires
+            .filter(p => p.role === 'CONSEIL_ADVERSE')
+            .map(p => ({ nom: p.nom, role: p.role })),
           juridiction: affaire.audiences[0]?.juridiction || '',
           chambre: affaire.audiences[0]?.chambre || '',
           statut: affaire.statut,
@@ -211,7 +219,7 @@ export class ApiController {
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;
-      
+
       throw new HttpException(
         `Erreur lors de la récupération de l'affaire: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR
@@ -229,13 +237,12 @@ export class ApiController {
       intitule: string;
       juridiction: string;
       chambre: string;
-      demandeurs?: any[];
-      defendeurs?: any[];
+      demandeurs?: Array<{ nom: string }>;
+      defendeurs?: Array<{ nom: string }>;
       notes?: string;
     },
     @CurrentUser() user: any
   ) {
-    // Validation simple
     if (!createDto.reference || !createDto.intitule) {
       throw new HttpException(
         'Les champs reference et intitule sont obligatoires',
@@ -248,30 +255,42 @@ export class ApiController {
         data: {
           reference: createDto.reference.trim(),
           intitule: createDto.intitule.trim(),
-          demandeurs: createDto.demandeurs || [],
-          defendeurs: createDto.defendeurs || [],
           statut: 'ACTIVE',
           notes: createDto.notes?.trim() || null,
           createdBy: user.id,
-          createdAt: new Date(),
-          updatedAt: new Date()
         }
+      });
+
+      // Créer les parties dans parties_affaires
+      const parties = [
+        ...(createDto.demandeurs || []).map(p => ({ nom: p.nom, role: 'DEMANDEUR' as const, affaire_id: affaire.id })),
+        ...(createDto.defendeurs || []).map(p => ({ nom: p.nom, role: 'DEFENDEUR' as const, affaire_id: affaire.id })),
+      ];
+      if (parties.length > 0) {
+        await this.prisma.parties_affaires.createMany({ data: parties });
+      }
+
+      const created = await this.prisma.affaires.findUnique({
+        where: { id: affaire.id },
+        include: { parties_affaires: true }
       });
 
       return {
         data: {
-          id: affaire.id,
-          reference: affaire.reference,
-          intitule: affaire.intitule,
-          demandeurs: affaire.demandeurs,
-          defendeurs: affaire.defendeurs,
-          juridiction: '', // Sera défini lors de la création d'une audience
-          chambre: '', // Sera défini lors de la création d'une audience
-          statut: affaire.statut,
-          notes: affaire.notes,
-          created_at: affaire.createdAt,
-          updated_at: affaire.updatedAt,
-          created_by: affaire.createdBy
+          id: created.id,
+          reference: created.reference,
+          intitule: created.intitule,
+          demandeurs: created.parties_affaires
+            .filter(p => p.role === 'DEMANDEUR')
+            .map(p => ({ nom: p.nom, role: p.role })),
+          defendeurs: created.parties_affaires
+            .filter(p => p.role === 'DEFENDEUR')
+            .map(p => ({ nom: p.nom, role: p.role })),
+          statut: created.statut,
+          notes: created.notes,
+          created_at: created.createdAt,
+          updated_at: created.updatedAt,
+          created_by: created.createdBy
         },
         message: 'Affaire créée avec succès'
       };

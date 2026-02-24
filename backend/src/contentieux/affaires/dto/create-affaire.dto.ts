@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsArray, ValidateNested, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsArray, ValidateNested, IsNotEmpty } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { StatutAffaire, RolePartie } from '@prisma/client';
@@ -14,20 +14,15 @@ export class PartieDto {
   @IsEnum(RolePartie)
   role?: RolePartie;
 
-  @ApiPropertyOptional({ description: 'Adresse de la partie' })
-  @IsOptional()
-  @IsString()
-  adresse?: string;
-
   @ApiPropertyOptional({ description: 'Téléphone de la partie' })
   @IsOptional()
   @IsString()
   telephone?: string;
 
-  @ApiPropertyOptional({ description: 'Email de la partie' })
+  @ApiPropertyOptional({ description: 'Adresse de la partie' })
   @IsOptional()
-  @IsEmail()
-  email?: string;
+  @IsString()
+  adresse?: string;
 }
 
 export class CreateAffaireDto {

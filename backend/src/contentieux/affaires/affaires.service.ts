@@ -14,7 +14,7 @@ export class AffairesService {
     private readonly prisma: PrismaService,
     private readonly paginationService: PaginationService,
     private readonly referenceGenerator: ReferenceGeneratorService,
-  ) {}
+  ) { }
 
   /**
    * Créer une nouvelle affaire avec génération automatique de référence
@@ -39,9 +39,6 @@ export class AffairesService {
           statut: createAffaireDto.statut || 'ACTIVE',
           observations: createAffaireDto.observations,
           createdBy: userId,
-          // Conserver les champs JSON existants pour compatibilité
-          demandeurs: [],
-          defendeurs: [],
         },
       });
 
@@ -50,11 +47,15 @@ export class AffairesService {
         ...createAffaireDto.demandeurs.map(partie => ({
           nom: partie.nom,
           role: partie.role || 'DEMANDEUR' as const,
+          telephone: partie.telephone,
+          adresse: partie.adresse,
           affaire_id: affaire.id,
         })),
         ...createAffaireDto.defendeurs.map(partie => ({
           nom: partie.nom,
           role: partie.role || 'DEFENDEUR' as const,
+          telephone: partie.telephone,
+          adresse: partie.adresse,
           affaire_id: affaire.id,
         })),
       ];
@@ -176,11 +177,15 @@ export class AffairesService {
           ...(updateAffaireDto.demandeurs || []).map(partie => ({
             nom: partie.nom,
             role: partie.role || 'DEMANDEUR' as const,
+            telephone: partie.telephone,
+            adresse: partie.adresse,
             affaire_id: id,
           })),
           ...(updateAffaireDto.defendeurs || []).map(partie => ({
             nom: partie.nom,
             role: partie.role || 'DEFENDEUR' as const,
+            telephone: partie.telephone,
+            adresse: partie.adresse,
             affaire_id: id,
           })),
         ];
@@ -223,10 +228,14 @@ export class AffairesService {
       demandeurs: affaire.parties_affaires?.filter(p => p.role === 'DEMANDEUR').map(partie => ({
         nom: partie.nom,
         role: partie.role,
+        telephone: partie.telephone,
+        adresse: partie.adresse,
       })) || [],
       defendeurs: affaire.parties_affaires?.filter(p => p.role === 'DEFENDEUR').map(partie => ({
         nom: partie.nom,
         role: partie.role,
+        telephone: partie.telephone,
+        adresse: partie.adresse,
       })) || [],
       derniereAudience: affaire.audiences?.[0] ? {
         id: affaire.audiences[0].id,

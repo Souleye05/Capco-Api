@@ -14,7 +14,18 @@ export interface User {
   createdAt: Date;
 }
 
-// Common
+// Partie pour le module Contentieux (stockée dans parties_affaires)
+export type RolePartie = 'DEMANDEUR' | 'DEFENDEUR' | 'CONSEIL_ADVERSE';
+
+export interface PartieAffaire {
+  id?: string;
+  nom: string;
+  role: RolePartie;
+  telephone?: string;
+  adresse?: string;
+}
+
+// Partie pour le module Recouvrement (annuaire global)
 export interface Partie {
   id: string;
   type: 'physique' | 'morale';
@@ -38,8 +49,9 @@ export interface AffaireContentieuse {
   id: string;
   reference: string; // AFF-2026-0001
   intitule: string;
-  demandeurs: Partie[];
-  defendeurs: Partie[];
+  demandeurs: PartieAffaire[];
+  defendeurs: PartieAffaire[];
+  conseil_adverse?: PartieAffaire[];
   juridiction: string;
   chambre: string;
   statut: StatutAffaire;
@@ -80,7 +92,7 @@ export interface ResultatAudience {
 // ============================================
 
 export type StatutRecouvrement = 'EN_COURS' | 'CLOTURE';
-export type TypeAction = 
+export type TypeAction =
   | 'APPEL_TELEPHONIQUE'
   | 'COURRIER'
   | 'LETTRE_RELANCE'
@@ -161,7 +173,7 @@ export interface DepenseDossier {
 export type TypeLot = 'STUDIO' | 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'MAGASIN' | 'BUREAU' | 'AUTRE';
 export type StatutLot = 'LIBRE' | 'OCCUPE';
 export type StatutBail = 'ACTIF' | 'INACTIF';
-export type TypeDepenseImmeuble = 
+export type TypeDepenseImmeuble =
   | 'PLOMBERIE_ASSAINISSEMENT'
   | 'ELECTRICITE_ECLAIRAGE'
   | 'ENTRETIEN_MAINTENANCE'
@@ -169,7 +181,7 @@ export type TypeDepenseImmeuble =
   | 'AUTRES_DEPENSES';
 
 // Type for dossier expenses
-export type TypeDepenseDossier = 
+export type TypeDepenseDossier =
   | 'FRAIS_HUISSIER'
   | 'FRAIS_GREFFE'
   | 'TIMBRES_FISCAUX'
@@ -390,7 +402,7 @@ export interface DashboardStats {
 // Alertes
 // ============================================
 
-export type TypeAlerte = 
+export type TypeAlerte =
   | 'AUDIENCE_NON_RENSEIGNEE'
   | 'DOSSIER_SANS_ACTION'
   | 'LOYER_IMPAYE'

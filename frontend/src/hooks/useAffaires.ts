@@ -12,10 +12,14 @@ export interface AffaireDB {
   demandeurs: Array<{
     nom: string;
     role: 'DEMANDEUR';
+    telephone?: string;
+    adresse?: string;
   }>;
   defendeurs: Array<{
     nom: string;
     role: 'DEFENDEUR';
+    telephone?: string;
+    adresse?: string;
   }>;
   derniereAudience?: {
     id: string;

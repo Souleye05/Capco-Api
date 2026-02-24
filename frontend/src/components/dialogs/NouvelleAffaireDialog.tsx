@@ -12,9 +12,8 @@ import { useCreateAffaire, AffaireDB } from '@/hooks/useAffaires';
 interface PartieForm {
   nom: string;
   role: 'DEMANDEUR' | 'DEFENDEUR';
-  adresse?: string;
   telephone?: string;
-  email?: string;
+  adresse?: string;
 }
 
 interface NouvelleAffaireDialogProps {
@@ -194,13 +193,12 @@ export function NouvelleAffaireDialog({ open, onOpenChange, onSuccess }: Nouvell
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor={`demandeur-email-${index}`}>Email</Label>
+                    <Label htmlFor={`demandeur-telephone-${index}`}>Téléphone</Label>
                     <Input
-                      id={`demandeur-email-${index}`}
-                      type="email"
-                      value={demandeur.email || ''}
-                      onChange={(e) => updatePartie('demandeur', index, 'email', e.target.value)}
-                      placeholder="Adresse email"
+                      id={`demandeur-telephone-${index}`}
+                      value={demandeur.telephone || ''}
+                      onChange={(e) => updatePartie('demandeur', index, 'telephone', e.target.value)}
+                      placeholder="Numéro de téléphone"
                     />
                   </div>
                   <div className="space-y-1">
@@ -275,13 +273,12 @@ export function NouvelleAffaireDialog({ open, onOpenChange, onSuccess }: Nouvell
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor={`defendeur-email-${index}`}>Email</Label>
+                    <Label htmlFor={`defendeur-telephone-${index}`}>Téléphone</Label>
                     <Input
-                      id={`defendeur-email-${index}`}
-                      type="email"
-                      value={defendeur.email || ''}
-                      onChange={(e) => updatePartie('defendeur', index, 'email', e.target.value)}
-                      placeholder="Adresse email"
+                      id={`defendeur-telephone-${index}`}
+                      value={defendeur.telephone || ''}
+                      onChange={(e) => updatePartie('defendeur', index, 'telephone', e.target.value)}
+                      placeholder="Numéro de téléphone"
                     />
                   </div>
                   <div className="space-y-1">

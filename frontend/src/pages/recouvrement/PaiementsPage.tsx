@@ -5,13 +5,20 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, Download, Banknote, Calendar, Plus, Wallet, FileText, Check, ChevronsUpDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { usePaiementsRecouvrementGlobal, usePaiementsStatistics, useDossiersRecouvrement, useCreatePaiementRecouvrement } from '@/hooks/useRecouvrement';
+import {
+  usePaiementsRecouvrementGlobal,
+  usePaiementsStatistics,
+  useDossiersRecouvrement,
+  useCreatePaiementRecouvrement,
+  useUpdatePaiementRecouvrement,
+  useDeletePaiementRecouvrement
+} from '@/hooks/useRecouvrement';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaiementRow } from '@/pages/recouvrement/components/PaiementRow';
 import { StatCard } from '@/pages/recouvrement/components/StatCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatCurrency, cn } from '@/lib/utils';
-import { GlobalPaiementFormDialog } from '@/pages/recouvrement/components/DossierDialogs';
+import { GlobalPaiementFormDialog, ConfirmDeleteDialog, PaiementFormDialog } from '@/pages/recouvrement/components/DossierDialogs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
@@ -27,6 +34,10 @@ export default function PaiementsPage() {
   const [nouveauPaiementOpen, setNouveauPaiementOpen] = useState(false);
   const [dossierComboOpen, setDossierComboOpen] = useState(false);
 
+  // States for Edit/Delete
+  const [editingPaiement, setEditingPaiement] = useState<any>(null);
+  const [deletingPaiement, setDeletingPaiement] = useState<any>(null);
+
   const filterParams = {
     search,
     dossierId: dossierId === 'all' ? undefined : dossierId,
@@ -37,12 +48,33 @@ export default function PaiementsPage() {
   const { data: response, isLoading } = usePaiementsRecouvrementGlobal({ ...filterParams, page, limit: LIMIT });
   const { data: stats, isLoading: isLoadingStats } = usePaiementsStatistics(filterParams);
   const { data: dossiersResp } = useDossiersRecouvrement({ limit: 100 });
+
   const createPaiement = useCreatePaiementRecouvrement();
+  const updatePaiement = useUpdatePaiementRecouvrement();
+  const deletePaiement = useDeletePaiementRecouvrement();
 
   const handleCreatePaiement = async (data: any) => {
     try {
       await createPaiement.mutateAsync({ ...data, date: new Date().toISOString() });
       setNouveauPaiementOpen(false);
+    } catch (e) { }
+  };
+
+  const handleUpdatePaiement = async (data: any) => {
+    try {
+      if (editingPaiement) {
+        await updatePaiement.mutateAsync({ id: editingPaiement.id, data });
+        setEditingPaiement(null);
+      }
+    } catch (e) { }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      if (deletingPaiement) {
+        await deletePaiement.mutateAsync({ id: deletingPaiement.id, dossierId: deletingPaiement.dossierId });
+        setDeletingPaiement(null);
+      }
     } catch (e) { }
   };
 
@@ -69,6 +101,22 @@ export default function PaiementsPage() {
         onOpenChange={setNouveauPaiementOpen}
         onSubmit={handleCreatePaiement}
         dossiers={dossiers}
+      />
+
+      {/* Edit Dialog - Reuse individual form but we need specific dossier context if possible */}
+      <PaiementFormDialog
+        open={!!editingPaiement}
+        onOpenChange={(open) => !open && setEditingPaiement(null)}
+        onSubmit={handleUpdatePaiement}
+        initialData={editingPaiement}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!deletingPaiement}
+        onOpenChange={(open) => !open && setDeletingPaiement(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer ce paiement ?"
+        description={`Voulez-vous vraiment supprimer le paiement de ${deletingPaiement ? formatCurrency(deletingPaiement.montant) : ''} ? Cette action est irréversible.`}
       />
 
       <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -232,7 +280,7 @@ export default function PaiementsPage() {
                 ) : !response?.data?.length ? (
                   <TableRow><TableCell colSpan={6} className="h-64 text-center"><Banknote className="h-12 w-12 opacity-5 mx-auto mb-2" /><p className="text-slate-400">Aucun paiement enregistré</p></TableCell></TableRow>
                 ) : (
-                  response.data.map(p => <PaiementRow key={p.id} paiement={p} />)
+                  response.data.map(p => <PaiementRow key={p.id} paiement={p} onEdit={setEditingPaiement} onDelete={setDeletingPaiement} />)
                 )}
               </TableBody>
             </Table>

@@ -2,13 +2,31 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Download, Receipt } from 'lucide-react';
+import { TrendingUp, Download, Receipt, Edit2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { DossierRecouvrement } from '@/hooks/useRecouvrement';
 import { generateRapportActionsPDF } from '@/utils/generateRapportActionsPDF';
 
-export const DossierFinanceSidebar = ({ dossier }: { dossier: DossierRecouvrement }) => {
+interface Props {
+    dossier: DossierRecouvrement;
+    onEditHonoraires?: () => void;
+}
+
+export const DossierFinanceSidebar = ({ dossier, onEditHonoraires }: Props) => {
     const progress = (dossier.totalPaiements / dossier.totalARecouvrer) * 100;
+    const honoraire = dossier.honoraires?.[0];
+
+    // Calcul des honoraires estimés si pourcentage
+    const calculateEstimatedHonoraires = () => {
+        if (!honoraire) return 0;
+        let total = honoraire.montantPrevu;
+        if (honoraire.pourcentage) {
+            total += (dossier.totalPaiements * (honoraire.pourcentage / 100));
+        }
+        return total;
+    };
+
+    const estimatedTotal = calculateEstimatedHonoraires();
 
     return (
         <div className="space-y-6">
@@ -50,18 +68,30 @@ export const DossierFinanceSidebar = ({ dossier }: { dossier: DossierRecouvremen
                 </CardContent>
             </Card>
 
-            <Card className="border-dashed border-2 border-recouvrement/20 bg-recouvrement/5 shadow-none">
-                <CardHeader className="pb-2">
+            <Card className="border-dashed border-2 border-recouvrement/20 bg-recouvrement/5 shadow-none group transition-all hover:border-recouvrement/40">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
                     <CardTitle className="text-[10px] font-bold text-recouvrement/60 uppercase tracking-widest flex items-center gap-2">
                         <Receipt className="h-4 w-4" /> Honoraires
                     </CardTitle>
+                    {onEditHonoraires && (
+                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={onEditHonoraires}>
+                            <Edit2 className="h-3 w-3 text-recouvrement" />
+                        </Button>
+                    )}
                 </CardHeader>
-                <CardContent className="space-y-4 text-center">
-                    <div className="p-4 bg-white rounded-xl shadow-sm border border-recouvrement/20">
+                <CardContent className="space-y-4">
+                    <div className="p-4 bg-white rounded-xl shadow-sm border border-recouvrement/20 text-center">
                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Impact Honoraires</p>
-                        <p className="text-2xl font-black text-recouvrement">{formatCurrency(dossier.totalARecouvrer * 0.1)}</p>
+                        <p className="text-2xl font-black text-recouvrement">{formatCurrency(estimatedTotal)}</p>
+                        {honoraire && honoraire.pourcentage && (
+                            <p className="text-[9px] text-slate-400 italic mt-1 font-medium">Inclut {honoraire.pourcentage}% sur recouvrement</p>
+                        )}
                     </div>
-                    <Button variant="link" className="text-xs text-recouvrement font-bold uppercase p-0">Modifier convention</Button>
+                    {onEditHonoraires && (
+                        <Button variant="link" className="w-full text-[10px] text-recouvrement font-bold uppercase h-auto p-0" onClick={onEditHonoraires}>
+                            Modifier convention
+                        </Button>
+                    )}
                 </CardContent>
             </Card>
         </div>

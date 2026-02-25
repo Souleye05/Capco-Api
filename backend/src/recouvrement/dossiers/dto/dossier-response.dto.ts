@@ -67,6 +67,12 @@ export class DossierResponseDto {
     @ApiProperty({ type: [Object], required: false })
     paiements?: any[];
 
+    @ApiProperty({ type: [Object], required: false })
+    depenses?: any[];
+
+    @ApiProperty({ type: [Object], required: false })
+    honoraires?: any[];
+
     @ApiProperty()
     createdAt: Date;
 

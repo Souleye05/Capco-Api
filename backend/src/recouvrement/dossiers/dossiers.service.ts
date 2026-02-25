@@ -247,6 +247,22 @@ export class DossiersService {
                 reference: p.reference,
                 commentaire: p.commentaire,
             })),
+            depenses: dossier.depensesDossiers?.map((d: any) => ({
+                id: d.id,
+                date: d.date,
+                nature: d.nature,
+                typeDepense: d.typeDepense,
+                montant: Number(d.montant),
+                justificatif: d.justificatif,
+            })),
+            honoraires: dossier.honorairesRecouvrements?.map((h: any) => ({
+                id: h.id,
+                type: h.type,
+                montantPrevu: Number(h.montantPrevu),
+                pourcentage: h.pourcentage ? Number(h.pourcentage) : undefined,
+                montantPaye: Number(h.montantPaye),
+                createdAt: h.createdAt,
+            })),
             createdAt: dossier.createdAt,
             updatedAt: dossier.updatedAt,
         };

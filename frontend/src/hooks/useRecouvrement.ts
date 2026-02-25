@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 export type StatutRecouvrement = 'EN_COURS' | 'CLOTURE';
 export type TypeAction = 'APPEL_TELEPHONIQUE' | 'COURRIER' | 'LETTRE_RELANCE' | 'MISE_DEMEURE' | 'COMMANDEMENT_PAYER' | 'ASSIGNATION' | 'REQUETE' | 'AUDIENCE_PROCEDURE' | 'AUTRE';
 export type ModePaiement = 'CASH' | 'VIREMENT' | 'CHEQUE' | 'WAVE' | 'OM';
+export type TypeHonoraires = 'FORFAIT' | 'POURCENTAGE' | 'MIXTE';
+export type TypeDepenseDossier = 'FRAIS_HUISSIER' | 'FRAIS_GREFFE' | 'TIMBRES_FISCAUX' | 'FRAIS_COURRIER' | 'FRAIS_DEPLACEMENT' | 'FRAIS_EXPERTISE' | 'AUTRES';
 
 export interface DossierRecouvrement {
     id: string;
@@ -32,8 +34,31 @@ export interface DossierRecouvrement {
     };
     actions?: any[];
     paiements?: PaiementRecouvrement[];
+    depenses?: DepenseDossier[];
+    honoraires?: HonoraireRecouvrement[];
     createdAt: string;
     updatedAt: string;
+}
+
+export interface HonoraireRecouvrement {
+    id: string;
+    dossierId: string;
+    type: TypeHonoraires;
+    montantPrevu: number;
+    pourcentage?: number;
+    montantPaye: number;
+    createdAt: string;
+}
+
+export interface DepenseDossier {
+    id: string;
+    dossierId: string;
+    date: string;
+    nature: string;
+    typeDepense: TypeDepenseDossier;
+    montant: number;
+    justificatif?: string;
+    createdAt: string;
 }
 
 export interface PaiementRecouvrement {
@@ -121,6 +146,15 @@ export interface CreatePaiementData {
     mode: ModePaiement;
     reference?: string;
     commentaire?: string;
+}
+
+export interface CreateDepenseData {
+    dossierId: string;
+    date: string;
+    nature: string;
+    typeDepense: TypeDepenseDossier;
+    montant: number;
+    justificatif?: string;
 }
 
 // Hook pour la liste des dossiers
@@ -335,5 +369,53 @@ export function useRecouvrementDashboard() {
             return response.data!;
         },
         staleTime: 10 * 60 * 1000,
+    });
+}
+
+// Hook pour ajouter une dépense
+export function useCreateDepenseRecouvrement() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: CreateDepenseData) => {
+            const response = await nestjsApi.post('/recouvrement/depenses', data);
+            if (response.error) throw new Error(response.error);
+            return response.data;
+        },
+        onSuccess: (_, variables: any) => {
+            queryClient.invalidateQueries({ queryKey: ['recouvrement', 'dossiers', variables.dossierId] });
+            toast.success('Dépense enregistrée');
+        },
+    });
+}
+
+// Hook pour supprimer une dépense
+export function useDeleteDepenseRecouvrement() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, dossierId }: { id: string; dossierId: string }) => {
+            const response = await nestjsApi.delete(`/recouvrement/depenses/${id}`);
+            if (response.error) throw new Error(response.error);
+            return { id, dossierId };
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['recouvrement', 'dossiers', data.dossierId] });
+            toast.success('Dépense supprimée');
+        },
+    });
+}
+
+// Hook pour mettre à jour les honoraires
+export function useUpdateHonoraireRecouvrement() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, dossierId, ...data }: { id: string, dossierId: string, type: TypeHonoraires, montantPrevu: number, pourcentage?: number }) => {
+            const response = await nestjsApi.patch(`/recouvrement/honoraires/${id}`, data);
+            if (response.error) throw new Error(response.error);
+            return { dossierId };
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['recouvrement', 'dossiers', data.dossierId] });
+            toast.success('Honoraires mis à jour');
+        },
     });
 }

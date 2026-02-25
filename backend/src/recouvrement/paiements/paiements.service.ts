@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma.service';
 import { CreatePaiementDto } from './dto/create-paiement.dto';
 import { UpdatePaiementDto } from './dto/update-paiement.dto';
@@ -75,28 +75,50 @@ export class PaiementsService {
     }
 
     async create(createPaiementDto: CreatePaiementDto, userId: string): Promise<PaiementResponseDto> {
-        // Vérifier que le dossier existe
+        // Vérifier que le dossier existe avec ses paiements existants
         const dossier = await this.prisma.dossiersRecouvrement.findUnique({
             where: { id: createPaiementDto.dossierId },
+            include: { paiementsRecouvrements: true }
         });
 
         if (!dossier) {
             throw new NotFoundException(`Dossier avec l'ID ${createPaiementDto.dossierId} non trouvé`);
         }
 
-        const paiement = await this.prisma.paiementsRecouvrement.create({
-            data: {
-                dossierId: createPaiementDto.dossierId,
-                date: parseDate(createPaiementDto.date),
-                montant: createPaiementDto.montant,
-                mode: createPaiementDto.mode,
-                reference: createPaiementDto.reference,
-                commentaire: createPaiementDto.commentaire,
-                createdBy: userId,
-            },
-            include: {
-                dossiersRecouvrement: { select: { reference: true } },
-            },
+        // Calculer le solde restant
+        const totalDejaPaye = dossier.paiementsRecouvrements.reduce((sum, p) => sum + Number(p.montant), 0);
+        const soldeRestant = Number(dossier.totalARecouvrer) - totalDejaPaye;
+
+        if (createPaiementDto.montant > soldeRestant) {
+            throw new BadRequestException(`Le montant du paiement (${createPaiementDto.montant}) dépasse le solde restant du dossier (${soldeRestant})`);
+        }
+
+        const paiement = await this.prisma.$transaction(async (tx) => {
+            const p = await tx.paiementsRecouvrement.create({
+                data: {
+                    dossierId: createPaiementDto.dossierId,
+                    date: parseDate(createPaiementDto.date),
+                    montant: createPaiementDto.montant,
+                    mode: createPaiementDto.mode,
+                    reference: createPaiementDto.reference,
+                    commentaire: createPaiementDto.commentaire,
+                    createdBy: userId,
+                },
+                include: {
+                    dossiersRecouvrement: { select: { reference: true } },
+                },
+            });
+
+            // Si le dossier est soldé ou dépassement (si on autorisait), on change son statut
+            // Ici on est strict, donc pile poil égal
+            if (createPaiementDto.montant >= soldeRestant) {
+                await tx.dossiersRecouvrement.update({
+                    where: { id: dossier.id },
+                    data: { statut: 'CLOTURE' }
+                });
+            }
+
+            return p;
         });
 
         return this.mapToResponseDto(paiement);

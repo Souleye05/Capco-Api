@@ -14,7 +14,7 @@ export class CreatePaiementDto {
 
     @ApiProperty({ description: 'Montant du paiement' })
     @IsNumber()
-    @Min(0)
+    @Min(1)
     montant: number;
 
     @ApiProperty({ enum: ModePaiement, description: 'Mode de paiement' })

@@ -88,7 +88,7 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
 - [x] 6. Checkpoint - Infrastructure de base
   - S'assurer que tous les tests passent, demander à l'utilisateur si des questions se posent.
 
-- [-] 7. Module Contentieux
+- [x] 7. Module Contentieux
   - [x] 7.1 Créer les entités et DTOs du contentieux
     - Créer les DTOs pour Affaires (CreateAffaireDto, UpdateAffaireDto, AffaireResponseDto)
     - Créer les DTOs pour Audiences (CreateAudienceDto, UpdateAudienceDto, etc.)
@@ -96,64 +96,64 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - Implémenter la validation avec class-validator
     - _Exigences: 4.1, 4.3_
 
-  - [ ] 7.2 Implémenter ContentieuxService
+  - [x] 7.2 Implémenter ContentieuxService
     - Créer AffairesService avec CRUD complet
     - Créer AudiencesService avec gestion des résultats
     - Créer HonorairesContentieuxService et DepensesAffairesService
     - Intégrer la génération automatique de références
     - _Exigences: 5.1, 6.2_
 
-  - [ ] 7.3 Créer ContentieuxController
+  - [x] 7.3 Créer ContentieuxController
     - Implémenter tous les endpoints CRUD pour les affaires
     - Implémenter les endpoints pour audiences et résultats
     - Implémenter les endpoints pour honoraires et dépenses
     - Appliquer les guards d'authentification et de rôles
     - _Exigences: 5.1, 2.4, 2.5_
 
-  - [ ]* 7.4 Écrire les tests de propriété pour le module Contentieux
+  - [x]* 7.4 Écrire les tests de propriété pour le module Contentieux
     - **Propriété 8: Validation des données d'entrée**
     - **Propriété 10: Endpoints CRUD complets par domaine**
     - **Valide: Exigences 4.2, 4.4, 5.1**
 
 - [ ] 8. Module Recouvrement
-  - [ ] 8.1 Créer les entités et DTOs du recouvrement
+  - [x] 8.1 Créer les entités et DTOs du recouvrement
     - Créer les DTOs pour DossiersRecouvrement avec validation complète
     - Créer les DTOs pour ActionsRecouvrement, PaiementsRecouvrement
     - Créer les DTOs pour HonorairesRecouvrement et DepensesDossier
     - _Exigences: 4.1, 4.3_
 
-  - [ ] 8.2 Implémenter RecouvrementService
+  - [x] 8.2 Implémenter RecouvrementService
     - Créer DossiersRecouvrementService avec logique métier
     - Créer ActionsRecouvrementService et PaiementsRecouvrementService
     - Implémenter la gestion des relations avec les parties
     - Intégrer la génération de références automatique
     - _Exigences: 5.2, 6.2_
 
-  - [ ] 8.3 Créer RecouvrementController
+  - [x] 8.3 Créer RecouvrementController
     - Implémenter tous les endpoints CRUD pour les dossiers
     - Implémenter les endpoints pour actions et paiements
     - Gérer les relations avec les locataires via LocatairesDossiersRecouvrement
     - _Exigences: 5.2_
 
-  - [ ]* 8.4 Écrire les tests de propriété pour le module Recouvrement
+  - [x] 8.4 Écrire les tests de propriété pour le module Recouvrement
     - **Propriété 21: Gestion transactionnelle des opérations complexes**
     - **Valide: Exigences 9.4**
 
-- [ ] 9. Module Immobilier
-  - [ ] 9.1 Créer les entités et DTOs de l'immobilier
+- [x] 9. Module Immobilier
+  - [x] 9.1 Créer les entités et DTOs de l'immobilier
     - Créer les DTOs pour Proprietaires, Immeubles, Lots
     - Créer les DTOs pour Locataires, Baux, EncaissementsLoyers
     - Créer les DTOs pour DepensesImmeubles et RapportsGestion
     - _Exigences: 4.1, 4.3_
 
-  - [ ] 9.2 Implémenter ImmobilierService
+  - [x] 9.2 Implémenter ImmobilierService
     - Créer ProprietairesService et ImmeublesService
     - Créer LotsService et LocatairesService avec gestion des relations
     - Créer BauxService et EncaissementsService
     - Implémenter RapportsGestionService avec calculs automatiques
     - _Exigences: 5.3_
 
-  - [ ] 9.3 Créer ImmobilierController
+  - [x] 9.3 Créer ImmobilierController
     - Implémenter tous les endpoints CRUD pour le patrimoine immobilier
     - Gérer les relations complexes entre entités
     - Implémenter les endpoints de génération de rapports

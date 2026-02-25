@@ -28,52 +28,56 @@ export class BauxService {
     } satisfies Prisma.BauxInclude;
 
     async create(createDto: CreateBailDto, userId: string) {
-        const lot = await this.prisma.lots.findUnique({
-            where: { id: createDto.lotId },
-        });
-
-        if (!lot) {
-            throw new NotFoundException(`Lot avec l'ID ${createDto.lotId} non trouvé`);
-        }
-
-        const locataire = await this.prisma.locataires.findUnique({
-            where: { id: createDto.locataireId },
-        });
-
-        if (!locataire) {
-            throw new NotFoundException(`Locataire avec l'ID ${createDto.locataireId} non trouvé`);
-        }
-
-        const result = await this.prisma.$transaction(async (tx) => {
-            const bail = await tx.baux.create({
-                data: {
-                    lotId: createDto.lotId,
-                    locataireId: createDto.locataireId,
-                    dateDebut: parseDate(createDto.dateDebut),
-                    dateFin: parseDateOptional(createDto.dateFin),
-                    montantLoyer: createDto.montantLoyer,
-                    jourPaiementPrevu: createDto.jourPaiementPrevu || 5,
-                    statut: createDto.statut || StatutBail.ACTIF,
-                    createdBy: userId,
-                },
-                include: BauxService.DEFAULT_INCLUDE,
+        try {
+            const lot = await this.prisma.lots.findUnique({
+                where: { id: createDto.lotId },
             });
 
-            if (createDto.statut !== StatutBail.INACTIF) {
-                await tx.lots.update({
-                    where: { id: createDto.lotId },
-                    data: {
-                        statut: 'OCCUPE',
-                        locataireId: createDto.locataireId,
-                        loyerMensuelAttendu: createDto.montantLoyer,
-                    },
-                });
+            if (!lot) {
+                throw new NotFoundException(`Lot avec l'ID ${createDto.lotId} non trouvé`);
             }
 
-            return bail;
-        });
+            const locataire = await this.prisma.locataires.findUnique({
+                where: { id: createDto.locataireId },
+            });
 
-        return BauxService.mapToResponseDto(result);
+            if (!locataire) {
+                 new NotFoundException(`Locataire avec l'ID ${createDto.locataireId} non trouvé`);
+            }
+
+            const result = await this.prisma.$transaction(async (tx) => {
+                const bail = await tx.baux.create({
+                    data: {
+                        lotId: createDto.lotId,
+                        locataireId: createDto.locataireId,
+                        dateDebut: parseDate(createDto.dateDebut),
+                        dateFin: parseDateOptional(createDto.dateFin),
+                        montantLoyer: createDto.montantLoyer,
+                        jourPaiementPrevu: createDto.jourPaiementPrevu || 5,
+                        statut: createDto.statut || StatutBail.ACTIF,
+                        createdBy: userId,
+                    },
+                    include: BauxService.DEFAULT_INCLUDE,
+                });
+
+                if (createDto.statut !== StatutBail.INACTIF) {
+                    await tx.lots.update({
+                        where: { id: createDto.lotId },
+                        data: {
+                            statut: 'OCCUPE',
+                            locataireId: createDto.locataireId,
+                            loyerMensuelAttendu: createDto.montantLoyer,
+                        },
+                    });
+                }
+
+                return bail;
+            });
+
+            return BauxService.mapToResponseDto(result);
+        } catch (error) {
+             handlePrismaError(error, 'Bail');
+        }
     }
 
     async findByLot(lotId: string) {
@@ -97,83 +101,87 @@ export class BauxService {
     }
 
     async findOne(id: string) {
-        const bail = await this.prisma.baux.findUnique({
-            where: { id },
-            include: BauxService.DEFAULT_INCLUDE,
-        });
-
-        if (!bail) {
-            throw new NotFoundException(`Bail avec l'ID ${id} non trouvé`);
-        }
-
-        return BauxService.mapToResponseDto(bail);
-    }
-
-    async update(id: string, updateDto: UpdateBailDto) {
-        const existing = await this.prisma.baux.findUnique({ where: { id } });
-        if (!existing) {
-            throw new NotFoundException(`Bail avec l'ID ${id} non trouvé`);
-        }
-
-        const data: Prisma.BauxUncheckedUpdateInput = {};
-        if (updateDto.dateDebut) data.dateDebut = parseDate(updateDto.dateDebut);
-        if (updateDto.dateFin !== undefined) data.dateFin = parseDateOptional(updateDto.dateFin);
-        if (updateDto.montantLoyer !== undefined) data.montantLoyer = updateDto.montantLoyer;
-        if (updateDto.jourPaiementPrevu !== undefined) data.jourPaiementPrevu = updateDto.jourPaiementPrevu;
-        if (updateDto.statut !== undefined) data.statut = updateDto.statut;
-
-        const result = await this.prisma.$transaction(async (tx) => {
-            const bail = await tx.baux.update({
+            const bail = await this.prisma.baux.findUnique({
                 where: { id },
-                data,
                 include: BauxService.DEFAULT_INCLUDE,
             });
 
-            if (updateDto.statut === StatutBail.INACTIF) {
-                await tx.lots.update({
-                    where: { id: existing.lotId },
-                    data: {
-                        statut: 'LIBRE',
-                        locataireId: null,
-                    },
-                });
+            if (!bail) {
+                throw new NotFoundException(`Bail avec l'ID ${id} non trouvé`);
             }
 
-            if (updateDto.montantLoyer !== undefined && updateDto.statut !== StatutBail.INACTIF) {
-                await tx.lots.update({
-                    where: { id: existing.lotId },
-                    data: { loyerMensuelAttendu: updateDto.montantLoyer },
+            return BauxService.mapToResponseDto(bail);        
+    }
+
+    async update(id: string, updateDto: UpdateBailDto) {
+        try {
+            const data: Prisma.BauxUncheckedUpdateInput = {};
+            if (updateDto.dateDebut) data.dateDebut = parseDate(updateDto.dateDebut);
+            if (updateDto.dateFin !== undefined) data.dateFin = parseDateOptional(updateDto.dateFin);
+            if (updateDto.montantLoyer !== undefined) data.montantLoyer = updateDto.montantLoyer;
+            if (updateDto.jourPaiementPrevu !== undefined) data.jourPaiementPrevu = updateDto.jourPaiementPrevu;
+            if (updateDto.statut !== undefined) data.statut = updateDto.statut;
+
+            const result = await this.prisma.$transaction(async (tx) => {
+                const bail = await tx.baux.update({
+                    where: { id },
+                    data,
+                    include: BauxService.DEFAULT_INCLUDE,
                 });
-            }
 
-            return bail;
-        });
+                // Consolidate lot updates into a single operation
+                const lotUpdateData: Prisma.LotsUncheckedUpdateInput = {};
+                let shouldUpdateLot = false;
 
-        return BauxService.mapToResponseDto(result);
+                if (updateDto.statut === StatutBail.INACTIF) {
+                    lotUpdateData.statut = 'LIBRE';
+                    lotUpdateData.locataireId = null;
+                    shouldUpdateLot = true;
+                } else if (updateDto.montantLoyer !== undefined) {
+                    lotUpdateData.loyerMensuelAttendu = updateDto.montantLoyer;
+                    shouldUpdateLot = true;
+                }
+
+                if (shouldUpdateLot) {
+                    await tx.lots.update({
+                        where: { id: bail.lotId },
+                        data: lotUpdateData,
+                    });
+                }
+
+                return bail;
+            });
+
+            return BauxService.mapToResponseDto(result);
+        } catch (error) {
+             handlePrismaError(error, 'Bail');
+        }
     }
 
     async remove(id: string): Promise<void> {
-        const bail = await this.prisma.baux.findUnique({ where: { id } });
-        if (!bail) {
-            throw new NotFoundException(`Bail avec l'ID ${id} non trouvé`);
-        }
-
-        await this.prisma.$transaction(async (tx) => {
-            await tx.baux.delete({ where: { id } });
-
-            if (bail.statut === StatutBail.ACTIF) {
-                const otherActiveBaux = await tx.baux.count({
-                    where: { lotId: bail.lotId, statut: 'ACTIF' },
+        try {
+            await this.prisma.$transaction(async (tx) => {
+                const bail = await tx.baux.delete({ 
+                    where: { id },
+                    select: { lotId: true, statut: true }
                 });
 
-                if (otherActiveBaux === 0) {
-                    await tx.lots.update({
-                        where: { id: bail.lotId },
-                        data: { statut: 'LIBRE', locataireId: null },
+                if (bail.statut === StatutBail.ACTIF) {
+                    const otherActiveBaux = await tx.baux.count({
+                        where: { lotId: bail.lotId, statut: 'ACTIF' },
                     });
+
+                    if (otherActiveBaux === 0) {
+                        await tx.lots.update({
+                            where: { id: bail.lotId },
+                            data: { statut: 'LIBRE', locataireId: null },
+                        });
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+             handlePrismaError(error, 'Bail');
+        }
     }
 
     private static mapToResponseDto(bail: BailWithInclude) {

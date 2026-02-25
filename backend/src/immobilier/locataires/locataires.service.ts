@@ -50,11 +50,11 @@ export class LocatairesService {
     } satisfies Prisma.LocatairesInclude;
 
     async create(createDto: CreateLocataireDto, userId: string): Promise<LocataireResponseDto> {
+        const { ...data } = createDto;
         const locataire = await this.prisma.locataires.create({
             data: {
-                nom: createDto.nom,
-                telephone: createDto.telephone,
-                email: createDto.email,
+                ...data,
+                dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : null,
                 createdBy: userId,
             },
             include: LocatairesService.DEFAULT_INCLUDE,
@@ -69,7 +69,7 @@ export class LocatairesService {
             query,
             {
                 include: LocatairesService.DEFAULT_INCLUDE,
-                searchFields: ['nom', 'telephone', 'email'],
+                searchFields: ['nom', 'telephone', 'email', 'profession'],
                 defaultSortBy: 'createdAt',
             },
         );
@@ -94,15 +94,14 @@ export class LocatairesService {
     }
 
     async update(id: string, updateDto: UpdateLocataireDto): Promise<LocataireResponseDto> {
-        const data: Prisma.LocatairesUpdateInput = {};
-        if (updateDto.nom !== undefined) data.nom = updateDto.nom;
-        if (updateDto.telephone !== undefined) data.telephone = updateDto.telephone;
-        if (updateDto.email !== undefined) data.email = updateDto.email;
-
         try {
+            const { ...data } = updateDto;
             const locataire = await this.prisma.locataires.update({
                 where: { id },
-                data,
+                data: {
+                    ...data,
+                    dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : undefined,
+                },
                 include: LocatairesService.DEFAULT_INCLUDE,
             });
 
@@ -126,6 +125,20 @@ export class LocatairesService {
             nom: locataire.nom,
             telephone: locataire.telephone ?? undefined,
             email: locataire.email ?? undefined,
+            adresse: locataire.adresse ?? undefined,
+            profession: locataire.profession ?? undefined,
+            lieuTravail: locataire.lieuTravail ?? undefined,
+            personneContactUrgence: locataire.personneContactUrgence ?? undefined,
+            telephoneUrgence: locataire.telephoneUrgence ?? undefined,
+            numeroPieceIdentite: locataire.numeroPieceIdentite ?? undefined,
+            typePieceIdentite: locataire.typePieceIdentite ?? undefined,
+            nationalite: locataire.nationalite ?? undefined,
+            dateNaissance: locataire.dateNaissance ?? undefined,
+            situationFamiliale: locataire.situationFamiliale ?? undefined,
+            notes: locataire.notes ?? undefined,
+            pieceIdentiteUrl: locataire.pieceIdentiteUrl ?? undefined,
+            contratUrl: locataire.contratUrl ?? undefined,
+            documents: locataire.documents,
             nombreLots: locataire.lots.length,
             nombreBauxActifs: locataire.baux.length,
             lots: locataire.lots.map((l) => ({

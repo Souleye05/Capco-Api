@@ -51,16 +51,16 @@ import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 
 interface LoyerAttendu {
   id: string;
-  lot_id: string;
-  lot_numero: string;
-  immeuble_id: string;
-  immeuble_nom: string;
-  locataire_nom: string;
+  lotId: string;
+  lotNumero: string;
+  immeubleId: string;
+  immeubleNom: string;
+  locataireNom: string;
   mois: string;
-  montant_attendu: number;
-  taux_commission: number;
+  montantAttendu: number;
+  tauxCommission: number;
   statut: 'IMPAYE' | 'PAYE';
-  encaissement_id?: string;
+  encaissementId?: string;
 }
 
 export default function ImpayesPage() {
@@ -104,38 +104,38 @@ export default function ImpayesPage() {
     return lots
       .filter(lot => lot.statut === 'OCCUPE')
       .map(lot => {
-        const immeuble = immeubles.find(i => i.id === lot.immeuble_id);
+        const immeuble = immeubles.find(i => i.id === lot.immeubleId);
 
         // Vérifier si un encaissement existe pour ce lot et ce mois
         const encaissement = encaissements.find(e =>
-          e.lot_id === lot.id &&
-          e.mois_concerne === selectedMois
+          e.lotId === lot.id &&
+          e.moisConcerne === selectedMois
         );
 
         return {
           id: `${lot.id}-${selectedMois}`,
-          lot_id: lot.id,
-          lot_numero: lot.numero,
-          immeuble_id: lot.immeuble_id,
-          immeuble_nom: immeuble?.nom || 'N/A',
-          locataire_nom: (lot as any).locataires?.nom || 'N/A',
+          lotId: lot.id,
+          lotNumero: lot.numero,
+          immeubleId: lot.immeubleId,
+          immeubleNom: immeuble?.nom || 'N/A',
+          locataireNom: (lot as any).locataires?.nom || 'N/A',
           mois: selectedMois,
-          montant_attendu: lot.loyer_mensuel_attendu,
-          taux_commission: immeuble?.taux_commission_capco || 5,
+          montantAttendu: lot.loyerMensuelAttendu,
+          tauxCommission: immeuble?.tauxCommissionCapco || 5,
           statut: encaissement ? 'PAYE' : 'IMPAYE',
-          encaissement_id: encaissement?.id
+          encaissementId: encaissement?.id
         } as LoyerAttendu;
       })
       .filter(loyer => {
         // Filtre par immeuble
-        if (selectedImmeuble !== 'all' && loyer.immeuble_id !== selectedImmeuble) return false;
+        if (selectedImmeuble !== 'all' && loyer.immeubleId !== selectedImmeuble) return false;
 
         // Filtre par recherche
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          if (!loyer.lot_numero.toLowerCase().includes(query) &&
-            !loyer.immeuble_nom.toLowerCase().includes(query) &&
-            !loyer.locataire_nom.toLowerCase().includes(query)) {
+          if (!loyer.lotNumero.toLowerCase().includes(query) &&
+            !loyer.immeubleNom.toLowerCase().includes(query) &&
+            !loyer.locataireNom.toLowerCase().includes(query)) {
             return false;
           }
         }
@@ -148,14 +148,14 @@ export default function ImpayesPage() {
       });
   }, [lots, immeubles, encaissements, selectedMois, selectedImmeuble, searchQuery, showPaidOnly]);
 
-  const totalAttendu = loyersAttendus.reduce((sum, l) => sum + l.montant_attendu, 0);
-  const totalImpayes = loyersAttendus.filter(l => l.statut === 'IMPAYE').reduce((sum, l) => sum + l.montant_attendu, 0);
-  const totalPayes = loyersAttendus.filter(l => l.statut === 'PAYE').reduce((sum, l) => sum + l.montant_attendu, 0);
+  const totalAttendu = loyersAttendus.reduce((sum, l) => sum + l.montantAttendu, 0);
+  const totalImpayes = loyersAttendus.filter(l => l.statut === 'IMPAYE').reduce((sum, l) => sum + l.montantAttendu, 0);
+  const totalPayes = loyersAttendus.filter(l => l.statut === 'PAYE').reduce((sum, l) => sum + l.montantAttendu, 0);
   const nbImpayes = loyersAttendus.filter(l => l.statut === 'IMPAYE').length;
 
   const openPaiementDialog = (loyer: LoyerAttendu) => {
     setSelectedLoyer(loyer);
-    setPaiementMontant(loyer.montant_attendu.toString());
+    setPaiementMontant(loyer.montantAttendu.toString());
     setPaiementMode('VIREMENT');
     setPaiementDate(new Date());
     setPaiementDialogOpen(true);
@@ -170,20 +170,13 @@ export default function ImpayesPage() {
       return;
     }
 
-    const commission = montant * (selectedLoyer.taux_commission / 100);
-    const netProprietaire = montant - commission;
-
     try {
       await createEncaissement.mutateAsync({
-        lot_id: selectedLoyer.lot_id,
-        date_encaissement: format(paiementDate, 'yyyy-MM-dd'),
-        mois_concerne: selectedLoyer.mois,
-        montant_encaisse: montant,
-        mode_paiement: paiementMode,
-        commission_capco: commission,
-        net_proprietaire: netProprietaire,
-        observation: null,
-        created_by: user?.id || ''
+        lotId: selectedLoyer.lotId,
+        dateEncaissement: format(paiementDate, 'yyyy-MM-dd'),
+        moisConcerne: selectedLoyer.mois,
+        montantEncaisse: montant,
+        modePaiement: paiementMode,
       });
 
       setPaiementDialogOpen(false);
@@ -366,21 +359,21 @@ export default function ImpayesPage() {
                     <TableCell>
                       <div
                         className="flex items-center gap-2 hover:text-primary cursor-pointer"
-                        onClick={() => navigate(`/immobilier/immeubles/${loyer.immeuble_id}`)}
+                        onClick={() => navigate(`/immobilier/immeubles/${loyer.immeubleId}`)}
                       >
                         <Building2 className="h-4 w-4" />
-                        {loyer.immeuble_nom}
+                        {loyer.immeubleNom}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{loyer.lot_numero}</Badge>
+                      <Badge variant="outline">{loyer.lotNumero}</Badge>
                     </TableCell>
-                    <TableCell>{loyer.locataire_nom}</TableCell>
+                    <TableCell>{loyer.locataireNom}</TableCell>
                     <TableCell>
                       {new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(loyer.mois + '-01'))}
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatCurrency(loyer.montant_attendu)}
+                      {formatCurrency(loyer.montantAttendu)}
                     </TableCell>
                     <TableCell>
                       {loyer.statut === 'PAYE' ? (
@@ -420,7 +413,7 @@ export default function ImpayesPage() {
             <DialogTitle>Enregistrer un paiement</DialogTitle>
             <DialogDescription>
               {selectedLoyer && (
-                <>Lot {selectedLoyer.lot_numero} - {selectedLoyer.immeuble_nom} - {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedLoyer.mois + '-01'))}</>
+                <>Lot {selectedLoyer.lotNumero} - {selectedLoyer.immeubleNom} - {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedLoyer.mois + '-01'))}</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -457,7 +450,7 @@ export default function ImpayesPage() {
               />
               {selectedLoyer && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  Montant attendu : {formatCurrency(selectedLoyer.montant_attendu)}
+                  Montant attendu : {formatCurrency(selectedLoyer.montantAttendu)}
                 </p>
               )}
             </div>
@@ -481,15 +474,15 @@ export default function ImpayesPage() {
             {selectedLoyer && paiementMontant && (
               <div className="bg-muted p-4 rounded-lg space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Commission CAPCO ({selectedLoyer.taux_commission}%)</span>
+                  <span>Commission CAPCO ({selectedLoyer.tauxCommission}%)</span>
                   <span className="font-medium">
-                    {formatCurrency(parseFloat(paiementMontant) * (selectedLoyer.taux_commission / 100))}
+                    {formatCurrency(parseFloat(paiementMontant) * (selectedLoyer.tauxCommission / 100))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Net propriétaire</span>
                   <span className="font-medium">
-                    {formatCurrency(parseFloat(paiementMontant) * (1 - selectedLoyer.taux_commission / 100))}
+                    {formatCurrency(parseFloat(paiementMontant) * (1 - selectedLoyer.tauxCommission / 100))}
                   </span>
                 </div>
               </div>
@@ -509,3 +502,6 @@ export default function ImpayesPage() {
     </div>
   );
 }
+
+
+

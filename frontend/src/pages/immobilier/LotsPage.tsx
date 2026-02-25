@@ -87,7 +87,7 @@ export default function LotsPage() {
 
   // Enrichir les lots avec les données des immeubles
   const enrichedLots = lots.map(lot => {
-    const immeuble = immeubles.find(i => i.id === lot.immeuble_id);
+    const immeuble = immeubles.find(i => i.id === lot.immeubleId);
     return {
       ...lot,
       immeuble
@@ -99,7 +99,7 @@ export default function LotsPage() {
       lot.numero.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lot.immeuble?.nom.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesImmeuble = selectedImmeuble === 'all' || lot.immeuble_id === selectedImmeuble;
+    const matchesImmeuble = selectedImmeuble === 'all' || lot.immeubleId === selectedImmeuble;
     const matchesStatut = selectedStatut === 'all' || lot.statut === selectedStatut;
     
     return matchesSearch && matchesImmeuble && matchesStatut;
@@ -125,14 +125,14 @@ export default function LotsPage() {
     
     try {
       await createLot.mutateAsync({
-        immeuble_id: lotImmeuble,
+        immeubleId: lotImmeuble,
         numero: lotNumero,
         type: lotType,
         etage: lotEtage || null,
-        loyer_mensuel_attendu: loyer,
+        loyerMensuelAttendu: loyer,
         statut: 'LIBRE',
-        locataire_id: null,
-        created_by: user?.id
+        locataireId: null,
+        createdBy: user?.id
       });
       
       setLotDialogOpen(false);
@@ -149,8 +149,8 @@ export default function LotsPage() {
   const openEditDialog = (lot: LotDB) => {
     setEditingLot(lot);
     setEditStatut(lot.statut as 'OCCUPE' | 'LIBRE');
-    setEditLocataire(lot.locataire_id || 'none');
-    setEditLoyer(String(lot.loyer_mensuel_attendu));
+    setEditLocataire(lot.locataireId || 'none');
+    setEditLoyer(String(lot.loyerMensuelAttendu));
     setEditNumero(lot.numero);
     setEditType(lot.type || 'AUTRE');
     setEditEtage(lot.etage || '');
@@ -172,9 +172,9 @@ export default function LotsPage() {
         numero: editNumero,
         type: editType as 'STUDIO' | 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'MAGASIN' | 'BUREAU' | 'AUTRE',
         etage: editEtage || null,
-        loyer_mensuel_attendu: loyer,
+        loyerMensuelAttendu: loyer,
         statut: editStatut,
-        locataire_id: editStatut === 'LIBRE' ? null : (editLocataire === 'none' ? null : editLocataire)
+        locataireId: editStatut === 'LIBRE' ? null : (editLocataire === 'none' ? null : editLocataire)
       });
       
       setEditDialogOpen(false);
@@ -276,7 +276,7 @@ export default function LotsPage() {
                     <TableCell>
                       <div 
                         className="flex items-center gap-2 hover:text-primary cursor-pointer"
-                        onClick={() => navigate(`/immobilier/immeubles/${lot.immeuble_id}`)}
+                        onClick={() => navigate(`/immobilier/immeubles/${lot.immeubleId}`)}
                       >
                         <Building2 className="h-4 w-4" />
                         {lot.immeuble?.nom}
@@ -287,7 +287,7 @@ export default function LotsPage() {
                     </TableCell>
                     <TableCell>{lot.etage || '-'}</TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatCurrency(lot.loyer_mensuel_attendu)}
+                      {formatCurrency(lot.loyerMensuelAttendu)}
                     </TableCell>
                     <TableCell>
                       <Badge className={cn(
@@ -309,7 +309,7 @@ export default function LotsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem 
                             className="gap-2"
-                            onClick={() => navigate(`/immobilier/immeubles/${lot.immeuble_id}`)}
+                            onClick={() => navigate(`/immobilier/immeubles/${lot.immeubleId}`)}
                           >
                             <Eye className="h-4 w-4" /> Voir immeuble
                           </DropdownMenuItem>
@@ -532,3 +532,6 @@ export default function LotsPage() {
     </div>
   );
 }
+
+
+

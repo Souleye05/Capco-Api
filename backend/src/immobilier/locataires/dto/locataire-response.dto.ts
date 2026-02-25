@@ -13,16 +13,58 @@ export class LocataireResponseDto {
     @ApiPropertyOptional({ description: 'Email' })
     email?: string;
 
-    @ApiProperty({ description: 'Nombre de lots occupés' })
+    @ApiProperty()
     nombreLots: number;
 
-    @ApiProperty({ description: 'Nombre de baux actifs' })
+    @ApiProperty()
     nombreBauxActifs: number;
 
-    @ApiPropertyOptional({ type: [Object], description: 'Lots occupés' })
+    @ApiPropertyOptional()
+    adresse?: string;
+
+    @ApiPropertyOptional()
+    profession?: string;
+
+    @ApiPropertyOptional()
+    lieuTravail?: string;
+
+    @ApiPropertyOptional()
+    personneContactUrgence?: string;
+
+    @ApiPropertyOptional()
+    telephoneUrgence?: string;
+
+    @ApiPropertyOptional()
+    numeroPieceIdentite?: string;
+
+    @ApiPropertyOptional()
+    typePieceIdentite?: string;
+
+    @ApiPropertyOptional()
+    nationalite?: string;
+
+    @ApiPropertyOptional()
+    dateNaissance?: Date;
+
+    @ApiPropertyOptional()
+    situationFamiliale?: string;
+
+    @ApiPropertyOptional()
+    notes?: string;
+
+    @ApiPropertyOptional()
+    pieceIdentiteUrl?: string;
+
+    @ApiPropertyOptional()
+    contratUrl?: string;
+
+    @ApiPropertyOptional()
+    documents?: any;
+
+    @ApiPropertyOptional({ type: [Object] })
     lots?: any[];
 
-    @ApiPropertyOptional({ type: [Object], description: 'Baux actifs' })
+    @ApiPropertyOptional({ type: [Object] })
     baux?: any[];
 
     @ApiProperty()

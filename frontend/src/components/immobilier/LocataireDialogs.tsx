@@ -78,7 +78,6 @@ export function CreateLocataireDialog({ open, onOpenChange, onSuccess, userId }:
             nom: formData.nom,
             telephone: formData.telephone || null,
             email: formData.email || null,
-            created_by: userId || null,
         }, {
             onSuccess: () => {
                 onOpenChange(false);
@@ -144,14 +143,14 @@ export function EditLocataireDialog({ open, onOpenChange, locataire }: EditLocat
                 email: locataire.email || '',
                 adresse: locataire.adresse || '',
                 profession: locataire.profession || '',
-                lieu_travail: locataire.lieu_travail || '',
-                type_piece_identite: locataire.type_piece_identite || '',
-                numero_piece_identite: locataire.numero_piece_identite || '',
+                lieuTravail: locataire.lieuTravail || '',
+                typePieceIdentite: locataire.typePieceIdentite || '',
+                numeroPieceIdentite: locataire.numeroPieceIdentite || '',
                 nationalite: locataire.nationalite || '',
-                date_naissance: locataire.date_naissance || '',
-                situation_familiale: locataire.situation_familiale || '',
-                personne_contact_urgence: locataire.personne_contact_urgence || '',
-                telephone_urgence: locataire.telephone_urgence || '',
+                dateNaissance: locataire.dateNaissance || '',
+                situationFamiliale: locataire.situationFamiliale || '',
+                personneContactUrgence: locataire.personneContactUrgence || '',
+                telephoneUrgence: locataire.telephoneUrgence || '',
                 notes: locataire.notes || '',
             });
         }
@@ -218,18 +217,18 @@ export function EditLocataireDialog({ open, onOpenChange, locataire }: EditLocat
                         />
                     </div>
                     <div>
-                        <Label htmlFor="edit-lieu_travail">Lieu de travail</Label>
+                        <Label htmlFor="edit-lieuTravail">Lieu de travail</Label>
                         <Input
-                            id="edit-lieu_travail"
-                            value={formData.lieu_travail}
-                            onChange={(e) => setFormData({ ...formData, lieu_travail: e.target.value })}
+                            id="edit-lieuTravail"
+                            value={formData.lieuTravail}
+                            onChange={(e) => setFormData({ ...formData, lieuTravail: e.target.value })}
                         />
                     </div>
                     <div>
-                        <Label htmlFor="edit-type_piece_identite">Type de pièce d'identité</Label>
+                        <Label htmlFor="edit-typePieceIdentite">Type de pièce d'identité</Label>
                         <Select
-                            value={formData.type_piece_identite || undefined}
-                            onValueChange={(v) => setFormData({ ...formData, type_piece_identite: v })}
+                            value={formData.typePieceIdentite || undefined}
+                            onValueChange={(v) => setFormData({ ...formData, typePieceIdentite: v })}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner..." />
@@ -242,11 +241,11 @@ export function EditLocataireDialog({ open, onOpenChange, locataire }: EditLocat
                         </Select>
                     </div>
                     <div>
-                        <Label htmlFor="edit-numero_piece_identite">Numéro de pièce d'identité</Label>
+                        <Label htmlFor="edit-numeroPieceIdentite">Numéro de pièce d'identité</Label>
                         <Input
-                            id="edit-numero_piece_identite"
-                            value={formData.numero_piece_identite}
-                            onChange={(e) => setFormData({ ...formData, numero_piece_identite: e.target.value })}
+                            id="edit-numeroPieceIdentite"
+                            value={formData.numeroPieceIdentite}
+                            onChange={(e) => setFormData({ ...formData, numeroPieceIdentite: e.target.value })}
                         />
                     </div>
                     <div>
@@ -258,19 +257,19 @@ export function EditLocataireDialog({ open, onOpenChange, locataire }: EditLocat
                         />
                     </div>
                     <div>
-                        <Label htmlFor="edit-date_naissance">Date de naissance</Label>
+                        <Label htmlFor="edit-dateNaissance">Date de naissance</Label>
                         <Input
-                            id="edit-date_naissance"
+                            id="edit-dateNaissance"
                             type="date"
-                            value={formData.date_naissance || ''}
-                            onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })}
+                            value={formData.dateNaissance || ''}
+                            onChange={(e) => setFormData({ ...formData, dateNaissance: e.target.value })}
                         />
                     </div>
                     <div>
-                        <Label htmlFor="edit-situation_familiale">Situation familiale</Label>
+                        <Label htmlFor="edit-situationFamiliale">Situation familiale</Label>
                         <Select
-                            value={formData.situation_familiale || undefined}
-                            onValueChange={(v) => setFormData({ ...formData, situation_familiale: v })}
+                            value={formData.situationFamiliale || undefined}
+                            onValueChange={(v) => setFormData({ ...formData, situationFamiliale: v })}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner..." />
@@ -283,19 +282,19 @@ export function EditLocataireDialog({ open, onOpenChange, locataire }: EditLocat
                         </Select>
                     </div>
                     <div>
-                        <Label htmlFor="edit-personne_contact_urgence">Contact d'urgence</Label>
+                        <Label htmlFor="edit-personneContactUrgence">Contact d'urgence</Label>
                         <Input
-                            id="edit-personne_contact_urgence"
-                            value={formData.personne_contact_urgence}
-                            onChange={(e) => setFormData({ ...formData, personne_contact_urgence: e.target.value })}
+                            id="edit-personneContactUrgence"
+                            value={formData.personneContactUrgence}
+                            onChange={(e) => setFormData({ ...formData, personneContactUrgence: e.target.value })}
                         />
                     </div>
                     <div>
-                        <Label htmlFor="edit-telephone_urgence">Téléphone d'urgence</Label>
+                        <Label htmlFor="edit-telephoneUrgence">Téléphone d'urgence</Label>
                         <Input
-                            id="edit-telephone_urgence"
-                            value={formData.telephone_urgence}
-                            onChange={(e) => setFormData({ ...formData, telephone_urgence: e.target.value })}
+                            id="edit-telephoneUrgence"
+                            value={formData.telephoneUrgence}
+                            onChange={(e) => setFormData({ ...formData, telephoneUrgence: e.target.value })}
                         />
                     </div>
                     <div className="md:col-span-2">
@@ -320,3 +319,4 @@ export function EditLocataireDialog({ open, onOpenChange, locataire }: EditLocat
         </Dialog>
     );
 }
+

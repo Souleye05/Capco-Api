@@ -93,26 +93,26 @@ export default function RapportsPage() {
   const reportDetails = useMemo(() => {
     if (!selectedRapport) return null;
 
-    const immeubleLots = lots.filter(l => l.immeuble_id === selectedRapport.immeuble_id);
+    const immeubleLots = lots.filter(l => l.immeubleId === selectedRapport.immeubleId);
     const immeubleEncaissements = encaissements.filter(e => {
-      const lot = lots.find(l => l.id === e.lot_id);
-      return lot?.immeuble_id === selectedRapport.immeuble_id;
+      const lot = lots.find(l => l.id === e.lotId);
+      return lot?.immeubleId === selectedRapport.immeubleId;
     });
-    const immeubleDepenses = depenses.filter(d => d.immeuble_id === selectedRapport.immeuble_id);
+    const immeubleDepenses = depenses.filter(d => d.immeubleId === selectedRapport.immeubleId);
 
     // Group encaissements by lot to determine who paid
-    const paidLotIds = new Set(immeubleEncaissements.map(e => e.lot_id));
+    const paidLotIds = new Set(immeubleEncaissements.map(e => e.lotId));
 
     const locatairesStatus = immeubleLots.filter(l => l.statut === 'OCCUPE').map(lot => ({
       lot,
       locataire: lot.locataires,
       hasPaid: paidLotIds.has(lot.id),
-      paiement: immeubleEncaissements.find(e => e.lot_id === lot.id)
+      paiement: immeubleEncaissements.find(e => e.lotId === lot.id)
     }));
 
     // Group expenses by type
     const expensesByType = immeubleDepenses.reduce((acc, dep) => {
-      const type = dep.type_depense;
+      const type = dep.typeDepense;
       if (!acc[type]) {
         acc[type] = { total: 0, items: [] };
       }
@@ -136,37 +136,37 @@ export default function RapportsPage() {
     }
 
     // Calculate totals for the period
-    const immeubleLots = lots.filter(l => l.immeuble_id === genImmeuble);
+    const immeubleLots = lots.filter(l => l.immeubleId === genImmeuble);
     const selectedImmeubleData = immeubles.find(i => i.id === genImmeuble);
 
     const immeubleEncaissements = encaissements.filter(e => {
-      const lot = lots.find(l => l.id === e.lot_id);
-      if (!lot || lot.immeuble_id !== genImmeuble) return false;
-      const encDate = new Date(e.date_encaissement);
+      const lot = lots.find(l => l.id === e.lotId);
+      if (!lot || lot.immeubleId !== genImmeuble) return false;
+      const encDate = new Date(e.dateEncaissement);
       return encDate >= genDateDebut && encDate <= genDateFin;
     });
 
     const immeubleDepenses = depenses.filter(d => {
-      if (d.immeuble_id !== genImmeuble) return false;
+      if (d.immeubleId !== genImmeuble) return false;
       const depDate = new Date(d.date);
       return depDate >= genDateDebut && depDate <= genDateFin;
     });
 
-    const totalLoyers = immeubleEncaissements.reduce((sum, e) => sum + e.montant_encaisse, 0);
+    const totalLoyers = immeubleEncaissements.reduce((sum, e) => sum + e.montantEncaisse, 0);
     const totalDepenses = immeubleDepenses.reduce((sum, d) => sum + d.montant, 0);
-    const tauxCommission = selectedImmeubleData?.taux_commission_capco || 10;
+    const tauxCommission = selectedImmeubleData?.tauxCommissionCapco || 10;
     const totalCommissions = totalLoyers * (tauxCommission / 100);
     const netProprietaire = totalLoyers - totalDepenses - totalCommissions;
 
     await createRapport.mutateAsync({
-      immeuble_id: genImmeuble,
-      periode_debut: format(genDateDebut, 'yyyy-MM-dd'),
-      periode_fin: format(genDateFin, 'yyyy-MM-dd'),
-      total_loyers: totalLoyers,
-      total_depenses: totalDepenses,
-      total_commissions: totalCommissions,
-      net_proprietaire: netProprietaire,
-      generer_par: user.id,
+      immeubleId: genImmeuble,
+      periodeDebut: format(genDateDebut, 'yyyy-MM-dd'),
+      periodeFin: format(genDateFin, 'yyyy-MM-dd'),
+      totalLoyers: totalLoyers,
+      totalDepenses: totalDepenses,
+      totalCommissions: totalCommissions,
+      netProprietaire: netProprietaire,
+      genererPar: user.id,
       statut: 'GENERE'
     });
 
@@ -183,31 +183,31 @@ export default function RapportsPage() {
 
   const handleDownload = async (rapport: RapportGestionDB) => {
     // Calculate report details for PDF
-    const immeubleLots = lots.filter(l => l.immeuble_id === rapport.immeuble_id);
+    const immeubleLots = lots.filter(l => l.immeubleId === rapport.immeubleId);
     const immeubleEncaissements = encaissements.filter(e => {
-      const lot = lots.find(l => l.id === e.lot_id);
-      return lot?.immeuble_id === rapport.immeuble_id;
+      const lot = lots.find(l => l.id === e.lotId);
+      return lot?.immeubleId === rapport.immeubleId;
     });
-    const immeubleDepenses = depenses.filter(d => d.immeuble_id === rapport.immeuble_id);
+    const immeubleDepenses = depenses.filter(d => d.immeubleId === rapport.immeubleId);
 
-    const paidLotIds = new Set(immeubleEncaissements.map(e => e.lot_id));
+    const paidLotIds = new Set(immeubleEncaissements.map(e => e.lotId));
 
     const locatairesStatus = immeubleLots.filter(l => l.statut === 'OCCUPE').map(lot => ({
       lot: {
         id: lot.id,
         numero: lot.numero,
         type: lot.type,
-        loyerMensuelAttendu: lot.loyer_mensuel_attendu,
+        loyerMensuelAttendu: lot.loyerMensuelAttendu,
         locataire: lot.locataires ? { nom: lot.locataires.nom } : null
       },
       hasPaid: paidLotIds.has(lot.id),
-      paiement: immeubleEncaissements.find(e => e.lot_id === lot.id) ? {
-        montantEncaisse: immeubleEncaissements.find(e => e.lot_id === lot.id)!.montant_encaisse
+      paiement: immeubleEncaissements.find(e => e.lotId === lot.id) ? {
+        montantEncaisse: immeubleEncaissements.find(e => e.lotId === lot.id)!.montantEncaisse
       } : undefined
     }));
 
     const expensesByType = immeubleDepenses.reduce((acc, dep) => {
-      const type = dep.type_depense;
+      const type = dep.typeDepense;
       if (!acc[type]) {
         acc[type] = { total: 0, items: [] as { id: string; nature: string; description?: string | null; date: string; montant: number; typeDepense: TypeDepenseImmeuble }[] };
       }
@@ -218,7 +218,7 @@ export default function RapportsPage() {
         description: dep.description,
         date: dep.date,
         montant: dep.montant,
-        typeDepense: dep.type_depense
+        typeDepense: dep.typeDepense
       });
       return acc;
     }, {} as Record<TypeDepenseImmeuble, { total: number; items: { id: string; nature: string; description?: string | null; date: string; montant: number; typeDepense: TypeDepenseImmeuble }[] }>);
@@ -226,20 +226,20 @@ export default function RapportsPage() {
     // Transform rapport to match expected format
     const rapportForPdf = {
       id: rapport.id,
-      immeubleId: rapport.immeuble_id,
-      periodeDebut: rapport.periode_debut,
-      periodeFin: rapport.periode_fin,
-      totalLoyers: rapport.total_loyers,
-      totalDepenses: rapport.total_depenses,
-      totalCommissions: rapport.total_commissions,
-      netProprietaire: rapport.net_proprietaire,
-      dateGeneration: rapport.date_generation,
+      immeubleId: rapport.immeubleId,
+      periodeDebut: rapport.periodeDebut,
+      periodeFin: rapport.periodeFin,
+      totalLoyers: rapport.totalLoyers,
+      totalDepenses: rapport.totalDepenses,
+      totalCommissions: rapport.totalCommissions,
+      netProprietaire: rapport.netProprietaire,
+      dateGeneration: rapport.dateGeneration,
       statut: rapport.statut,
       immeuble: rapport.immeubles ? {
         id: rapport.immeubles.id,
         nom: rapport.immeubles.nom,
         adresse: rapport.immeubles.adresse,
-        tauxCommissionCAPCO: rapport.immeubles.taux_commission_capco,
+        tauxCommissionCAPCO: rapport.immeubles.tauxCommissionCapco,
         proprietaire: rapport.immeubles.proprietaires ? {
           nom: rapport.immeubles.proprietaires.nom
         } : undefined
@@ -331,13 +331,13 @@ export default function RapportsPage() {
                           {rapport.immeubles?.nom}
                         </h3>
                         <p className="text-lg font-medium mt-1">
-                          Rapport {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_debut))}
+                          Rapport {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periodeDebut))}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Période: {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_debut))} - {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periode_fin))}
+                          Période: {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periodeDebut))} - {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periodeFin))}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Généré le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.date_generation))}
+                          Généré le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.dateGeneration))}
                         </p>
                       </div>
                     </div>
@@ -353,19 +353,19 @@ export default function RapportsPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 p-4 bg-muted/50 rounded-lg">
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Loyers encaissés</p>
-                      <p className="text-lg font-semibold text-success">{formatCurrency(rapport.total_loyers)}</p>
+                      <p className="text-lg font-semibold text-success">{formatCurrency(rapport.totalLoyers)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Dépenses</p>
-                      <p className="text-lg font-semibold text-destructive">-{formatCurrency(rapport.total_depenses)}</p>
+                      <p className="text-lg font-semibold text-destructive">-{formatCurrency(rapport.totalDepenses)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Commissions CAPCO</p>
-                      <p className="text-lg font-semibold text-immobilier">-{formatCurrency(rapport.total_commissions)}</p>
+                      <p className="text-lg font-semibold text-immobilier">-{formatCurrency(rapport.totalCommissions)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Net propriétaire</p>
-                      <p className="text-lg font-bold">{formatCurrency(rapport.net_proprietaire)}</p>
+                      <p className="text-lg font-bold">{formatCurrency(rapport.netProprietaire)}</p>
                     </div>
                   </div>
 
@@ -494,14 +494,14 @@ export default function RapportsPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Propriétaire</h3>
-                  <p className="font-medium text-lg">{selectedRapport.immeubles?.proprietaires?.nom}</p>
+                  <p className="font-medium text-lg">{selectedRapport.immeubles?.proprietaireNom}</p>
                 </div>
               </div>
 
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Période</h3>
                 <p className="font-medium">
-                  Du {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.periode_debut))} au {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.periode_fin))}
+                  Du {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.periodeDebut))} au {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.periodeFin))}
                 </p>
               </div>
 
@@ -550,9 +550,9 @@ export default function RapportsPage() {
                           <tr key={item.lot.id} className={idx % 2 === 0 ? '' : 'bg-muted/20'}>
                             <td className="px-4 py-3 font-medium">{item.locataire?.nom || '-'}</td>
                             <td className="px-4 py-3">{item.lot.numero} ({item.lot.type})</td>
-                            <td className="px-4 py-3">{formatCurrency(item.lot.loyer_mensuel_attendu)}</td>
+                            <td className="px-4 py-3">{formatCurrency(item.lot.loyerMensuelAttendu)}</td>
                             <td className="px-4 py-3">
-                              {item.paiement ? formatCurrency(item.paiement.montant_encaisse) : '-'}
+                              {item.paiement ? formatCurrency(item.paiement.montantEncaisse) : '-'}
                             </td>
                             <td className="px-4 py-3">
                               {item.hasPaid ? (
@@ -614,7 +614,7 @@ export default function RapportsPage() {
                         <tr>
                           <td colSpan={3} className="px-4 py-3 font-bold">TOTAL DES DÉPENSES</td>
                           <td className="px-4 py-3 text-right font-bold text-destructive">
-                            {formatCurrency(selectedRapport.total_depenses)}
+                            {formatCurrency(selectedRapport.totalDepenses)}
                           </td>
                         </tr>
                       </tfoot>
@@ -627,20 +627,20 @@ export default function RapportsPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center py-3 px-4 border rounded-lg">
                       <span className="font-medium">Loyers encaissés</span>
-                      <span className="text-lg font-semibold text-success">+{formatCurrency(selectedRapport.total_loyers)}</span>
+                      <span className="text-lg font-semibold text-success">+{formatCurrency(selectedRapport.totalLoyers)}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 px-4 border rounded-lg">
                       <span className="font-medium">Total des dépenses</span>
-                      <span className="text-lg font-semibold text-destructive">-{formatCurrency(selectedRapport.total_depenses)}</span>
+                      <span className="text-lg font-semibold text-destructive">-{formatCurrency(selectedRapport.totalDepenses)}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 px-4 border rounded-lg">
-                      <span className="font-medium">Commission CAPCO ({selectedRapport.immeubles?.taux_commission_capco}%)</span>
-                      <span className="text-lg font-semibold text-immobilier">-{formatCurrency(selectedRapport.total_commissions)}</span>
+                      <span className="font-medium">Commission CAPCO ({selectedRapport.immeubles?.tauxCommissionCapco}%)</span>
+                      <span className="text-lg font-semibold text-immobilier">-{formatCurrency(selectedRapport.totalCommissions)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between items-center py-4 px-4 bg-primary/5 rounded-lg border-2 border-primary/20">
                       <span className="font-bold text-lg">Net à reverser au propriétaire</span>
-                      <span className="text-2xl font-bold">{formatCurrency(selectedRapport.net_proprietaire)}</span>
+                      <span className="text-2xl font-bold">{formatCurrency(selectedRapport.netProprietaire)}</span>
                     </div>
                   </div>
                 </TabsContent>
@@ -650,7 +650,7 @@ export default function RapportsPage() {
 
               {/* Footer */}
               <div className="text-center text-sm text-muted-foreground">
-                <p>Rapport généré le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.date_generation))}</p>
+                <p>Rapport généré le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }).format(parseDateFromAPI(selectedRapport.dateGeneration))}</p>
                 <p>Cabinet CAPCO - Gestion Immobilière</p>
               </div>
             </div>
@@ -668,3 +668,6 @@ export default function RapportsPage() {
     </div>
   );
 }
+
+
+

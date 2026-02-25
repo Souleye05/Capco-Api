@@ -46,17 +46,33 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useEncaissementsLoyers, useImmeubles, useLots, useCreateEncaissementLoyer } from '@/hooks/useImmobilier';
+import { useQuery } from '@tanstack/react-query';
+import { useImmeubles, useLots, useCreateEncaissementLoyer, Encaissement } from '@/hooks/useImmobilier';
+import { nestjsApi } from '@/integrations/nestjs/client';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
+
 
 export default function LoyersPage() {
   const navigate = useNavigate();
-  const { user } = useNestJSAuth();
 
-  const { data: encaissements = [], isLoading: encLoading } = useEncaissementsLoyers();
   const { data: immeubles = [], isLoading: immLoading } = useImmeubles();
   const { data: lots = [], isLoading: lotsLoading } = useLots();
   const createEncaissement = useCreateEncaissementLoyer();
+
+  // Aggregate encaissements from all immeubles
+  const { data: encaissements = [], isLoading: encLoading } = useQuery({
+    queryKey: ['encaissements', 'all', immeubles.map(i => i.id)],
+    queryFn: async () => {
+      if (immeubles.length === 0) return [] as Encaissement[];
+      const results = await Promise.all(
+        immeubles.map(imm =>
+          nestjsApi.getEncaissementsByImmeuble(imm.id).then(r => (r.data as Encaissement[]) || [])
+        )
+      );
+      return results.flat();
+    },
+    enabled: immeubles.length > 0,
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
@@ -78,25 +94,25 @@ export default function LoyersPage() {
   // Enrichir les lots avec les immeubles
   const enrichedLots = lots.map(lot => ({
     ...lot,
-    immeuble: immeubles.find(i => i.id === lot.immeuble_id)
+    immeuble: immeubles.find(i => i.id === lot.immeubleId)
   }));
 
   // Lots disponibles pour le dialog en fonction de l'immeuble sélectionné
   const lotsForDialog = encaissementImmeuble
-    ? enrichedLots.filter(l => l.immeuble_id === encaissementImmeuble && l.statut === 'OCCUPE')
+    ? enrichedLots.filter(l => l.immeubleId === encaissementImmeuble && l.statut === 'OCCUPE')
     : [];
 
   // Get unique months
-  const uniqueMois = [...new Set(encaissements.map(e => e.mois_concerne))].sort().reverse();
+  const uniqueMois = [...new Set(encaissements.map(e => e.moisConcerne))].sort().reverse();
 
   // Filter lots based on selected immeuble
   const availableLots = selectedImmeuble === 'all'
     ? enrichedLots
-    : enrichedLots.filter(l => l.immeuble_id === selectedImmeuble);
+    : enrichedLots.filter(l => l.immeubleId === selectedImmeuble);
 
   // Enrichir les encaissements avec lot et immeuble
   const enrichedEncaissements = encaissements.map(enc => {
-    const lot = enrichedLots.find(l => l.id === enc.lot_id);
+    const lot = enrichedLots.find(l => l.id === enc.lotId);
     return { ...enc, lot };
   });
 
@@ -106,19 +122,19 @@ export default function LoyersPage() {
         enc.lot?.numero.toLowerCase().includes(searchQuery.toLowerCase()) ||
         enc.lot?.immeuble?.nom.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesImmeuble = selectedImmeuble === 'all' || enc.lot?.immeuble_id === selectedImmeuble;
-      const matchesLot = selectedLot === 'all' || enc.lot_id === selectedLot;
-      const matchesMois = selectedMois === 'all' || enc.mois_concerne === selectedMois;
-      const matchesDateDebut = !dateDebut || new Date(enc.date_encaissement) >= dateDebut;
-      const matchesDateFin = !dateFin || new Date(enc.date_encaissement) <= dateFin;
+      const matchesImmeuble = selectedImmeuble === 'all' || enc.lot?.immeubleId === selectedImmeuble;
+      const matchesLot = selectedLot === 'all' || enc.lotId === selectedLot;
+      const matchesMois = selectedMois === 'all' || enc.moisConcerne === selectedMois;
+      const matchesDateDebut = !dateDebut || new Date(enc.dateEncaissement) >= dateDebut;
+      const matchesDateFin = !dateFin || new Date(enc.dateEncaissement) <= dateFin;
 
       return matchesSearch && matchesImmeuble && matchesLot && matchesMois && matchesDateDebut && matchesDateFin;
     });
   }, [enrichedEncaissements, searchQuery, selectedImmeuble, selectedLot, selectedMois, dateDebut, dateFin]);
 
-  const totalEncaisse = filteredEncaissements.reduce((sum, e) => sum + e.montant_encaisse, 0);
-  const totalCommissions = filteredEncaissements.reduce((sum, e) => sum + e.commission_capco, 0);
-  const totalNetProprietaire = filteredEncaissements.reduce((sum, e) => sum + e.net_proprietaire, 0);
+  const totalEncaisse = filteredEncaissements.reduce((sum, e) => sum + e.montantEncaisse, 0);
+  const totalCommissions = filteredEncaissements.reduce((sum, e) => sum + e.commissionCapco, 0);
+  const totalNetProprietaire = filteredEncaissements.reduce((sum, e) => sum + e.netProprietaire, 0);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -153,21 +169,17 @@ export default function LoyersPage() {
     }
 
     const selectedImmeubleData = immeubles.find(i => i.id === encaissementImmeuble);
-    const tauxCommission = selectedImmeubleData?.taux_commission_capco || 5;
+    const tauxCommission = selectedImmeubleData?.tauxCommissionCapco || 5;
     const commission = montant * (tauxCommission / 100);
     const netProprietaire = montant - commission;
 
     try {
       await createEncaissement.mutateAsync({
-        lot_id: encaissementLot,
-        date_encaissement: format(new Date(), 'yyyy-MM-dd'),
-        mois_concerne: encaissementMois,
-        montant_encaisse: montant,
-        mode_paiement: encaissementMode,
-        commission_capco: commission,
-        net_proprietaire: netProprietaire,
-        observation: null,
-        created_by: user?.id || ''
+        lotId: encaissementLot,
+        dateEncaissement: format(new Date(), 'yyyy-MM-dd'),
+        moisConcerne: encaissementMois,
+        montantEncaisse: montant,
+        modePaiement: encaissementMode,
       });
 
       setEncaissementDialogOpen(false);
@@ -403,11 +415,11 @@ export default function LoyersPage() {
               ) : (
                 filteredEncaissements.map(enc => (
                   <TableRow key={enc.id}>
-                    <TableCell>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.date_encaissement))}</TableCell>
+                    <TableCell>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.dateEncaissement))}</TableCell>
                     <TableCell>
                       <div
                         className="flex items-center gap-2 hover:text-primary cursor-pointer"
-                        onClick={() => navigate(`/immobilier/immeubles/${enc.lot?.immeuble_id}`)}
+                        onClick={() => navigate(`/immobilier/immeubles/${enc.lot?.immeubleId}`)}
                       >
                         <Building2 className="h-4 w-4" />
                         {enc.lot?.immeuble?.nom}
@@ -417,19 +429,19 @@ export default function LoyersPage() {
                       <Badge variant="outline">{enc.lot?.numero}</Badge>
                     </TableCell>
                     <TableCell>
-                      {new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.mois_concerne + '-01'))}
+                      {new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.moisConcerne + '-01'))}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{enc.mode_paiement}</Badge>
+                      <Badge variant="secondary">{enc.modePaiement}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatCurrency(enc.montant_encaisse)}
+                      {formatCurrency(enc.montantEncaisse)}
                     </TableCell>
                     <TableCell className="text-right text-immobilier">
-                      {formatCurrency(enc.commission_capco)}
+                      {formatCurrency(enc.commissionCapco)}
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatCurrency(enc.net_proprietaire)}
+                      {formatCurrency(enc.netProprietaire)}
                     </TableCell>
                   </TableRow>
                 ))
@@ -552,3 +564,4 @@ export default function LoyersPage() {
     </div>
   );
 }
+

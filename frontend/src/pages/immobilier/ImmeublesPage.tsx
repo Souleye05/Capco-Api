@@ -51,7 +51,7 @@ export default function ImmeublesPage() {
   const filteredImmeubles = immeubles.filter(immeuble => 
     immeuble.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     immeuble.adresse.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    immeuble.proprietaires?.nom.toLowerCase().includes(searchQuery.toLowerCase())
+    immeuble.proprietaireNom.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleGenererRapport = (immeubleNom: string) => {
@@ -140,14 +140,14 @@ export default function ImmeublesPage() {
         {!isLoading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredImmeubles.map((immeuble) => {
-              const immeubleLots = lots.filter(l => l.immeuble_id === immeuble.id);
+              const immeubleLots = lots.filter(l => l.immeubleId === immeuble.id);
               const lotsOccupes = immeubleLots.filter(l => l.statut === 'OCCUPE').length;
-              const loyerTotal = immeubleLots.reduce((sum, l) => sum + Number(l.loyer_mensuel_attendu), 0);
+              const loyerTotal = immeubleLots.reduce((sum, l) => sum + Number(l.loyerMensuelAttendu), 0);
               const immeubleEncaissements = encaissements.filter(e => 
-                immeubleLots.some(l => l.id === e.lot_id) && e.mois_concerne === currentMonth
+                immeubleLots.some(l => l.id === e.lotId) && e.moisConcerne === currentMonth
               );
-              const loyerEncaisse = immeubleEncaissements.reduce((sum, e) => sum + Number(e.montant_encaisse), 0);
-              const commissions = immeubleEncaissements.reduce((sum, e) => sum + Number(e.commission_capco), 0);
+              const loyerEncaisse = immeubleEncaissements.reduce((sum, e) => sum + Number(e.montantEncaisse), 0);
+              const commissions = immeubleEncaissements.reduce((sum, e) => sum + Number(e.commissionCapco), 0);
               
               return (
                 <div 
@@ -192,7 +192,7 @@ export default function ImmeublesPage() {
                     
                     <div className="mt-4">
                       <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Propriétaire</p>
-                      <p className="font-medium">{immeuble.proprietaires?.nom || '-'}</p>
+                      <p className="font-medium">{immeuble.proprietaireNom || '-'}</p>
                     </div>
                   </div>
 
@@ -227,7 +227,7 @@ export default function ImmeublesPage() {
                     {/* Commission */}
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div>
-                        <p className="text-xs text-muted-foreground">Commission CAPCO ({immeuble.taux_commission_capco}%)</p>
+                        <p className="text-xs text-muted-foreground">Commission CAPCO ({immeuble.tauxCommissionCapco}%)</p>
                         <p className="text-lg font-semibold text-immobilier">{formatCurrency(commissions)}</p>
                       </div>
                       <Button 
@@ -250,3 +250,5 @@ export default function ImmeublesPage() {
     </div>
   );
 }
+
+

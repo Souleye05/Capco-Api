@@ -280,6 +280,20 @@ model Locataires {
   nom                             String
   telephone                       String?
   email                           String?
+  adresse                         String?
+  profession                      String?
+  lieuTravail                     String?                          @map("lieu_travail")
+  personneContactUrgence          String?                          @map("personne_contact_urgence")
+  telephoneUrgence                String?                          @map("telephone_urgence")
+  numeroPieceIdentite             String?                          @map("numero_piece_identite")
+  typePieceIdentite               String?                          @map("type_piece_identite")
+  nationalite                     String?
+  dateNaissance                   DateTime?                        @map("date_naissance")
+  situationFamiliale              String?                          @map("situation_familiale")
+  notes                           String?
+  pieceIdentiteUrl                String?                          @map("piece_identite_url")
+  contratUrl                      String?                          @map("contrat_url")
+  documents                       Json?                            @default("[]")
   createdAt                       DateTime                         @default(now()) @map("created_at")
   createdBy                       String?                          @map("created_by")
   baux                            Baux[]

@@ -10,6 +10,7 @@ import { AuditModule } from './audit/audit.module';
 import { ConseilModule } from './conseil/conseil.module';
 import { ContentieuxModule } from './contentieux/contentieux.module';
 import { RecouvrementModule } from './recouvrement/recouvrement.module';
+import { ImmobilierModule } from './immobilier/immobilier.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { RecouvrementModule } from './recouvrement/recouvrement.module';
     ConseilModule,
     ContentieuxModule,
     RecouvrementModule,
+    ImmobilierModule,
   ],
 })
 export class AppModule { }

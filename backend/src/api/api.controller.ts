@@ -328,7 +328,7 @@ export class ApiController {
             email: true,
             adresse: true,
             createdAt: true,
-            immeubleses: {
+            immeubles: {
               select: {
                 id: true
               }
@@ -346,7 +346,7 @@ export class ApiController {
           email: prop.email,
           adresse: prop.adresse,
           created_at: prop.createdAt,
-          nombre_immeubles: prop.immeubleses.length
+          nombre_immeubles: prop.immeubles.length
         })),
         pagination: {
           page: pageNum,
@@ -388,12 +388,12 @@ export class ApiController {
             telephone: true,
             email: true,
             createdAt: true,
-            lotses: {
+            lots: {
               select: {
                 id: true
               }
             },
-            bauxes: {
+            baux: {
               select: {
                 id: true
               }
@@ -410,8 +410,8 @@ export class ApiController {
           telephone: loc.telephone,
           email: loc.email,
           created_at: loc.createdAt,
-          nombre_lots: loc.lotses.length,
-          nombre_baux: loc.bauxes.length
+          nombre_lots: loc.lots.length,
+          nombre_baux: loc.baux.length
         })),
         pagination: {
           page: pageNum,
@@ -448,12 +448,12 @@ export class ApiController {
           skip,
           take: limitNum,
           include: {
-            proprietaires: {
+            proprietaire: {
               select: {
                 nom: true
               }
             },
-            lotses: {
+            lots: {
               select: {
                 id: true
               }
@@ -470,8 +470,8 @@ export class ApiController {
           reference: imm.reference,
           adresse: imm.adresse,
           taux_commission_capco: imm.tauxCommissionCapco,
-          proprietaire_nom: imm.proprietaires.nom,
-          nombre_lots: imm.lotses.length,
+          proprietaire_nom: imm.proprietaire.nom,
+          nombre_lots: imm.lots.length,
           created_at: imm.createdAt
         })),
         pagination: {
@@ -509,9 +509,9 @@ export class ApiController {
           skip,
           take: limitNum,
           include: {
-            lots: {
+            lot: {
               include: {
-                immeubles: {
+                immeuble: {
                   select: {
                     nom: true,
                     reference: true
@@ -533,9 +533,9 @@ export class ApiController {
           mode_paiement: enc.modePaiement,
           commission_capco: enc.commissionCapco,
           net_proprietaire: enc.netProprietaire,
-          lot_numero: enc.lots.numero,
-          immeuble_nom: enc.lots.immeubles.nom,
-          immeuble_reference: enc.lots.immeubles.reference,
+          lot_numero: enc.lot.numero,
+          immeuble_nom: enc.lot.immeuble.nom,
+          immeuble_reference: enc.lot.immeuble.reference,
           created_at: enc.createdAt
         })),
         pagination: {

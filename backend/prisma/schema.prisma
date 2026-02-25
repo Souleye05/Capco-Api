@@ -252,7 +252,7 @@ model Proprietaires {
   adresse     String?
   createdAt   DateTime    @default(now()) @map("created_at")
   createdBy   String?     @map("created_by")
-  immeubleses Immeubles[]
+  immeubles Immeubles[]
 
   @@map("proprietaires")
 }
@@ -267,9 +267,9 @@ model Immeubles {
   notes               String?
   createdAt           DateTime            @default(now()) @map("created_at")
   createdBy           String?             @map("created_by")
-  depensesImmeubleses DepensesImmeubles[]
-  proprietaires       Proprietaires       @relation(fields: [proprietaireId], references: [id], onDelete: Cascade)
-  lotses              Lots[]
+  depensesImmeubles DepensesImmeubles[]
+  proprietaire      Proprietaires       @relation(fields: [proprietaireId], references: [id], onDelete: Cascade)
+  lots              Lots[]
   rapportsGestions    RapportsGestion[]
 
   @@map("immeubles")
@@ -282,9 +282,9 @@ model Locataires {
   email                           String?
   createdAt                       DateTime                         @default(now()) @map("created_at")
   createdBy                       String?                          @map("created_by")
-  bauxes                          Baux[]
-  locatairesDossiersRecouvrements LocatairesDossiersRecouvrement[]
-  lotses                          Lots[]
+  baux                            Baux[]
+  locatairesDossiers              LocatairesDossiersRecouvrement[]
+  lots                            Lots[]
 
   @@map("locataires")
 }
@@ -300,10 +300,10 @@ model Lots {
   statut                StatutLot             @default(LIBRE)
   createdAt             DateTime              @default(now()) @map("created_at")
   createdBy             String?               @map("created_by")
-  bauxes                Baux[]
-  encaissementsLoyerses EncaissementsLoyers[]
-  immeubles             Immeubles             @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
-  locataires            Locataires?           @relation(fields: [locataireId], references: [id])
+  baux                  Baux[]
+  encaissementsLoyers   EncaissementsLoyers[]
+  immeuble              Immeubles             @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
+  locataire             Locataires?           @relation(fields: [locataireId], references: [id])
 
   @@unique([immeubleId, numero])
   @@map("lots")
@@ -320,8 +320,8 @@ model Baux {
   statut            StatutBail @default(ACTIF)
   createdAt         DateTime   @default(now()) @map("created_at")
   createdBy         String?    @map("created_by")
-  locataires        Locataires @relation(fields: [locataireId], references: [id])
-  lots              Lots       @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  locataire         Locataires @relation(fields: [locataireId], references: [id])
+  lot               Lots       @relation(fields: [lotId], references: [id], onDelete: Cascade)
 
   @@map("baux")
 }
@@ -338,7 +338,7 @@ model EncaissementsLoyers {
   netProprietaire  Decimal      @default(0) @map("net_proprietaire")
   createdAt        DateTime     @default(now()) @map("created_at")
   createdBy        String       @map("created_by")
-  lots             Lots         @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  lot              Lots         @relation(fields: [lotId], references: [id], onDelete: Cascade)
 
   @@map("encaissements_loyers")
 }
@@ -354,7 +354,7 @@ model DepensesImmeubles {
   justificatif String?
   createdAt    DateTime            @default(now()) @map("created_at")
   createdBy    String              @map("created_by")
-  immeubles    Immeubles           @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
+  immeuble     Immeubles           @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
 
   @@map("depenses_immeubles")
 }
@@ -371,7 +371,7 @@ model RapportsGestion {
   dateGeneration   DateTime  @default(now()) @map("date_generation")
   genererPar       String    @map("generer_par")
   statut           String    @default("BROUILLON")
-  immeubles        Immeubles @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
+  immeuble         Immeubles @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
 
   @@map("rapports_gestion")
 }
@@ -468,7 +468,7 @@ model LocatairesDossiersRecouvrement {
   createdAt            DateTime             @default(now()) @map("created_at")
   createdBy            String?              @map("created_by")
   dossiersRecouvrement DossiersRecouvrement @relation(fields: [dossierId], references: [id], onDelete: Cascade)
-  locataires           Locataires           @relation(fields: [locataireId], references: [id], onDelete: Cascade)
+  locataire            Locataires           @relation(fields: [locataireId], references: [id], onDelete: Cascade)
 
   @@unique([locataireId, dossierId])
   @@map("locataires_dossiers_recouvrement")

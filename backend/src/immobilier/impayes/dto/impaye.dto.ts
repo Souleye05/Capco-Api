@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID } from 'class-validator';
-import { PaginationQueryDto } from '../../common/dto/pagination.dto';
+import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
 
 export class ImpayeDto {
     @ApiProperty({ description: 'ID du lot' })
@@ -100,4 +100,9 @@ export class ImpayesQueryDto extends PaginationQueryDto {
     @IsOptional()
     @IsUUID()
     locataireId?: string;
+
+    @ApiPropertyOptional({ description: 'Filtre par Lot' })
+    @IsOptional()
+    @IsUUID()
+    lotId?: string;
 }

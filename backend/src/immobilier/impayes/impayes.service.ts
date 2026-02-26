@@ -7,6 +7,7 @@ import { PaginationQueryDto, PaginatedResponse } from '../../common/dto/paginati
 import { ImpayeDto, StatistiquesImpayesDto, ImpayesQueryDto } from './dto/impaye.dto';
 import { getCurrentImpayesMonth, getCurrentMonthYM, addMonthsToYM } from '../../common/utils/date.utils';
 import { RentCalculator } from './rent-calculator';
+import { AlertesService } from './alertes.service';
 
 @Injectable()
 export class ImpayesService {
@@ -14,7 +15,8 @@ export class ImpayesService {
 
     constructor(
         private readonly prisma: PrismaService,
-        private readonly paginationService: PaginationService
+        private readonly paginationService: PaginationService,
+        private readonly alertesService: AlertesService
     ) { }
 
     /**
@@ -24,14 +26,15 @@ export class ImpayesService {
      * @returns Promise<PaginatedResponse<ImpayeDto>> - Résultats paginés des impayés
      */
     async detecterImpayesPourMois(query: ImpayesQueryDto & PaginationQueryDto): Promise<PaginatedResponse<ImpayeDto>> {
-        const { mois, immeubleId, locataireId, ...paginationQuery } = query;
+        const { mois, immeubleId, locataireId, lotId, ...paginationQuery } = query;
         
         // Validation des paramètres
-        this.validateParameters(mois, immeubleId, locataireId);
+        this.validateParameters(mois, immeubleId, locataireId, lotId);
         
         this.logger.log(`Détection des impayés pour ${mois}`, { 
             immeubleId, 
-            locataireId, 
+            locataireId,
+            lotId,
             page: paginationQuery.page, 
             limit: paginationQuery.limit 
         });
@@ -41,7 +44,8 @@ export class ImpayesService {
             const whereLots: Prisma.LotsWhereInput = { 
                 statut: 'OCCUPE',
                 ...(immeubleId && { immeubleId }),
-                ...(locataireId && { locataireId })
+                ...(locataireId && { locataireId }),
+                ...(lotId && { id: lotId })
             };
 
             // Utilisation du service de pagination
@@ -187,7 +191,7 @@ export class ImpayesService {
     /**
      * Valide les paramètres d'entrée de la méthode detecterImpayesPourMois
      */
-    private validateParameters(mois: string, immeubleId?: string, locataireId?: string): void {
+    private validateParameters(mois: string, immeubleId?: string, locataireId?: string, lotId?: string): void {
         // Validation du format du mois
         if (!mois || !/^\d{4}-\d{2}$/.test(mois)) {
             throw new BadRequestException('Le mois doit être au format YYYY-MM');
@@ -213,6 +217,10 @@ export class ImpayesService {
 
         if (locataireId && !isUUID(locataireId)) {
             throw new BadRequestException('locataireId doit être un UUID valide');
+        }
+
+        if (lotId && !isUUID(lotId)) {
+            throw new BadRequestException('lotId doit être un UUID valide');
         }
     }
 
@@ -269,6 +277,86 @@ export class ImpayesService {
         }
 
         return repartitionMap;
+    }
+
+    /**
+     * Générer une alerte automatique pour un impayé détecté
+     */
+    async genererAlerteImpaye(lotId: string, mois: string, userId?: string): Promise<void> {
+        this.logger.log('Génération d\'alerte pour impayé', { lotId, mois });
+
+        try {
+            // Récupérer les informations de l'impayé
+            const impayesResult = await this.detecterImpayesPourMois({
+                mois,
+                lotId,
+                page: 1,
+                limit: 1
+            });
+
+            if (impayesResult.data.length > 0) {
+                const impaye = impayesResult.data[0];
+                await this.alertesService.genererAlerteImpaye(
+                    lotId,
+                    mois,
+                    impaye.montantManquant,
+                    impaye.nombreJoursRetard,
+                    userId
+                );
+            }
+
+        } catch (error) {
+            this.logger.error(`Erreur lors de la génération d'alerte pour l'impayé: ${error.message}`, error.stack);
+            // Ne pas faire échouer le processus principal
+        }
+    }
+
+    /**
+     * Générer des alertes pour tous les impayés du mois courant
+     */
+    async genererAlertesImpayesMoisCourant(userId?: string): Promise<number> {
+        const moisCourant = getCurrentImpayesMonth();
+        this.logger.log(`Génération d'alertes pour tous les impayés du mois ${moisCourant}`);
+
+        return this.alertesService.genererAlertesImpayesPourMois(moisCourant, userId);
+    }
+
+    /**
+     * Récupérer les impayés par immeuble
+     */
+    async getImpayesParImmeuble(immeubleId: string): Promise<ImpayeDto[]> {
+        if (!isUUID(immeubleId)) {
+            throw new BadRequestException('immeubleId doit être un UUID valide');
+        }
+
+        const moisCourant = getCurrentImpayesMonth();
+        const result = await this.detecterImpayesPourMois({
+            mois: moisCourant,
+            immeubleId,
+            page: 1,
+            limit: 1000
+        });
+
+        return result.data;
+    }
+
+    /**
+     * Récupérer les impayés par lot
+     */
+    async getImpayesParLot(lotId: string): Promise<ImpayeDto[]> {
+        if (!isUUID(lotId)) {
+            throw new BadRequestException('lotId doit être un UUID valide');
+        }
+
+        const moisCourant = getCurrentImpayesMonth();
+        const result = await this.detecterImpayesPourMois({
+            mois: moisCourant,
+            lotId,
+            page: 1,
+            limit: 1000
+        });
+
+        return result.data;
     }
 
     /**

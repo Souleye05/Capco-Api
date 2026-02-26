@@ -61,15 +61,15 @@ export default function AgendaPage() {
       });
     });
 
-    // Échéances de recouvrement (from actions with echeance_prochaine_etape)
+    // Échéances de recouvrement (from actions with echeanceProchaineEtape)
     actions.forEach(action => {
-      if (action.echeance_prochaine_etape) {
+      if (action.echeanceProchaineEtape) {
         evts.push({
           id: `ech-${action.id}`,
-          title: `${action.dossiers_recouvrement?.reference || 'Dossier'} - ${action.prochaine_etape || 'Échéance'}`,
-          date: parseDateFromAPI(action.echeance_prochaine_etape),
+          title: `${action.dossierReference || 'Dossier'} - ${action.prochaineEtape || 'Échéance'}`,
+          date: parseDateFromAPI(action.echeanceProchaineEtape),
           type: 'echeance',
-          linkTo: action.dossier_id ? `/recouvrement/dossiers/${action.dossier_id}` : undefined
+          linkTo: action.dossierId ? `/recouvrement/dossiers/${action.dossierId}` : undefined
         });
       }
     });

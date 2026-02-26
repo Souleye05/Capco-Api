@@ -4,6 +4,8 @@ import { PrismaService } from '../../common/services/prisma.service';
 import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateRapportGestionDto, UpdateRapportStatutDto } from './dto/create-rapport.dto';
 import { dateStringToISODateTime } from '../../common/utils/date.utils';
+import { ArrieragesService } from '../impayes/arrierages.service';
+import { StatistiquesArrieragesDto } from '../impayes/dto/arrierage.dto';
 
 /** Include used when returning a rapport with its immeuble + proprietaire */
 const RAPPORT_INCLUDE = {
@@ -22,7 +24,10 @@ type RapportWithInclude = Prisma.RapportsGestionGetPayload<{ include: typeof RAP
 
 @Injectable()
 export class RapportsGestionService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly arrieragesService: ArrieragesService
+    ) { }
 
     async generate(createDto: CreateRapportGestionDto, userId: string) {
         const immeuble = await this.prisma.immeubles.findUnique({
@@ -39,7 +44,7 @@ export class RapportsGestionService {
         const periodeDebut = new Date(createDto.periodeDebut + 'T00:00:00.000Z');
         const periodeFin = new Date(createDto.periodeFin + 'T23:59:59.999Z');
 
-        const [loyersResult, depensesResult] = await Promise.all([
+        const [loyersResult, depensesResult, arrieragesStats] = await Promise.all([
             this.prisma.encaissementsLoyers.aggregate({
                 where: {
                     lot: { immeubleId: createDto.immeubleId },
@@ -64,6 +69,8 @@ export class RapportsGestionService {
                 },
                 _sum: { montant: true },
             }),
+            // Récupérer les statistiques d'arriérés pour cet immeuble
+            this.arrieragesService.getStatistiquesArrierages(createDto.immeubleId)
         ]);
 
         const totalLoyers = Number(loyersResult._sum.montantEncaisse) || 0;
@@ -86,7 +93,7 @@ export class RapportsGestionService {
             include: RAPPORT_INCLUDE,
         });
 
-        return RapportsGestionService.mapToResponseDto(rapport);
+        return RapportsGestionService.mapToResponseDto(rapport, arrieragesStats);
     }
 
     async findByImmeuble(immeubleId: string) {
@@ -96,7 +103,10 @@ export class RapportsGestionService {
             orderBy: { dateGeneration: 'desc' },
         });
 
-        return rapports.map(RapportsGestionService.mapToResponseDto);
+        // Récupérer les statistiques d'arriérés pour cet immeuble
+        const arrieragesStats = await this.arrieragesService.getStatistiquesArrierages(immeubleId);
+
+        return rapports.map(rapport => RapportsGestionService.mapToResponseDto(rapport, arrieragesStats));
     }
 
     async findOne(id: string) {
@@ -109,7 +119,10 @@ export class RapportsGestionService {
             throw new NotFoundException(`Rapport avec l'ID ${id} non trouvé`);
         }
 
-        return RapportsGestionService.mapToResponseDto(rapport);
+        // Récupérer les statistiques d'arriérés pour cet immeuble
+        const arrieragesStats = await this.arrieragesService.getStatistiquesArrierages(rapport.immeubleId);
+
+        return RapportsGestionService.mapToResponseDto(rapport, arrieragesStats);
     }
 
     async updateStatut(id: string, updateDto: UpdateRapportStatutDto) {
@@ -120,7 +133,10 @@ export class RapportsGestionService {
                 include: RAPPORT_INCLUDE,
             });
 
-            return RapportsGestionService.mapToResponseDto(rapport);
+            // Récupérer les statistiques d'arriérés pour cet immeuble
+            const arrieragesStats = await this.arrieragesService.getStatistiquesArrierages(rapport.immeubleId);
+
+            return RapportsGestionService.mapToResponseDto(rapport, arrieragesStats);
         } catch (error) {
             handlePrismaError(error, 'Rapport de gestion');
         }
@@ -134,7 +150,7 @@ export class RapportsGestionService {
         }
     }
 
-    private static mapToResponseDto(rapport: RapportWithInclude) {
+    private static mapToResponseDto(rapport: RapportWithInclude, arrieragesStats?: StatistiquesArrieragesDto) {
         return {
             id: rapport.id,
             immeubleId: rapport.immeubleId,
@@ -153,6 +169,17 @@ export class RapportsGestionService {
             proprietaireNom: rapport.immeuble?.proprietaire?.nom,
             proprietaireTelephone: rapport.immeuble?.proprietaire?.telephone,
             proprietaireEmail: rapport.immeuble?.proprietaire?.email,
+            // Intégration des statistiques d'arriérés
+            arrierages: arrieragesStats ? {
+                totalMontantArrierage: arrieragesStats.totalMontantArrierage,
+                nombreArrieragesEnCours: arrieragesStats.nombreArrieragesEnCours,
+                totalMontantPaye: arrieragesStats.totalMontantPaye,
+                nombreArrieragesSoldes: arrieragesStats.nombreArrieragesSoldes,
+                tauxRecouvrement: arrieragesStats.totalMontantArrierage > 0 
+                    ? Math.round((arrieragesStats.totalMontantPaye / (arrieragesStats.totalMontantArrierage + arrieragesStats.totalMontantPaye)) * 100)
+                    : 100,
+                ancienneteMoyenne: arrieragesStats.ancienneteMoyenne
+            } : null,
         };
     }
 }

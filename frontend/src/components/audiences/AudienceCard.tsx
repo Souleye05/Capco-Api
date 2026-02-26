@@ -13,13 +13,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  CheckCircle
-} from 'lucide-react';
-import { AudienceDB } from '@/hooks/useAudiences';
-import { statusConfig } from '@/lib/statusConfig';
-import { ModifierAudienceDialog } from '../dialogs/ModifierAudienceDialog';
-import { SupprimerAudienceDialog } from '../dialogs/SupprimerAudienceDialog';
-import { parseDateFromAPI, formatDateWithWeekday, isBefore, getStartOfDay } from '@/lib/date-utils';
   CheckCircle,
   Copy,
   Download,
@@ -27,10 +20,11 @@ import { parseDateFromAPI, formatDateWithWeekday, isBefore, getStartOfDay } from
   BookCheck,
   BookOpen
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { AudienceDB, useMarquerEnrolementEffectue } from '@/hooks/useAudiences';
 import { ModifierAudienceDialog } from '@/components/dialogs/ModifierAudienceDialog';
 import { SupprimerAudienceDialog } from '@/components/dialogs/SupprimerAudienceDialog';
+import { parseDateFromAPI, formatDateWithWeekday, isBefore, getStartOfDay } from '@/lib/date-utils';
+import { cn } from '@/lib/utils';
 
 interface AudienceCardProps {
   audience: AudienceDB;

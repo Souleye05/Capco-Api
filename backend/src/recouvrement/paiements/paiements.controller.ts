@@ -27,10 +27,10 @@ export class PaiementsController {
         @Query('limit') limit?: number,
         @Query('search') search?: string,
         @Query('dossierId') dossierId?: string,
-        @Query('startDate') startDate?: string,
-        @Query('endDate') endDate?: string,
+        @Query('dateDebut') dateDebut?: string,
+        @Query('dateFin') dateFin?: string,
     ) {
-        return this.paiementsService.findAll({ page, limit, search, dossierId, startDate, endDate });
+        return this.paiementsService.findAll({ page, limit, search, dossierId, dateDebut, dateFin });
     }
 
     @Post()
@@ -49,11 +49,11 @@ export class PaiementsController {
     @ApiOperation({ summary: 'Statistiques des paiements' })
     async getStatistics(
         @Query('dossierId') dossierId?: string,
-        @Query('startDate') startDate?: string,
-        @Query('endDate') endDate?: string,
+        @Query('dateDebut') dateDebut?: string,
+        @Query('dateFin') dateFin?: string,
         @Query('search') search?: string,
     ) {
-        return this.paiementsService.getStatistics({ dossierId, startDate, endDate, search });
+        return this.paiementsService.getStatistics({ dossierId, dateDebut, dateFin, search });
     }
 
     @Get('dossier/:dossierId')

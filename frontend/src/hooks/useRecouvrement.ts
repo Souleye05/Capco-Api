@@ -180,9 +180,9 @@ export function useActionsRecouvrement() {
     return useQuery<any[]>({
         queryKey: ['recouvrement', 'actions', 'all'],
         queryFn: async () => {
-            const response = await nestjsApi.get<any[]>('/recouvrement/actions');
+            const response = await nestjsApi.get<PaginatedResponse<any>>('/recouvrement/actions', { limit: 1000 });
             if (response.error) throw new Error(response.error);
-            return response.data!;
+            return response.data?.data || [];
         },
         staleTime: 5 * 60 * 1000,
     });

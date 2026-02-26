@@ -1,10 +1,11 @@
 import {
-    Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe,
+    Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ActionsService } from './actions.service';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
+import { ActionsQueryDto } from './dto/actions-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -22,8 +23,8 @@ export class ActionsController {
     @Get()
     @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
     @ApiOperation({ summary: 'Récupérer toutes les actions' })
-    async findAll() {
-        return this.actionsService.findAll();
+    async findAll(@Query() query: ActionsQueryDto) {
+        return this.actionsService.findAll(query);
     }
 
     @Post()

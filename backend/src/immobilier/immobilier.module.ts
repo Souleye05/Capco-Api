@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { MulterModule } from '@nestjs/platform-express';
 import { CommonModule } from '../common/common.module';
 
 // Controllers
@@ -12,6 +13,8 @@ import { EncaissementsController } from './encaissements/encaissements.controlle
 import { DepensesImmeublesController } from './depenses/depenses-immeubles.controller';
 import { RapportsGestionController } from './rapports/rapports-gestion.controller';
 import { ImpayesController } from './impayes/impayes.controller';
+import { ArrieragesController } from './impayes/arrierages.controller';
+import { ImportExcelController } from './import/import-excel.controller';
 
 // Services
 import { ImmobilierService } from './immobilier.service';
@@ -24,9 +27,19 @@ import { EncaissementsService } from './encaissements/encaissements.service';
 import { DepensesImmeublesService } from './depenses/depenses-immeubles.service';
 import { RapportsGestionService } from './rapports/rapports-gestion.service';
 import { ImpayesService } from './impayes/impayes.service';
+import { ArrieragesService } from './impayes/arrierages.service';
+import { AlertesService } from './impayes/alertes.service';
+import { ImportExcelService } from './import/import-excel.service';
 
 @Module({
-    imports: [CommonModule],
+    imports: [
+        CommonModule,
+        MulterModule.register({
+            limits: {
+                fileSize: 10 * 1024 * 1024, // 10MB
+            },
+        }),
+    ],
     controllers: [
         ImmobilierController,
         ProprietairesController,
@@ -38,6 +51,8 @@ import { ImpayesService } from './impayes/impayes.service';
         DepensesImmeublesController,
         RapportsGestionController,
         ImpayesController,
+        ArrieragesController,
+        ImportExcelController,
     ],
     providers: [
         ImmobilierService,
@@ -50,6 +65,9 @@ import { ImpayesService } from './impayes/impayes.service';
         DepensesImmeublesService,
         RapportsGestionService,
         ImpayesService,
+        ArrieragesService,
+        AlertesService,
+        ImportExcelService,
     ],
     exports: [
         ImmobilierService,
@@ -62,6 +80,9 @@ import { ImpayesService } from './impayes/impayes.service';
         DepensesImmeublesService,
         RapportsGestionService,
         ImpayesService,
+        ArrieragesService,
+        AlertesService,
+        ImportExcelService,
     ],
 })
 export class ImmobilierModule { }

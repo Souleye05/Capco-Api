@@ -6,6 +6,7 @@ import { UpdateHonoraireDto } from './dto/update-honoraire.dto';
 import { HonoraireResponseDto } from './dto/honoraire-response.dto';
 import { HonorairesQueryDto } from './dto/honoraires-query.dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
+import { createDateFilter } from '../../common/utils/date.utils';
 
 @Injectable()
 export class HonorairesService {
@@ -60,9 +61,7 @@ export class HonorairesService {
     
     // Filtre par période de facturation
     if (query.dateDebutFacturation || query.dateFinFacturation) {
-      whereClause.dateFacturation = {};
-      if (query.dateDebutFacturation) whereClause.dateFacturation.gte = query.dateDebutFacturation;
-      if (query.dateFinFacturation) whereClause.dateFacturation.lte = query.dateFinFacturation;
+      whereClause.dateFacturation = createDateFilter(query.dateDebutFacturation, query.dateFinFacturation);
     }
 
     const result = await this.paginationService.paginate(

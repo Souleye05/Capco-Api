@@ -4,6 +4,7 @@ import { AudiencesService } from './audiences/audiences.service';
 import { HonorairesService } from './honoraires/honoraires.service';
 import { DepensesService } from './depenses/depenses.service';
 import { JuridictionsService } from './juridictions/juridictions.service';
+import { dateToUTCDateString } from '../common/utils/date.utils';
 
 /**
  * Service principal du module Contentieux
@@ -84,15 +85,15 @@ export class ContentieuxService {
     const query: any = {};
     
     if (dateDebut || dateFin) {
-      if (dateDebut) query.dateDebut = dateDebut;
-      if (dateFin) query.dateFin = dateFin;
+      if (dateDebut) query.dateDebut = dateToUTCDateString(dateDebut);
+      if (dateFin) query.dateFin = dateToUTCDateString(dateFin);
     }
 
     const audiences = await this.audiencesService.findAll(query);
     
     // Grouper par date
     const planning = audiences.data.reduce((acc, audience) => {
-      const dateKey = audience.date.toISOString().split('T')[0];
+      const dateKey = dateToUTCDateString(new Date(audience.date));
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -194,8 +195,8 @@ export class ContentieuxService {
 
       case 'audiences':
         const audiences = await this.audiencesService.findAll({
-          dateDebut: options.dateDebut?.toISOString().split('T')[0],
-          dateFin: options.dateFin?.toISOString().split('T')[0],
+          dateDebut: options.dateDebut ? dateToUTCDateString(options.dateDebut) : undefined,
+          dateFin: options.dateFin ? dateToUTCDateString(options.dateFin) : undefined,
           limit: 1000,
         });
         donnees = audiences.data;
@@ -203,8 +204,8 @@ export class ContentieuxService {
 
       case 'honoraires':
         const honoraires = await this.honorairesService.findAll({
-          dateDebutFacturation: options.dateDebut,
-          dateFinFacturation: options.dateFin,
+          dateDebutFacturation: options.dateDebut ? dateToUTCDateString(options.dateDebut) : undefined,
+          dateFinFacturation: options.dateFin ? dateToUTCDateString(options.dateFin) : undefined,
           limit: 1000,
         });
         donnees = honoraires.data;
@@ -212,8 +213,8 @@ export class ContentieuxService {
 
       case 'depenses':
         const depenses = await this.depensesService.findAll({
-          dateDebut: options.dateDebut,
-          dateFin: options.dateFin,
+          dateDebut: options.dateDebut ? dateToUTCDateString(options.dateDebut) : undefined,
+          dateFin: options.dateFin ? dateToUTCDateString(options.dateFin) : undefined,
           limit: 1000,
         });
         donnees = depenses.data;

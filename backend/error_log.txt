@@ -1003,3 +1003,61 @@ Invalid value for argument `gte`: premature end of input. Expected ISO-8601 Date
     at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
     at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
     at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-26T07:37:53.840Z] Pagination Error:
+Options: {
+  "where": {
+    "date": {
+      "gte": "2026-02-27",
+      "lte": "2026-02-27"
+    }
+  },
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "heure": "asc"
+  },
+  "include": {
+    "affaire": {
+      "include": {
+        "parties_affaires": true
+      }
+    },
+    "resultat": true
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {
+              date: {
+                gte: "2026-02-27",
+                     ~~~~~~~~~~~~
+                lte: "2026-02-27"
+              }
+            },
+            skip: 0,
+            take: 20,
+            orderBy: {
+              heure: "asc"
+            },
+            include: {
+              affaire: {
+                include: {
+                  parties_affaires: true
+                }
+              },
+              resultat: true
+            }
+          })
+
+Invalid value for argument `gte`: premature end of input. Expected ISO-8601 DateTime.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)

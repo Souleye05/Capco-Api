@@ -11,10 +11,10 @@ export class HonorairesQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Date de début de facturation (YYYY-MM-DD)' })
   @IsOptional()
   @IsDateString()
-  dateDebutFacturation?: Date;
+  dateDebutFacturation?: string;
 
   @ApiPropertyOptional({ description: 'Date de fin de facturation (YYYY-MM-DD)' })
   @IsOptional()
   @IsDateString()
-  dateFinFacturation?: Date;
+  dateFinFacturation?: string;
 }

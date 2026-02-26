@@ -87,3 +87,51 @@ export function getTodayEnd(): Date {
   return getEndOfDay(new Date());
 }
 
+/**
+ * Convertit une chaîne de date en ISO DateTime string pour les requêtes Prisma
+ * Utilisé pour les filtres de date dans les requêtes de pagination
+ * IMPORTANT: Utilise UTC pour éviter les problèmes de fuseau horaire
+ * @param dateStr Chaîne de date (format YYYY-MM-DD)
+ * @param isEndOfDay Si true, retourne la fin de la journée, sinon le début
+ * @returns ISO DateTime string pour Prisma
+ */
+export function dateStringToISODateTime(dateStr: string, isEndOfDay: boolean = false): string {
+  const date = new Date(dateStr + 'T00:00:00.000Z'); // Force UTC parsing
+  if (isEndOfDay) {
+    date.setUTCHours(23, 59, 59, 999);
+  } else {
+    date.setUTCHours(0, 0, 0, 0);
+  }
+  return date.toISOString();
+}
+
+/**
+ * Utilitaire pour créer des filtres de date pour Prisma
+ * @param dateDebut Date de début (optionnelle)
+ * @param dateFin Date de fin (optionnelle)
+ * @returns Objet de filtre Prisma pour les dates
+ */
+export function createDateFilter(dateDebut?: string, dateFin?: string): any {
+  if (!dateDebut && !dateFin) return undefined;
+  
+  const filter: any = {};
+  if (dateDebut) {
+    filter.gte = dateStringToISODateTime(dateDebut, false);
+  }
+  if (dateFin) {
+    filter.lte = dateStringToISODateTime(dateFin, true);
+  }
+  return filter;
+}
+/**
+ * Convertit un objet Date en chaîne de date YYYY-MM-DD en UTC
+ * Évite les problèmes de fuseau horaire lors de la conversion
+ * @param date Objet Date à convertir
+ * @returns Chaîne de date au format YYYY-MM-DD
+ */
+export function dateToUTCDateString(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}

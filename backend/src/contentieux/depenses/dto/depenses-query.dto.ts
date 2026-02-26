@@ -17,12 +17,12 @@ export class DepensesQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Date de début (YYYY-MM-DD)' })
   @IsOptional()
   @IsDateString()
-  dateDebut?: Date;
+  dateDebut?: string;
 
   @ApiPropertyOptional({ description: 'Date de fin (YYYY-MM-DD)' })
   @IsOptional()
   @IsDateString()
-  dateFin?: Date;
+  dateFin?: string;
 
   @ApiPropertyOptional({ description: 'Montant minimum' })
   @IsOptional()

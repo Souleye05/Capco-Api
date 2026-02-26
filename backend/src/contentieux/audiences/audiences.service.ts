@@ -9,6 +9,7 @@ import { CreateResultatAudienceDto } from './dto/create-resultat-audience.dto';
 import { UpdateResultatAudienceDto } from './dto/update-resultat-audience.dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { WorkingDayUtils } from '../../common/decorators/is-working-day.decorator';
+import { createDateFilter } from '../../common/utils/date.utils';
 
 @Injectable()
 export class AudiencesService {
@@ -87,9 +88,7 @@ export class AudiencesService {
     
     // Filtre par date
     if (query.dateDebut || query.dateFin) {
-      whereClause.date = {};
-      if (query.dateDebut) whereClause.date.gte = query.dateDebut;
-      if (query.dateFin) whereClause.date.lte = query.dateFin;
+      whereClause.date = createDateFilter(query.dateDebut, query.dateFin);
     }
 
     const result = await this.paginationService.paginate(

@@ -6,6 +6,7 @@ import { UpdateDepenseDto } from './dto/update-depense.dto';
 import { DepenseResponseDto } from './dto/depense-response.dto';
 import { DepensesQueryDto } from './dto/depenses-query.dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
+import { createDateFilter } from '../../common/utils/date.utils';
 
 @Injectable()
 export class DepensesService {
@@ -62,9 +63,7 @@ export class DepensesService {
     
     // Filtre par période
     if (query.dateDebut || query.dateFin) {
-      whereClause.date = {};
-      if (query.dateDebut) whereClause.date.gte = query.dateDebut;
-      if (query.dateFin) whereClause.date.lte = query.dateFin;
+      whereClause.date = createDateFilter(query.dateDebut, query.dateFin);
     }
 
     // Filtre par montant

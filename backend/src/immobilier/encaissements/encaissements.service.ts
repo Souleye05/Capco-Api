@@ -14,6 +14,13 @@ type EncaissementWithInclude = Prisma.EncaissementsLoyersGetPayload<{
 export class EncaissementsService {
     constructor(private readonly prisma: PrismaService) { }
 
+    private statsCache = new Map<string, { data: any, timestamp: number }>();
+    private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    private clearCache() {
+        this.statsCache.clear();
+    }
+
     private static readonly DEFAULT_INCLUDE = {
         lot: {
             select: {
@@ -141,17 +148,25 @@ export class EncaissementsService {
     async remove(id: string): Promise<void> {
         try {
             await this.prisma.encaissementsLoyers.delete({ where: { id } });
+            this.clearCache();
         } catch (error) {
             handlePrismaError(error, 'Encaissement');
         }
     }
 
     async getStatistics(params: { immeubleId?: string; moisConcerne?: string } = {}) {
+        const cacheKey = `${params.immeubleId || 'all'}_${params.moisConcerne || 'all'}`;
+        const cached = this.statsCache.get(cacheKey);
+
+        if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+            return cached.data;
+        }
+
         const where: Prisma.EncaissementsLoyersWhereInput = {};
         if (params.immeubleId) where.lot = { immeubleId: params.immeubleId };
         if (params.moisConcerne) where.moisConcerne = params.moisConcerne;
 
-        const result = await this.prisma.encaissementsLoyers.aggregate({
+        const totals = await this.prisma.encaissementsLoyers.aggregate({
             where,
             _sum: {
                 montantEncaisse: true,
@@ -168,17 +183,20 @@ export class EncaissementsService {
             _count: true,
         });
 
-        return {
-            totalEncaisse: Number(result._sum.montantEncaisse) || 0,
-            totalCommissions: Number(result._sum.commissionCapco) || 0,
-            totalNetProprietaire: Number(result._sum.netProprietaire) || 0,
-            nombreEncaissements: result._count,
+        const result = {
+            totalEncaisse: Number(totals._sum.montantEncaisse) || 0,
+            totalCommissions: Number(totals._sum.commissionCapco) || 0,
+            totalNetProprietaire: Number(totals._sum.netProprietaire) || 0,
+            nombreEncaissements: totals._count,
             parMode: parMode.map(m => ({
                 mode: m.modePaiement,
                 montant: Number(m._sum.montantEncaisse) || 0,
                 nombre: m._count,
             })),
         };
+
+        this.statsCache.set(cacheKey, { data: result, timestamp: Date.now() });
+        return result;
     }
 
     private static mapToResponseDto(encaissement: EncaissementWithInclude) {

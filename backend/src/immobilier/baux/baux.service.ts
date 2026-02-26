@@ -42,7 +42,7 @@ export class BauxService {
             });
 
             if (!locataire) {
-                 new NotFoundException(`Locataire avec l'ID ${createDto.locataireId} non trouvé`);
+                throw new NotFoundException(`Locataire avec l'ID ${createDto.locataireId} non trouvé`);
             }
 
             const result = await this.prisma.$transaction(async (tx) => {
@@ -76,7 +76,7 @@ export class BauxService {
 
             return BauxService.mapToResponseDto(result);
         } catch (error) {
-             handlePrismaError(error, 'Bail');
+            handlePrismaError(error, 'Bail');
         }
     }
 
@@ -101,16 +101,16 @@ export class BauxService {
     }
 
     async findOne(id: string) {
-            const bail = await this.prisma.baux.findUnique({
-                where: { id },
-                include: BauxService.DEFAULT_INCLUDE,
-            });
+        const bail = await this.prisma.baux.findUnique({
+            where: { id },
+            include: BauxService.DEFAULT_INCLUDE,
+        });
 
-            if (!bail) {
-                throw new NotFoundException(`Bail avec l'ID ${id} non trouvé`);
-            }
+        if (!bail) {
+            throw new NotFoundException(`Bail avec l'ID ${id} non trouvé`);
+        }
 
-            return BauxService.mapToResponseDto(bail);        
+        return BauxService.mapToResponseDto(bail);
     }
 
     async update(id: string, updateDto: UpdateBailDto) {
@@ -154,14 +154,14 @@ export class BauxService {
 
             return BauxService.mapToResponseDto(result);
         } catch (error) {
-             handlePrismaError(error, 'Bail');
+            handlePrismaError(error, 'Bail');
         }
     }
 
     async remove(id: string): Promise<void> {
         try {
             await this.prisma.$transaction(async (tx) => {
-                const bail = await tx.baux.delete({ 
+                const bail = await tx.baux.delete({
                     where: { id },
                     select: { lotId: true, statut: true }
                 });
@@ -180,7 +180,7 @@ export class BauxService {
                 }
             });
         } catch (error) {
-             handlePrismaError(error, 'Bail');
+            handlePrismaError(error, 'Bail');
         }
     }
 

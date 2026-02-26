@@ -159,9 +159,37 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - Implémenter les endpoints de génération de rapports
     - _Exigences: 5.3_
 
-  - [ ]* 9.4 Écrire les tests de propriété pour le module Immobilier
+  - [ ] 9.4 Implémenter la gestion des impayés et arriérés
+    - Créer ImpayesService pour détection automatique des loyers impayés
+    - Implémenter ArrieragesService pour gestion des dettes antérieures
+    - Créer les DTOs pour impayés et arriérés (ImpayeDto, ArrierageDto, etc.)
+    - Intégrer la génération d'alertes automatiques LOYER_IMPAYE
+    - Créer les endpoints de consultation et statistiques des impayés
+    - _Exigences: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
+
+  - [ ] 9.5 Implémenter l'import Excel
+    - Créer ImportExcelService pour traitement des fichiers Excel
+    - Implémenter la validation des données avant import
+    - Créer les templates Excel téléchargeables
+    - Implémenter les endpoints d'import pour chaque entité
+    - Gérer les rapports d'erreur détaillés avec numéros de ligne
+    - Assurer la transactionnalité des imports
+    - _Exigences: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7_
+
+  - [ ] 9.6 Corriger les bugs identifiés dans la revue
+    - Réactiver l'authentification sur LocatairesController
+    - Corriger le bug "throw" manquant dans BauxService.create()
+    - Optimiser les requêtes de statistiques
+    - Améliorer la gestion d'erreurs
+
+  - [ ]* 9.7 Écrire les tests de propriété pour le module Immobilier
     - **Propriété 9: Transformation automatique des données**
-    - **Valide: Exigences 4.5**
+    - **Propriété 26: Détection automatique des impayés**
+    - **Propriété 27: Cohérence des calculs d'arriérés**
+    - **Propriété 28: Validation des imports Excel**
+    - **Propriété 29: Atomicité des imports**
+    - **Propriété 30: Génération d'alertes automatiques**
+    - **Valide: Exigences 4.5, 11.1, 11.2, 11.4, 11.5, 11.6, 12.2, 12.4, 12.5**
 
 - [ ] 10. Module Conseil
   - [ ] 10.1 Créer les entités et DTOs du conseil

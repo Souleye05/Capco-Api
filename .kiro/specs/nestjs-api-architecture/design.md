@@ -242,6 +242,7 @@ interface DomainService<T, CreateDto, UpdateDto, QueryDto> {
 **ImmobilierModule** :
 - Gestion complète du patrimoine immobilier
 - Services : `ProprietairesService`, `ImmeublesService`, `LotsService`, `LocatairesService`, `BauxService`, `EncaissementsService`, `RapportsGestionService`
+- **Nouveaux services requis** : `ImpayesService`, `ArrieragesService`, `ImportExcelService`
 
 **ConseilModule** :
 - Gestion des clients conseil, tâches et facturation
@@ -272,6 +273,42 @@ interface AuditService {
 }
 ```
 
+**ImpayesService** : Détection et gestion des loyers impayés.
+
+```typescript
+interface ImpayesService {
+  detecterImpayesPourMois(mois: string, immeubleId?: string): Promise<ImpayeDto[]>
+  getStatistiquesImpayés(immeubleId?: string): Promise<StatistiquesImpayesDto>
+  genererAlerteImpaye(lotId: string, mois: string): Promise<void>
+  getImpayesParImmeuble(immeubleId: string): Promise<ImpayeDto[]>
+  getImpayesParLot(lotId: string): Promise<ImpayeDto[]>
+}
+```
+
+**ArrieragesService** : Gestion des arriérés de loyers.
+
+```typescript
+interface ArrieragesService {
+  create(createArrierageDto: CreateArrierageDto): Promise<ArrierageDto>
+  findAll(query: ArrieragesQueryDto): Promise<PaginatedResponse<ArrierageDto>>
+  enregistrerPaiementPartiel(arrierageId: string, montant: number): Promise<ArrierageDto>
+  getStatistiquesArrierages(immeubleId?: string): Promise<StatistiquesArrieragesDto>
+}
+```
+
+**ImportExcelService** : Import en masse via fichiers Excel.
+
+```typescript
+interface ImportExcelService {
+  importProprietaires(file: Express.Multer.File): Promise<ImportResultDto>
+  importImmeubles(file: Express.Multer.File): Promise<ImportResultDto>
+  importLocataires(file: Express.Multer.File): Promise<ImportResultDto>
+  importLots(file: Express.Multer.File): Promise<ImportResultDto>
+  generateTemplate(entityType: string): Promise<Buffer>
+  validateImportData(data: any[], entityType: string): Promise<ValidationResultDto>
+}
+```
+
 **DashboardService** : Agrégation de données pour le tableau de bord.
 
 ```typescript
@@ -281,6 +318,90 @@ interface DashboardService {
   getRecouvrementStats(): Promise<RecouvrementStatsDto>
   getImmobilierStats(): Promise<ImmobilierStatsDto>
   getConseilStats(): Promise<ConseilStatsDto>
+}
+```
+
+### 6. Nouveaux Modèles de Données pour Immobilier
+
+**DTOs pour Impayés** :
+
+```typescript
+class ImpayeDto {
+  lotId: string
+  lotNumero: string
+  immeubleNom: string
+  locataireNom: string
+  moisConcerne: string
+  montantAttendu: number
+  montantManquant: number
+  nombreJoursRetard: number
+  statut: 'IMPAYE' | 'PARTIEL' | 'REGLE'
+}
+
+class StatistiquesImpayesDto {
+  totalMontantImpaye: number
+  nombreLotsImpayés: number
+  tauxImpayés: number
+  repartitionParImmeuble: { immeubleId: string; montant: number }[]
+}
+```
+
+**DTOs pour Arriérés** :
+
+```typescript
+class CreateArrierageDto {
+  @IsUUID()
+  lotId: string
+
+  @IsDateString()
+  periodeDebut: string
+
+  @IsDateString()
+  periodeFin: string
+
+  @IsNumber()
+  @Min(0)
+  montantDu: number
+
+  @IsOptional()
+  @IsString()
+  description?: string
+}
+
+class ArrierageDto {
+  id: string
+  lotId: string
+  lotNumero: string
+  immeubleNom: string
+  locataireNom: string
+  periodeDebut: Date
+  periodeFin: Date
+  montantDu: number
+  montantPaye: number
+  montantRestant: number
+  statut: 'EN_COURS' | 'SOLDE'
+  paiementsPartiels: PaiementPartielDto[]
+  createdAt: Date
+}
+```
+
+**DTOs pour Import Excel** :
+
+```typescript
+class ImportResultDto {
+  success: boolean
+  totalRows: number
+  successfulRows: number
+  failedRows: number
+  errors: ImportErrorDto[]
+  summary: string
+}
+
+class ImportErrorDto {
+  row: number
+  field: string
+  value: any
+  error: string
 }
 ```
 
@@ -521,9 +642,25 @@ Basé sur l'analyse des critères d'acceptation, voici les propriétés de corre
 *Pour tout* endpoint, les exigences d'authentification et permissions de rôles doivent être documentées
 **Valide: Exigences 10.4**
 
-### Propriété 25: Cohérence du versioning API
-*Pour toute* modification d'API, les politiques de versioning et de dépréciation doivent être respectées de manière cohérente
-**Valide: Exigences 10.5**
+### Propriété 26: Détection automatique des impayés
+*Pour tout* lot occupé sans encaissement enregistré pour un mois donné, le système doit automatiquement l'identifier comme impayé
+**Valide: Exigences 11.1, 11.2**
+
+### Propriété 27: Cohérence des calculs d'arriérés
+*Pour tout* arriérage avec paiements partiels, le montant restant doit toujours égaler montant dû moins somme des paiements
+**Valide: Exigences 11.4, 11.5**
+
+### Propriété 28: Validation des imports Excel
+*Pour tout* fichier Excel importé, les données doivent être validées selon les règles métier avant insertion en base
+**Valide: Exigences 12.2, 12.4**
+
+### Propriété 29: Atomicité des imports
+*Pour tout* import Excel, soit toutes les lignes valides sont importées, soit aucune en cas d'erreur critique
+**Valide: Exigences 12.5**
+
+### Propriété 30: Génération d'alertes automatiques
+*Pour tout* impayé détecté, une alerte de type LOYER_IMPAYE doit être générée automatiquement
+**Valide: Exigences 11.6**
 
 ## Gestion des Erreurs
 

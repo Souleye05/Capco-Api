@@ -22,6 +22,13 @@ export class ImmeublesService {
         private readonly referenceGenerator: ReferenceGeneratorService,
     ) { }
 
+    private statsCache = { data: null as any, timestamp: 0 };
+    private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    private clearCache() {
+        this.statsCache.data = null;
+    }
+
     private static readonly DEFAULT_INCLUDE = {
         proprietaire: {
             select: { id: true, nom: true },
@@ -59,13 +66,14 @@ export class ImmeublesService {
                 nom: createDto.nom,
                 reference,
                 adresse: createDto.adresse,
-                tauxCommissionCapco: createDto.tauxCommissionCapco,
+                tauxCommissionCapco: createDto.tauxCommissionCapco ?? 5,
                 notes: createDto.notes,
                 createdBy: userId,
             },
             include: ImmeublesService.DEFAULT_INCLUDE,
         });
 
+        this.clearCache();
         return ImmeublesService.mapToResponseDto(immeuble);
     }
 
@@ -117,6 +125,7 @@ export class ImmeublesService {
                 include: ImmeublesService.DEFAULT_INCLUDE,
             });
 
+            this.clearCache();
             return ImmeublesService.mapToResponseDto(immeuble);
         } catch (error) {
             handlePrismaError(error, 'Immeuble');
@@ -126,12 +135,17 @@ export class ImmeublesService {
     async remove(id: string): Promise<void> {
         try {
             await this.prisma.immeubles.delete({ where: { id } });
+            this.clearCache();
         } catch (error) {
             handlePrismaError(error, 'Immeuble');
         }
     }
 
     async getStatistics() {
+        if (this.statsCache.data && Date.now() - this.statsCache.timestamp < this.CACHE_TTL) {
+            return this.statsCache.data;
+        }
+
         const [totalImmeubles, totalLots, lotsOccupes, lotsLibres] = await Promise.all([
             this.prisma.immeubles.count(),
             this.prisma.lots.count(),
@@ -147,7 +161,7 @@ export class ImmeublesService {
             _sum: { montant: true },
         });
 
-        return {
+        const result = {
             totalImmeubles,
             totalLots,
             lotsOccupes,
@@ -156,6 +170,9 @@ export class ImmeublesService {
             totalLoyersEncaisses: Number(totalLoyers._sum.montantEncaisse) || 0,
             totalDepenses: Number(totalDepenses._sum.montant) || 0,
         };
+
+        this.statsCache = { data: result, timestamp: Date.now() };
+        return result;
     }
 
     private static mapToResponseDto(immeuble: ImmeubleWithInclude): ImmeubleResponseDto {

@@ -263,7 +263,7 @@ model Immeubles {
   nom                 String
   reference           String
   adresse             String
-  tauxCommissionCapco Decimal             @map("taux_commission_capco")
+  tauxCommissionCapco Decimal             @default(5) @map("taux_commission_capco")
   notes               String?
   createdAt           DateTime            @default(now()) @map("created_at")
   createdBy           String?             @map("created_by")
@@ -316,11 +316,47 @@ model Lots {
   createdBy             String?               @map("created_by")
   baux                  Baux[]
   encaissementsLoyers   EncaissementsLoyers[]
+  arrierages            ArrieragesLoyers[]
   immeuble              Immeubles             @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
   locataire             Locataires?           @relation(fields: [locataireId], references: [id])
 
   @@unique([immeubleId, numero])
+  @@index([immeubleId])
+  @@index([statut])
   @@map("lots")
+}
+
+model ArrieragesLoyers {
+  id              String                @id @default(uuid())
+  lotId           String                @map("lot_id")
+  periodeDebut    DateTime              @map("periode_debut")
+  periodeFin      DateTime              @map("periode_fin")
+  montantDu       Decimal               @map("montant_du")
+  montantPaye     Decimal               @default(0) @map("montant_paye")
+  montantRestant  Decimal               @map("montant_restant")
+  statut          StatutArrierage       @default(EN_COURS)
+  description     String?
+  createdAt       DateTime              @default(now()) @map("created_at")
+  createdBy       String                @map("created_by")
+  lot             Lots                  @relation(fields: [lotId], references: [id])
+  paiementsPartiels PaiementsPartielsArrierages[]
+
+  @@map("arrierages_loyers")
+}
+
+model PaiementsPartielsArrierages {
+  id           String          @id @default(uuid())
+  arrierageId  String          @map("arrierage_id")
+  date         DateTime
+  montant      Decimal
+  mode         ModePaiement
+  reference    String?
+  commentaire  String?
+  createdAt    DateTime        @default(now()) @map("created_at")
+  createdBy    String          @map("created_by")
+  arrierage    ArrieragesLoyers @relation(fields: [arrierageId], references: [id])
+
+  @@map("paiements_partiels_arrierages")
 }
 
 model Baux {
@@ -354,6 +390,9 @@ model EncaissementsLoyers {
   createdBy        String       @map("created_by")
   lot              Lots         @relation(fields: [lotId], references: [id], onDelete: Cascade)
 
+  @@index([lotId])
+  @@index([moisConcerne])
+  @@index([dateEncaissement])
   @@map("encaissements_loyers")
 }
 
@@ -370,6 +409,8 @@ model DepensesImmeubles {
   createdBy    String              @map("created_by")
   immeuble     Immeubles           @relation(fields: [immeubleId], references: [id], onDelete: Cascade)
 
+  @@index([immeubleId])
+  @@index([immeubleId, date])
   @@map("depenses_immeubles")
 }
 
@@ -602,6 +643,11 @@ enum TypeAction {
   REQUETE
   AUDIENCE_PROCEDURE
   AUTRE
+}
+
+enum StatutArrierage {
+  EN_COURS
+  SOLDE
 }
 
 enum TypeHonoraires {

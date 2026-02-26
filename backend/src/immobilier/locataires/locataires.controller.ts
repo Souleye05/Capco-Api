@@ -16,8 +16,8 @@ import { AuditLog } from '../../common/decorators/audit-log.decorator';
 import { AppRole } from '@prisma/client';
 
 @ApiTags('Immobilier - Locataires')
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('immobilier/locataires')
 export class LocatairesController {
     constructor(private readonly locatairesService: LocatairesService) { }
@@ -35,7 +35,8 @@ export class LocatairesController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Récupérer tous les locataires avec pagination (TEMP: AUTH DISABLED)' })
+    @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+    @ApiOperation({ summary: 'Récupérer tous les locataires avec pagination' })
     async findAll(@Query() query: PaginationQueryDto): Promise<PaginatedResponse<LocataireResponseDto>> {
         return this.locatairesService.findAll(query);
     }

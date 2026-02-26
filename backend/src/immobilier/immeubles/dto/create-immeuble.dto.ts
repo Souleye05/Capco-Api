@@ -17,10 +17,11 @@ export class CreateImmeubleDto {
     @IsNotEmpty()
     adresse: string;
 
-    @ApiProperty({ description: 'Taux de commission CAPCO (en %)' })
+    @ApiPropertyOptional({ description: 'Taux de commission CAPCO (en %)', default: 5 })
+    @IsOptional()
     @IsNumber()
     @Min(0)
-    tauxCommissionCapco: number;
+    tauxCommissionCapco?: number;
 
     @ApiPropertyOptional({ description: 'Notes sur l\'immeuble' })
     @IsOptional()

@@ -79,6 +79,34 @@ L'API CAPCO est un système de gestion intégré pour un cabinet d'avocats spéc
 5. THE API_CAPCO SHALL implement approximately 70 REST endpoints across all domains
 6. WHEN endpoints are accessed, THE API_CAPCO SHALL return data in consistent JSON format with proper HTTP status codes
 
+### Exigence 11: Gestion des Impayés et Arriérés Immobilier
+
+**User Story:** En tant que gestionnaire immobilier, je veux un système automatique de détection et gestion des impayés et arriérés, afin de suivre efficacement les créances locatives et maintenir la rentabilité du patrimoine.
+
+#### Critères d'Acceptation
+
+1. THE API_CAPCO SHALL automatically detect unpaid rents by comparing expected rents vs actual payments for each occupied lot
+2. WHEN a lot has no payment recorded for a given month, THE API_CAPCO SHALL identify it as an unpaid rent (impayé)
+3. THE API_CAPCO SHALL provide endpoints to query unpaid rents filtered by building and month
+4. THE API_CAPCO SHALL manage rental arrears (arriérés) accumulated before January 2026 with dedicated storage
+5. WHEN recording arrears, THE API_CAPCO SHALL allow partial payments and track remaining debt balance
+6. THE API_CAPCO SHALL generate automatic alerts for unpaid rents using the existing LOYER_IMPAYE alert type
+7. THE API_CAPCO SHALL provide statistics and reports on unpaid amounts by lot and building
+
+### Exigence 12: Import Excel pour Module Immobilier
+
+**User Story:** En tant qu'administrateur, je veux pouvoir importer en masse les données immobilières via des fichiers Excel, afin de migrer efficacement les données existantes et faciliter la saisie en volume.
+
+#### Critères d'Acceptation
+
+1. THE API_CAPCO SHALL provide Excel import endpoints for proprietaires, immeubles, locataires, and lots
+2. WHEN importing Excel files, THE API_CAPCO SHALL validate data format and business rules before processing
+3. THE API_CAPCO SHALL provide downloadable Excel templates with required columns and validation rules
+4. WHEN import validation fails, THE API_CAPCO SHALL return detailed error reports with line numbers and field-specific issues
+5. THE API_CAPCO SHALL process imports transactionally to ensure data consistency
+6. THE API_CAPCO SHALL support batch operations with progress tracking for large imports
+7. THE API_CAPCO SHALL log all import operations in the audit system with file details and results
+
 ### Exigence 6: Génération Automatique de Références
 
 **User Story:** En tant qu'utilisateur métier, je veux que le système génère automatiquement des références uniques pour les entités, afin de maintenir une numérotation cohérente et éviter les doublons.

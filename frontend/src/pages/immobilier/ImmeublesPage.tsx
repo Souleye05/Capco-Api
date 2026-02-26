@@ -1,18 +1,6 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  Search, 
-  Building2, 
-  MapPin, 
-  Users, 
-  Euro,
-  Home,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  FileText,
-  Loader2,
+import {
+  Plus,
+  Search,
   Download,
   Upload
 } from 'lucide-react';
@@ -20,62 +8,46 @@ import { generateImportTemplate } from '@/utils/generateExcelTemplate';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { NouvelImmeubleDialog } from '@/components/dialogs/NouvelImmeubleDialog';
 import { EditImmeubleDialog } from '@/components/dialogs/EditImmeubleDialog';
 import { ImportExcelDialog } from '@/components/dialogs/ImportExcelDialog';
-import { useImmeubles, useLots, useEncaissementsLoyers, ImmeubleDB } from '@/hooks/useImmobilier';
-import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-
-type ImmeubleWithProprietaire = ImmeubleDB & { proprietaires?: { nom: string } | null };
+import { useImmeublesPage } from '@/hooks/useImmeublesPage';
+import { ImmeublesGrid } from '@/components/immobilier/immeubles/ImmeublesGrid';
 
 export default function ImmeublesPage() {
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showNouvelImmeuble, setShowNouvelImmeuble] = useState(false);
-  const [showImportExcel, setShowImportExcel] = useState(false);
-  const [editingImmeuble, setEditingImmeuble] = useState<ImmeubleWithProprietaire | null>(null);
+  const {
+    immeubles,
+    allImmeublesCount,
+    lots,
+    encaissements,
+    currentMonth,
+    isLoading,
+    searchQuery,
+    setSearchQuery,
+    dialogs
+  } = useImmeublesPage();
 
-  const { data: immeubles = [], isLoading } = useImmeubles();
-  const { data: lots = [] } = useLots();
-  const { data: encaissements = [] } = useEncaissementsLoyers();
-
-  const filteredImmeubles = immeubles.filter(immeuble => 
-    immeuble.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    immeuble.adresse.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    immeuble.proprietaireNom.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleGenererRapport = (immeubleNom: string) => {
-    toast.success(`Rapport généré pour ${immeubleNom}`);
+  const handleRapport = (nom: string) => {
+    toast.success(`Rapport généré pour ${nom}`);
   };
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
-
   return (
-    <div className="min-h-screen">
-      <Header 
-        title="Gestion Immobilière" 
-        subtitle={`${immeubles.length} immeubles gérés`}
+    <div className="min-h-screen pb-12">
+      <Header
+        title="Gestion Immobilière"
+        subtitle={`${allImmeublesCount} immeubles gérés`}
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" onClick={generateImportTemplate}>
+          <div className="flex gap-3">
+            <Button variant="outline" className="gap-2 rounded-xl" onClick={generateImportTemplate}>
               <Download className="h-4 w-4" />
-              Template Excel
+              Template
             </Button>
-            <Button variant="outline" className="gap-2" onClick={() => setShowImportExcel(true)}>
+            <Button variant="outline" className="gap-2 rounded-xl" onClick={() => dialogs.setShowImportExcel(true)}>
               <Upload className="h-4 w-4" />
-              Importer Excel
+              Importer
             </Button>
-            <Button className="gap-2" onClick={() => setShowNouvelImmeuble(true)}>
+            <Button className="gap-2 rounded-xl bg-primary shadow-lg shadow-primary/20" onClick={() => dialogs.setShowNouvelImmeuble(true)}>
               <Plus className="h-4 w-4" />
               Nouvel immeuble
             </Button>
@@ -83,172 +55,48 @@ export default function ImmeublesPage() {
         }
       />
 
-      <NouvelImmeubleDialog 
-        open={showNouvelImmeuble} 
-        onOpenChange={setShowNouvelImmeuble} 
-      />
-      
-      <ImportExcelDialog
-        open={showImportExcel}
-        onOpenChange={setShowImportExcel}
-      />
-      
-      {editingImmeuble && (
-        <EditImmeubleDialog
-          open={!!editingImmeuble}
-          onOpenChange={(open) => !open && setEditingImmeuble(null)}
-          immeuble={editingImmeuble}
-        />
-      )}
-
-      <div className="p-6 animate-fade-in">
-        {/* Search */}
-        <div className="relative max-w-md mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative max-w-md mb-10 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             type="search"
-            placeholder="Rechercher un immeuble..."
+            placeholder="Rechercher par nom, adresse ou propriétaire..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-11 h-12 rounded-2xl border-border/50 bg-background shadow-sm focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
 
-        {/* Loading state */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!isLoading && filteredImmeubles.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
-            <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun immeuble trouvé</p>
-            <Button 
-              variant="link" 
-              className="mt-2"
-              onClick={() => setShowNouvelImmeuble(true)}
-            >
-              Créer un nouvel immeuble
-            </Button>
-          </div>
-        )}
-
-        {/* Immeubles grid */}
-        {!isLoading && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredImmeubles.map((immeuble) => {
-              const immeubleLots = lots.filter(l => l.immeubleId === immeuble.id);
-              const lotsOccupes = immeubleLots.filter(l => l.statut === 'OCCUPE').length;
-              const loyerTotal = immeubleLots.reduce((sum, l) => sum + Number(l.loyerMensuelAttendu), 0);
-              const immeubleEncaissements = encaissements.filter(e => 
-                immeubleLots.some(l => l.id === e.lotId) && e.moisConcerne === currentMonth
-              );
-              const loyerEncaisse = immeubleEncaissements.reduce((sum, e) => sum + Number(e.montantEncaisse), 0);
-              const commissions = immeubleEncaissements.reduce((sum, e) => sum + Number(e.commissionCapco), 0);
-              
-              return (
-                <div 
-                  key={immeuble.id} 
-                  className="bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-all cursor-pointer"
-                  onClick={() => navigate(`/immobilier/immeubles/${immeuble.id}`)}
-                >
-                  {/* Header */}
-                  <div className="bg-gradient-to-r from-immobilier/10 to-immobilier/5 p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-lg bg-immobilier/20">
-                          <Building2 className="h-8 w-8 text-immobilier" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-display font-semibold">{immeuble.nom}</h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                            <MapPin className="h-3.5 w-3.5" />
-                            {immeuble.adresse}
-                          </p>
-                        </div>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/immobilier/immeubles/${immeuble.id}`); }}>
-                            <Eye className="h-4 w-4" /> Voir détails
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); setEditingImmeuble(immeuble); }}>
-                            <Edit className="h-4 w-4" /> Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); handleGenererRapport(immeuble.nom); }}>
-                            <FileText className="h-4 w-4" /> Générer rapport
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    
-                    <div className="mt-4">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Propriétaire</p>
-                      <p className="font-medium">{immeuble.proprietaireNom || '-'}</p>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="p-6 space-y-4">
-                    {/* Lots */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Home className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Lots</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{immeubleLots.length} lots</Badge>
-                        <Badge className="bg-success/10 text-success">{lotsOccupes} occupés</Badge>
-                        {immeubleLots.length - lotsOccupes > 0 && (
-                          <Badge className="bg-warning/10 text-warning">{immeubleLots.length - lotsOccupes} libre(s)</Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Loyers */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-muted-foreground">Loyers ce mois</span>
-                        <span className="text-sm font-medium">
-                          {formatCurrency(loyerEncaisse)} / {formatCurrency(loyerTotal)}
-                        </span>
-                      </div>
-                      <Progress value={loyerTotal > 0 ? (loyerEncaisse / loyerTotal) * 100 : 0} className="h-2" />
-                    </div>
-
-                    {/* Commission */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Commission CAPCO ({immeuble.tauxCommissionCapco}%)</p>
-                        <p className="text-lg font-semibold text-immobilier">{formatCurrency(commissions)}</p>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => handleGenererRapport(immeuble.nom)}
-                      >
-                        <FileText className="h-4 w-4" />
-                        Rapport
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <ImmeublesGrid
+          immeubles={immeubles}
+          lots={lots}
+          encaissements={encaissements}
+          currentMonth={currentMonth}
+          isLoading={isLoading}
+          onEdit={dialogs.setEditingImmeuble}
+          onRapport={handleRapport}
+          onNew={() => dialogs.setShowNouvelImmeuble(true)}
+        />
       </div>
+
+      {/* Dialogs */}
+      <NouvelImmeubleDialog
+        open={dialogs.showNouvelImmeuble}
+        onOpenChange={dialogs.setShowNouvelImmeuble}
+      />
+
+      <ImportExcelDialog
+        open={dialogs.showImportExcel}
+        onOpenChange={dialogs.setShowImportExcel}
+      />
+
+      {dialogs.editingImmeuble && (
+        <EditImmeubleDialog
+          open={!!dialogs.editingImmeuble}
+          onOpenChange={(open) => !open && dialogs.setEditingImmeuble(null)}
+          immeuble={dialogs.editingImmeuble}
+        />
+      )}
     </div>
   );
 }
-
-

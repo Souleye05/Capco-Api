@@ -543,158 +543,158 @@ class NestJSApiClient {
 
   // Propriétaires
   async getProprietaires(params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) {
-    return this.get('/immobilier/proprietaires', params);
+    return this.get<any>('/immobilier/proprietaires', params);
   }
   async getProprietaire(id: string) {
-    return this.get(`/immobilier/proprietaires/${id}`);
+    return this.get<any>(`/immobilier/proprietaires/${id}`);
   }
   async createProprietaire(data: { nom: string; telephone?: string; email?: string; adresse?: string }) {
-    return this.post('/immobilier/proprietaires', data);
+    return this.post<any>('/immobilier/proprietaires', data);
   }
   async updateProprietaire(id: string, data: { nom?: string; telephone?: string; email?: string; adresse?: string }) {
-    return this.patch(`/immobilier/proprietaires/${id}`, data);
+    return this.patch<any>(`/immobilier/proprietaires/${id}`, data);
   }
   async deleteProprietaire(id: string) {
-    return this.delete(`/immobilier/proprietaires/${id}`);
+    return this.delete<any>(`/immobilier/proprietaires/${id}`);
   }
   async getProprietairesStatistics() {
-    return this.get('/immobilier/proprietaires/statistics');
+    return this.get<any>('/immobilier/proprietaires/statistics');
   }
 
   // Immeubles
   async getImmeubles(params?: { page?: number; limit?: number; search?: string; proprietaireId?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) {
-    return this.get('/immobilier/immeubles', params);
+    return this.get<any>('/immobilier/immeubles', params);
   }
   async getImmeuble(id: string) {
-    return this.get(`/immobilier/immeubles/${id}`);
+    return this.get<any>(`/immobilier/immeubles/${id}`);
   }
   async createImmeuble(data: { proprietaireId: string; nom: string; adresse: string; tauxCommissionCapco: number; notes?: string }) {
-    return this.post('/immobilier/immeubles', data);
+    return this.post<any>('/immobilier/immeubles', data);
   }
   async updateImmeuble(id: string, data: { nom?: string; adresse?: string; tauxCommissionCapco?: number; notes?: string }) {
-    return this.patch(`/immobilier/immeubles/${id}`, data);
+    return this.patch<any>(`/immobilier/immeubles/${id}`, data);
   }
   async deleteImmeuble(id: string) {
-    return this.delete(`/immobilier/immeubles/${id}`);
+    return this.delete<any>(`/immobilier/immeubles/${id}`);
   }
   async getImmeublesStatistics() {
-    return this.get('/immobilier/immeubles/statistics');
+    return this.get<any>('/immobilier/immeubles/statistics');
   }
 
   // Lots
   async getLotsByImmeuble(immeubleId: string) {
-    return this.get(`/immobilier/immeubles/${immeubleId}/lots`);
+    return this.get<any>(`/immobilier/lots/immeuble/${immeubleId}`);
   }
   async getLot(id: string) {
-    return this.get(`/immobilier/lots/${id}`);
+    return this.get<any>(`/immobilier/lots/${id}`);
   }
   async createLot(data: { immeubleId: string; numero: string; etage?: string; type?: string; loyerMensuelAttendu?: number; statut?: string; locataireId?: string }) {
-    return this.post('/immobilier/lots', data);
+    return this.post<any>('/immobilier/lots', data);
   }
   async updateLot(id: string, data: { numero?: string; etage?: string; type?: string; loyerMensuelAttendu?: number; statut?: string; locataireId?: string | null }) {
-    return this.patch(`/immobilier/lots/${id}`, data);
+    return this.patch<any>(`/immobilier/lots/${id}`, data);
   }
   async deleteLot(id: string) {
-    return this.delete(`/immobilier/lots/${id}`);
+    return this.delete<any>(`/immobilier/lots/${id}`);
   }
 
   // Locataires
   async getLocataires(params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) {
-    return this.get('/immobilier/locataires', params);
+    return this.get<any>('/immobilier/locataires', params);
   }
   async getLocataire(id: string) {
-    return this.get(`/immobilier/locataires/${id}`);
+    return this.get<any>(`/immobilier/locataires/${id}`);
   }
   async createLocataire(data: { nom: string; telephone?: string; email?: string }) {
-    return this.post('/immobilier/locataires', data);
+    return this.post<any>('/immobilier/locataires', data);
   }
   async updateLocataire(id: string, data: { nom?: string; telephone?: string; email?: string }) {
-    return this.patch(`/immobilier/locataires/${id}`, data);
+    return this.patch<any>(`/immobilier/locataires/${id}`, data);
   }
   async deleteLocataire(id: string) {
-    return this.delete(`/immobilier/locataires/${id}`);
+    return this.delete<any>(`/immobilier/locataires/${id}`);
   }
 
   // Baux
   async getBauxByLot(lotId: string) {
-    return this.get(`/immobilier/lots/${lotId}/baux`);
+    return this.get<any>(`/immobilier/lots/${lotId}/baux`);
   }
   async getBauxByLocataire(locataireId: string) {
-    return this.get(`/immobilier/locataires/${locataireId}/baux`);
+    return this.get<any>(`/immobilier/locataires/${locataireId}/baux`);
   }
   async getBail(id: string) {
-    return this.get(`/immobilier/baux/${id}`);
+    return this.get<any>(`/immobilier/baux/${id}`);
   }
   async createBail(data: { lotId: string; locataireId: string; dateDebut: string; dateFin?: string; montantLoyer: number; jourPaiementPrevu?: number; statut?: string }) {
-    return this.post('/immobilier/baux', data);
+    return this.post<any>('/immobilier/baux', data);
   }
   async updateBail(id: string, data: { dateDebut?: string; dateFin?: string; montantLoyer?: number; jourPaiementPrevu?: number; statut?: string }) {
-    return this.patch(`/immobilier/baux/${id}`, data);
+    return this.patch<any>(`/immobilier/baux/${id}`, data);
   }
   async deleteBail(id: string) {
-    return this.delete(`/immobilier/baux/${id}`);
+    return this.delete<any>(`/immobilier/baux/${id}`);
   }
 
   // Encaissements de loyers
   async getEncaissementsByLot(lotId: string) {
-    return this.get(`/immobilier/lots/${lotId}/encaissements`);
+    return this.get<any>(`/immobilier/lots/${lotId}/encaissements`);
   }
   async getEncaissementsByImmeuble(immeubleId: string) {
-    return this.get(`/immobilier/immeubles/${immeubleId}/encaissements`);
+    return this.get<any>(`/immobilier/encaissements/immeuble/${immeubleId}`);
   }
   async getEncaissement(id: string) {
-    return this.get(`/immobilier/encaissements/${id}`);
+    return this.get<any>(`/immobilier/encaissements/${id}`);
   }
   async createEncaissement(data: { lotId: string; moisConcerne: string; dateEncaissement: string; montantEncaisse: number; modePaiement: string; observation?: string }) {
-    return this.post('/immobilier/encaissements', data);
+    return this.post<any>('/immobilier/encaissements', data);
   }
   async updateEncaissement(id: string, data: { moisConcerne?: string; dateEncaissement?: string; montantEncaisse?: number; modePaiement?: string; observation?: string }) {
-    return this.patch(`/immobilier/encaissements/${id}`, data);
+    return this.patch<any>(`/immobilier/encaissements/${id}`, data);
   }
   async deleteEncaissement(id: string) {
-    return this.delete(`/immobilier/encaissements/${id}`);
+    return this.delete<any>(`/immobilier/encaissements/${id}`);
   }
   async getEncaissementsStatistics(params?: { immeubleId?: string; moisConcerne?: string }) {
-    return this.get('/immobilier/encaissements/statistics', params);
+    return this.get<any>('/immobilier/encaissements/statistics', params);
   }
 
   // Dépenses immeubles
   async getDepensesByImmeuble(immeubleId: string) {
-    return this.get(`/immobilier/immeubles/${immeubleId}/depenses`);
+    return this.get<any>(`/immobilier/depenses/immeuble/${immeubleId}`);
   }
   async getDepenseImmeuble(id: string) {
-    return this.get(`/immobilier/depenses/${id}`);
+    return this.get<any>(`/immobilier/depenses/${id}`);
   }
   async createDepenseImmeuble(data: { immeubleId: string; date: string; nature: string; description?: string; montant: number; typeDepense?: string; justificatif?: string }) {
-    return this.post('/immobilier/depenses', data);
+    return this.post<any>('/immobilier/depenses', data);
   }
   async updateDepenseImmeuble(id: string, data: { date?: string; nature?: string; description?: string; montant?: number; typeDepense?: string; justificatif?: string }) {
-    return this.patch(`/immobilier/depenses/${id}`, data);
+    return this.patch<any>(`/immobilier/depenses/${id}`, data);
   }
   async deleteDepenseImmeuble(id: string) {
-    return this.delete(`/immobilier/depenses/${id}`);
+    return this.delete<any>(`/immobilier/depenses/${id}`);
   }
 
   // Rapports de gestion
   async getRapportsByImmeuble(immeubleId: string) {
-    return this.get(`/immobilier/immeubles/${immeubleId}/rapports`);
+    return this.get<any>(`/immobilier/rapports/immeuble/${immeubleId}`);
   }
   async getRapport(id: string) {
-    return this.get(`/immobilier/rapports/${id}`);
+    return this.get<any>(`/immobilier/rapports/${id}`);
   }
   async generateRapport(data: { immeubleId: string; periodeDebut: string; periodeFin: string }) {
-    return this.post('/immobilier/rapports', data);
+    return this.post<any>('/immobilier/rapports', data);
   }
   async updateRapportStatut(id: string, statut: string) {
-    return this.patch(`/immobilier/rapports/${id}/statut`, { statut });
+    return this.patch<any>(`/immobilier/rapports/${id}/statut`, { statut });
   }
   async deleteRapport(id: string) {
-    return this.delete(`/immobilier/rapports/${id}`);
+    return this.delete<any>(`/immobilier/rapports/${id}`);
   }
 
   // Tableau de bord immobilier
   async getImmobilierDashboard() {
-    return this.get('/immobilier/dashboard');
+    return this.get<any>('/immobilier/dashboard');
   }
 }
 

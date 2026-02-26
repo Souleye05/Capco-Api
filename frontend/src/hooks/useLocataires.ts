@@ -37,7 +37,8 @@ export function useLocatairesComplete() {
     queryKey: ['locataires'],
     queryFn: async () => {
       const response = await nestjsApi.getLocataires();
-      return response.data as LocataireComplete[];
+      // Handle paginated response - the API returns { data: [...], pagination: {...} }
+      return response.data?.data as LocataireComplete[] || [];
     },
   });
 }

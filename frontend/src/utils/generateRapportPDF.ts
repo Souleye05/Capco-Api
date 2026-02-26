@@ -50,6 +50,10 @@ interface SimpleRapport {
   netProprietaire: number;
   dateGeneration: string;
   statut: string;
+  immeubleNom?: string;
+  immeubleAdresse?: string;
+  proprietaireNom?: string;
+  tauxCommission?: number;
   immeuble?: {
     id: string;
     nom: string;
@@ -125,13 +129,13 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   yPosition += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(rapport.immeuble?.nom || '-', 20, yPosition);
-  doc.text(rapport.immeuble?.proprietaire?.nom || '-', pageWidth / 2 + 10, yPosition);
+  doc.text(rapport.immeubleNom || rapport.immeuble?.nom || '-', 20, yPosition);
+  doc.text(rapport.proprietaireNom || rapport.immeuble?.proprietaire?.nom || '-', pageWidth / 2 + 10, yPosition);
 
   yPosition += 5;
   doc.setTextColor(100, 116, 139);
   doc.setFontSize(9);
-  doc.text(rapport.immeuble?.adresse || '-', 20, yPosition);
+  doc.text(rapport.immeubleAdresse || rapport.immeuble?.adresse || '-', 20, yPosition);
 
   // Period
   yPosition += 12;
@@ -366,7 +370,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   yPosition += 10;
   doc.setTextColor(30, 41, 59);
   doc.setFont('helvetica', 'normal');
-  doc.text('Commission CAPCO (' + rapport.immeuble?.tauxCommissionCAPCO + '%)', boxX + 10, yPosition);
+  doc.text('Commission CAPCO (' + (rapport.tauxCommission || rapport.immeuble?.tauxCommissionCAPCO) + '%)', boxX + 10, yPosition);
   doc.setTextColor(147, 51, 234); // Purple for CAPCO
   doc.setFont('helvetica', 'bold');
   doc.text('- ' + formatFCFA(rapport.totalCommissions), boxX + boxWidth - 10, yPosition, { align: 'right' });
@@ -398,7 +402,7 @@ export async function generateRapportPDF({ rapport, locatairesStatus, expensesBy
   doc.text('Cabinet CAPCO - Gestion Immobiliere', pageWidth / 2, yPosition + 5, { align: 'center' });
 
   // Save the PDF
-  const immName = (rapport.immeuble?.nom || 'Immeuble').replace(/\s+/g, '_').replace(/[éèê]/g, 'e').replace(/[àâ]/g, 'a');
+  const immName = (rapport.immeubleNom || rapport.immeuble?.nom || 'Immeuble').replace(/\s+/g, '_').replace(/[éèê]/g, 'e').replace(/[àâ]/g, 'a');
   const d = new Date(rapport.periodeDebut);
   const moisStr = String(d.getUTCMonth() + 1).padStart(2, '0') + '_' + d.getUTCFullYear();
   const fileName = `Rapport_Gestion_${immName}_${moisStr}.pdf`;

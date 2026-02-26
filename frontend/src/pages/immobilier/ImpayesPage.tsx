@@ -1,507 +1,72 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { format, startOfMonth, endOfMonth, isSameMonth } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState } from 'react';
 import { parseDateFromAPI } from '@/lib/date-utils';
-import {
-  AlertTriangle,
-  Search,
-  Building2,
-  Filter,
-  Loader2,
-  Calendar,
-  CheckCircle,
-  XCircle
-} from 'lucide-react';
 import { Header } from '@/components/layout/Header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { cn, formatCurrency } from '@/lib/utils';
-import { toast } from 'sonner';
-import { useEncaissementsLoyers, useImmeubles, useLots, useCreateEncaissementLoyer } from '@/hooks/useImmobilier';
-import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
-
-interface LoyerAttendu {
-  id: string;
-  lotId: string;
-  lotNumero: string;
-  immeubleId: string;
-  immeubleNom: string;
-  locataireNom: string;
-  mois: string;
-  montantAttendu: number;
-  tauxCommission: number;
-  statut: 'IMPAYE' | 'PAYE';
-  encaissementId?: string;
-}
+import { useImpayesPage, type LoyerAttendu } from '@/hooks/useImpayesPage';
+import { ImpayesStats } from '@/components/immobilier/impayes/ImpayesStats';
+import { ImpayesFilters } from '@/components/immobilier/impayes/ImpayesFilters';
+import { ImpayesTable } from '@/components/immobilier/impayes/ImpayesTable';
+import { PaiementLoyerDialog } from '@/components/immobilier/impayes/PaiementLoyerDialog';
+import { Loader2 } from 'lucide-react';
 
 export default function ImpayesPage() {
-  const navigate = useNavigate();
-  const { user } = useNestJSAuth();
+  const {
+    loyersAttendus,
+    totals,
+    availableMonths,
+    immeubles,
+    isLoading,
+    filters
+  } = useImpayesPage();
 
-  const { data: encaissements = [], isLoading: encLoading } = useEncaissementsLoyers();
-  const { data: immeubles = [], isLoading: immLoading } = useImmeubles();
-  const { data: lots = [], isLoading: lotsLoading } = useLots();
-  const createEncaissement = useCreateEncaissementLoyer();
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
-  const [selectedMois, setSelectedMois] = useState<string>(format(new Date(), 'yyyy-MM'));
-  const [showPaidOnly, setShowPaidOnly] = useState<string>('impayes');
-
-  // Dialog paiement
-  const [paiementDialogOpen, setPaiementDialogOpen] = useState(false);
   const [selectedLoyer, setSelectedLoyer] = useState<LoyerAttendu | null>(null);
-  const [paiementMontant, setPaiementMontant] = useState('');
-  const [paiementMode, setPaiementMode] = useState<'CASH' | 'VIREMENT' | 'CHEQUE' | 'WAVE' | 'OM'>('VIREMENT');
-  const [paiementDate, setPaiementDate] = useState<Date>(new Date());
+  const [paiementDialogOpen, setPaiementDialogOpen] = useState(false);
 
-  const isLoading = encLoading || immLoading || lotsLoading;
-
-  // Générer les 12 derniers mois pour le select
-  const availableMonths = useMemo(() => {
-    const months = [];
-    const today = new Date();
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      months.push(format(date, 'yyyy-MM'));
-    }
-    return months;
-  }, []);
-
-  // Générer la liste des loyers attendus pour le mois sélectionné
-  const loyersAttendus: LoyerAttendu[] = useMemo(() => {
-    const [year, month] = selectedMois.split('-').map(Number);
-
-    return lots
-      .filter(lot => lot.statut === 'OCCUPE')
-      .map(lot => {
-        const immeuble = immeubles.find(i => i.id === lot.immeubleId);
-
-        // Vérifier si un encaissement existe pour ce lot et ce mois
-        const encaissement = encaissements.find(e =>
-          e.lotId === lot.id &&
-          e.moisConcerne === selectedMois
-        );
-
-        return {
-          id: `${lot.id}-${selectedMois}`,
-          lotId: lot.id,
-          lotNumero: lot.numero,
-          immeubleId: lot.immeubleId,
-          immeubleNom: immeuble?.nom || 'N/A',
-          locataireNom: (lot as any).locataires?.nom || 'N/A',
-          mois: selectedMois,
-          montantAttendu: lot.loyerMensuelAttendu,
-          tauxCommission: immeuble?.tauxCommissionCapco || 5,
-          statut: encaissement ? 'PAYE' : 'IMPAYE',
-          encaissementId: encaissement?.id
-        } as LoyerAttendu;
-      })
-      .filter(loyer => {
-        // Filtre par immeuble
-        if (selectedImmeuble !== 'all' && loyer.immeubleId !== selectedImmeuble) return false;
-
-        // Filtre par recherche
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          if (!loyer.lotNumero.toLowerCase().includes(query) &&
-            !loyer.immeubleNom.toLowerCase().includes(query) &&
-            !loyer.locataireNom.toLowerCase().includes(query)) {
-            return false;
-          }
-        }
-
-        // Filtre par statut
-        if (showPaidOnly === 'impayes' && loyer.statut === 'PAYE') return false;
-        if (showPaidOnly === 'payes' && loyer.statut === 'IMPAYE') return false;
-
-        return true;
-      });
-  }, [lots, immeubles, encaissements, selectedMois, selectedImmeuble, searchQuery, showPaidOnly]);
-
-  const totalAttendu = loyersAttendus.reduce((sum, l) => sum + l.montantAttendu, 0);
-  const totalImpayes = loyersAttendus.filter(l => l.statut === 'IMPAYE').reduce((sum, l) => sum + l.montantAttendu, 0);
-  const totalPayes = loyersAttendus.filter(l => l.statut === 'PAYE').reduce((sum, l) => sum + l.montantAttendu, 0);
-  const nbImpayes = loyersAttendus.filter(l => l.statut === 'IMPAYE').length;
-
-  const openPaiementDialog = (loyer: LoyerAttendu) => {
+  const handlePaiementClick = (loyer: LoyerAttendu) => {
     setSelectedLoyer(loyer);
-    setPaiementMontant(loyer.montantAttendu.toString());
-    setPaiementMode('VIREMENT');
-    setPaiementDate(new Date());
     setPaiementDialogOpen(true);
-  };
-
-  const handleSubmitPaiement = async () => {
-    if (!selectedLoyer) return;
-
-    const montant = parseFloat(paiementMontant);
-    if (isNaN(montant) || montant <= 0) {
-      toast.error('Veuillez saisir un montant valide');
-      return;
-    }
-
-    try {
-      await createEncaissement.mutateAsync({
-        lotId: selectedLoyer.lotId,
-        dateEncaissement: format(paiementDate, 'yyyy-MM-dd'),
-        moisConcerne: selectedLoyer.mois,
-        montantEncaisse: montant,
-        modePaiement: paiementMode,
-      });
-
-      setPaiementDialogOpen(false);
-      setSelectedLoyer(null);
-      toast.success('Paiement enregistré avec succès');
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedImmeuble('all');
-    setShowPaidOnly('impayes');
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
 
+  const formattedMois = new Intl.DateTimeFormat('fr-FR', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC'
+  }).format(parseDateFromAPI(filters.selectedMois + '-01'));
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-12">
       <Header
-        title="Impayés de loyers"
-        subtitle={`${nbImpayes} impayé(s) pour ${new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedMois + '-01'))}`}
+        title="Suivi des Loyers"
+        subtitle={`${totals.nbImpayes} impayé(s) identifié(s) pour ${formattedMois}`}
       />
 
-      <div className="p-6 animate-fade-in space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-muted">
-                  <Calendar className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Loyers attendus</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalAttendu)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
+        <ImpayesStats {...totals} />
 
-          <Card className={cn(nbImpayes > 0 && "border-destructive/50")}>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-destructive/10">
-                  <AlertTriangle className="h-6 w-6 text-destructive" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Impayés ({nbImpayes})</p>
-                  <p className="text-2xl font-bold text-destructive">{formatCurrency(totalImpayes)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <ImpayesFilters
+          availableMonths={availableMonths}
+          immeubles={immeubles}
+          filters={filters}
+        />
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-success/10">
-                  <CheckCircle className="h-6 w-6 text-success" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Encaissés</p>
-                  <p className="text-2xl font-bold text-success">{formatCurrency(totalPayes)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Filter className="h-4 w-4" />
-              Filtres
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div>
-                <Label className="mb-2 block">Mois concerné</Label>
-                <Select value={selectedMois} onValueChange={setSelectedMois}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableMonths.map(mois => (
-                      <SelectItem key={mois} value={mois}>
-                        {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(mois + '-01'))}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="mb-2 block">Immeuble</Label>
-                <Select value={selectedImmeuble} onValueChange={setSelectedImmeuble}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tous" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les immeubles</SelectItem>
-                    {immeubles.map(imm => (
-                      <SelectItem key={imm.id} value={imm.id}>{imm.nom}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="mb-2 block">Statut</Label>
-                <Select value={showPaidOnly} onValueChange={setShowPaidOnly}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="impayes">Impayés uniquement</SelectItem>
-                    <SelectItem value="payes">Payés uniquement</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="mb-2 block">Recherche</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Lot, immeuble..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-end">
-                <Button variant="ghost" onClick={clearFilters} className="w-full">
-                  Effacer
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Table */}
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Immeuble</TableHead>
-                <TableHead>Lot</TableHead>
-                <TableHead>Locataire</TableHead>
-                <TableHead>Mois</TableHead>
-                <TableHead className="text-right">Montant attendu</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loyersAttendus.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    Aucun loyer trouvé pour ce mois
-                  </TableCell>
-                </TableRow>
-              ) : (
-                loyersAttendus.map(loyer => (
-                  <TableRow key={loyer.id} className={cn(loyer.statut === 'IMPAYE' && 'bg-destructive/5')}>
-                    <TableCell>
-                      <div
-                        className="flex items-center gap-2 hover:text-primary cursor-pointer"
-                        onClick={() => navigate(`/immobilier/immeubles/${loyer.immeubleId}`)}
-                      >
-                        <Building2 className="h-4 w-4" />
-                        {loyer.immeubleNom}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{loyer.lotNumero}</Badge>
-                    </TableCell>
-                    <TableCell>{loyer.locataireNom}</TableCell>
-                    <TableCell>
-                      {new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(loyer.mois + '-01'))}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(loyer.montantAttendu)}
-                    </TableCell>
-                    <TableCell>
-                      {loyer.statut === 'PAYE' ? (
-                        <Badge className="bg-success/20 text-success hover:bg-success/30">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Payé
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive">
-                          <XCircle className="h-3 w-3 mr-1" />
-                          Impayé
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {loyer.statut === 'IMPAYE' && (
-                        <Button
-                          size="sm"
-                          onClick={() => openPaiementDialog(loyer)}
-                        >
-                          Enregistrer paiement
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <ImpayesTable
+          loyers={loyersAttendus}
+          onPaiement={handlePaiementClick}
+        />
       </div>
 
-      {/* Dialog paiement */}
-      <Dialog open={paiementDialogOpen} onOpenChange={setPaiementDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Enregistrer un paiement</DialogTitle>
-            <DialogDescription>
-              {selectedLoyer && (
-                <>Lot {selectedLoyer.lotNumero} - {selectedLoyer.immeubleNom} - {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(selectedLoyer.mois + '-01'))}</>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>Date de paiement</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-2">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {format(paiementDate, 'dd/MM/yyyy')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={paiementDate}
-                    onSelect={(d) => d && setPaiementDate(d)}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div>
-              <Label>Montant (FCFA)</Label>
-              <Input
-                type="number"
-                value={paiementMontant}
-                onChange={(e) => setPaiementMontant(e.target.value)}
-                className="mt-2"
-              />
-              {selectedLoyer && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Montant attendu : {formatCurrency(selectedLoyer.montantAttendu)}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label>Mode de paiement</Label>
-              <Select value={paiementMode} onValueChange={(v) => setPaiementMode(v as any)}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="VIREMENT">Virement</SelectItem>
-                  <SelectItem value="CHEQUE">Chèque</SelectItem>
-                  <SelectItem value="CASH">Espèces</SelectItem>
-                  <SelectItem value="WAVE">Wave</SelectItem>
-                  <SelectItem value="OM">Orange Money</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedLoyer && paiementMontant && (
-              <div className="bg-muted p-4 rounded-lg space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Commission CAPCO ({selectedLoyer.tauxCommission}%)</span>
-                  <span className="font-medium">
-                    {formatCurrency(parseFloat(paiementMontant) * (selectedLoyer.tauxCommission / 100))}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Net propriétaire</span>
-                  <span className="font-medium">
-                    {formatCurrency(parseFloat(paiementMontant) * (1 - selectedLoyer.tauxCommission / 100))}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPaiementDialogOpen(false)}>
-              Annuler
-            </Button>
-            <Button onClick={handleSubmitPaiement} disabled={createEncaissement.isPending}>
-              {createEncaissement.isPending ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PaiementLoyerDialog
+        open={paiementDialogOpen}
+        onOpenChange={setPaiementDialogOpen}
+        loyer={selectedLoyer}
+      />
     </div>
   );
 }
-
-
-

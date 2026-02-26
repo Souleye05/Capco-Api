@@ -8,10 +8,10 @@ export class LocataireResponseDto {
     nom: string;
 
     @ApiPropertyOptional({ description: 'Téléphone' })
-    telephone?: string;
+    telephone?: string | null;
 
     @ApiPropertyOptional({ description: 'Email' })
-    email?: string;
+    email?: string | null;
 
     @ApiProperty()
     nombreLots: number;
@@ -20,43 +20,43 @@ export class LocataireResponseDto {
     nombreBauxActifs: number;
 
     @ApiPropertyOptional()
-    adresse?: string;
+    adresse?: string | null;
 
     @ApiPropertyOptional()
-    profession?: string;
+    profession?: string | null;
 
     @ApiPropertyOptional()
-    lieuTravail?: string;
+    lieuTravail?: string | null;
 
     @ApiPropertyOptional()
-    personneContactUrgence?: string;
+    personneContactUrgence?: string | null;
 
     @ApiPropertyOptional()
-    telephoneUrgence?: string;
+    telephoneUrgence?: string | null;
 
     @ApiPropertyOptional()
-    numeroPieceIdentite?: string;
+    numeroPieceIdentite?: string | null;
 
     @ApiPropertyOptional()
-    typePieceIdentite?: string;
+    typePieceIdentite?: string | null;
 
     @ApiPropertyOptional()
-    nationalite?: string;
+    nationalite?: string | null;
 
     @ApiPropertyOptional()
-    dateNaissance?: Date;
+    dateNaissance?: Date | null;
 
     @ApiPropertyOptional()
-    situationFamiliale?: string;
+    situationFamiliale?: string | null;
 
     @ApiPropertyOptional()
-    notes?: string;
+    notes?: string | null;
 
     @ApiPropertyOptional()
-    pieceIdentiteUrl?: string;
+    pieceIdentiteUrl?: string | null;
 
     @ApiPropertyOptional()
-    contratUrl?: string;
+    contratUrl?: string | null;
 
     @ApiPropertyOptional()
     documents?: any;

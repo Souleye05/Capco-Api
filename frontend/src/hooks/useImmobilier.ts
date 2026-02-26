@@ -354,7 +354,7 @@ export function useLots() {
     queryKey: ['lots', 'all'],
     queryFn: async () => {
       // Fetch immeubles first, then aggregate lots from each
-      const immeublesResult = await nestjsApi.getImmeubles({ limit: 200 });
+      const immeublesResult = await nestjsApi.getImmeubles({ limit: 100 });
       const immeubles = unwrap<PaginatedResult<Immeuble>>(immeublesResult).data;
       const allLots: Lot[] = immeubles.flatMap(imm =>
         (imm.lots || []).map(l => ({
@@ -616,7 +616,17 @@ export function useRapportsGestion(immeubleId?: string) {
 export function useCreateRapportGestion() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { immeubleId: string; periodeDebut: string; periodeFin: string }) => {
+    mutationFn: async (data: {
+      immeubleId: string;
+      periodeDebut: string;
+      periodeFin: string;
+      totalLoyers?: number;
+      totalDepenses?: number;
+      totalCommissions?: number;
+      netProprietaire?: number;
+      genererPar?: string;
+      statut?: string;
+    }) => {
       const result = await nestjsApi.generateRapport(data);
       return unwrap<RapportGestion>(result);
     },

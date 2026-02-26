@@ -64,20 +64,29 @@ export class LocatairesService {
     }
 
     async findAll(query: PaginationQueryDto): Promise<PaginatedResponse<LocataireResponseDto>> {
-        const result = await this.paginationService.paginate(
-            this.prisma.locataires,
-            query,
-            {
-                include: LocatairesService.DEFAULT_INCLUDE,
-                searchFields: ['nom', 'telephone', 'email', 'profession'],
-                defaultSortBy: 'createdAt',
-            },
-        );
+        try {
+            const result = await this.paginationService.paginate(
+                this.prisma.locataires,
+                query,
+                {
+                    include: LocatairesService.DEFAULT_INCLUDE,
+                    searchFields: ['nom', 'telephone', 'email', 'profession'],
+                    defaultSortBy: 'createdAt',
+                },
+            );
 
-        return {
-            data: result.data.map((l: LocataireWithInclude) => LocatairesService.mapToResponseDto(l)),
-            pagination: result.pagination,
-        };
+            return {
+                data: result.data.map(LocatairesService.mapToResponseDto),
+                pagination: result.pagination,
+            };
+        } catch (error) {
+            // Log to a file we can read
+            const fs = require('fs');
+            const logEntry = `[${new Date().toISOString()}] Error in LocatairesService.findAll: ${error.stack || error}\n`;
+            fs.appendFileSync('c:\\Workspaces\\CAPCOS\\backend\\error_log.txt', logEntry);
+
+            throw handlePrismaError(error, 'Locataire');
+        }
     }
 
     async findOne(id: string): Promise<LocataireResponseDto> {
@@ -123,22 +132,22 @@ export class LocatairesService {
         return {
             id: locataire.id,
             nom: locataire.nom,
-            telephone: locataire.telephone ?? undefined,
-            email: locataire.email ?? undefined,
-            adresse: locataire.adresse ?? undefined,
-            profession: locataire.profession ?? undefined,
-            lieuTravail: locataire.lieuTravail ?? undefined,
-            personneContactUrgence: locataire.personneContactUrgence ?? undefined,
-            telephoneUrgence: locataire.telephoneUrgence ?? undefined,
-            numeroPieceIdentite: locataire.numeroPieceIdentite ?? undefined,
-            typePieceIdentite: locataire.typePieceIdentite ?? undefined,
-            nationalite: locataire.nationalite ?? undefined,
-            dateNaissance: locataire.dateNaissance ?? undefined,
-            situationFamiliale: locataire.situationFamiliale ?? undefined,
-            notes: locataire.notes ?? undefined,
-            pieceIdentiteUrl: locataire.pieceIdentiteUrl ?? undefined,
-            contratUrl: locataire.contratUrl ?? undefined,
-            documents: locataire.documents,
+            telephone: locataire.telephone || null,
+            email: locataire.email || null,
+            adresse: locataire.adresse || null,
+            profession: locataire.profession || null,
+            lieuTravail: locataire.lieuTravail || null,
+            personneContactUrgence: locataire.personneContactUrgence || null,
+            telephoneUrgence: locataire.telephoneUrgence || null,
+            numeroPieceIdentite: locataire.numeroPieceIdentite || null,
+            typePieceIdentite: locataire.typePieceIdentite || null,
+            nationalite: locataire.nationalite || null,
+            dateNaissance: locataire.dateNaissance || null,
+            situationFamiliale: locataire.situationFamiliale || null,
+            notes: locataire.notes || null,
+            pieceIdentiteUrl: locataire.pieceIdentiteUrl || null,
+            contratUrl: locataire.contratUrl || null,
+            documents: locataire.documents || [],
             nombreLots: locataire.lots.length,
             nombreBauxActifs: locataire.baux.length,
             lots: locataire.lots.map((l) => ({

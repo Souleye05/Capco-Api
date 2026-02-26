@@ -24,7 +24,7 @@ export interface PaginationOptions<T = any> {
  */
 @Injectable()
 export class PaginationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Generic pagination method that works with any Prisma model delegate
@@ -85,9 +85,9 @@ export class PaginationService {
     // Combine base where clause with search conditions
     const finalWhere = searchConditions.length > 0
       ? {
-          ...where,
-          OR: searchConditions
-        }
+        ...where,
+        OR: searchConditions
+      }
       : where;
 
     // Build dynamic sort conditions
@@ -105,19 +105,25 @@ export class PaginationService {
     if (include) queryOptions.include = include;
     if (select) queryOptions.select = select;
 
-    // Use Prisma transaction for optimized parallel queries
-    const [data, total] = await this.prisma.$transaction([
-      delegate.findMany(queryOptions),
-      delegate.count({ where: finalWhere })
-    ]);
+    try {
+      // Use Prisma transaction for optimized parallel queries
+      const [data, total] = await this.prisma.$transaction([
+        delegate.findMany(queryOptions),
+        delegate.count({ where: finalWhere })
+      ]);
 
-    // Calculate pagination metadata
-    const pagination = this.calculatePaginationMeta(page, limit, total);
-
-    return {
-      data,
-      pagination
-    };
+      return {
+        data,
+        pagination: this.calculatePaginationMeta(page, limit, total)
+      };
+    } catch (error) {
+      const fs = require('fs');
+      const logEntry = `[${new Date().toISOString()}] Pagination Error:\n` +
+        `Options: ${JSON.stringify(queryOptions, null, 2)}\n` +
+        `Error: ${error.stack || error}\n`;
+      fs.appendFileSync('c:\\Workspaces\\CAPCOS\\backend\\error_log.txt', logEntry);
+      throw error;
+    }
   }
 
   /**

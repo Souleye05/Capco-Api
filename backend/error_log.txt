@@ -1,0 +1,1005 @@
+[2026-02-25T20:22:39.977Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:110:16
+
+  107 
+  108 // Use Prisma transaction for optimized parallel queries
+  109 const [data, total] = await this.prisma.$transaction([
+→ 110   delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:23:34.214Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:110:16
+
+  107 
+  108 // Use Prisma transaction for optimized parallel queries
+  109 const [data, total] = await this.prisma.$transaction([
+→ 110   delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:23:38.187Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:110:16
+
+  107 
+  108 // Use Prisma transaction for optimized parallel queries
+  109 const [data, total] = await this.prisma.$transaction([
+→ 110   delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:23:52.697Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:110:16
+
+  107 
+  108 // Use Prisma transaction for optimized parallel queries
+  109 const [data, total] = await this.prisma.$transaction([
+→ 110   delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:23:53.730Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:110:16
+
+  107 
+  108 // Use Prisma transaction for optimized parallel queries
+  109 const [data, total] = await this.prisma.$transaction([
+→ 110   delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:23:55.758Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:110:16
+
+  107 
+  108 // Use Prisma transaction for optimized parallel queries
+  109 const [data, total] = await this.prisma.$transaction([
+→ 110   delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:40.938Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 100,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:40.940Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:42.048Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 100,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:42.052Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:44.076Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 100,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:44.077Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:48.109Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 100,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:48.110Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:50.419Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:50.420Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:58.336Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:24:58.336Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:25:07.574Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 1,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:25:07.575Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:25:35.235Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 1,
+  "orderBy": {
+    "id": "desc"
+  },
+  "include": {
+    "lots": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "etage": true,
+        "type": true,
+        "statut": true,
+        "loyerMensuelAttendu": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true
+          }
+        }
+      }
+    },
+    "baux": {
+      "where": {
+        "statut": "ACTIF"
+      },
+      "select": {
+        "id": true,
+        "dateDebut": true,
+        "dateFin": true,
+        "montantLoyer": true,
+        "jourPaiementPrevu": true,
+        "statut": true,
+        "lot": {
+          "select": {
+            "id": true,
+            "numero": true,
+            "immeuble": {
+              "select": {
+                "nom": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:25:35.236Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:26:16.115Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 1,
+  "orderBy": {
+    "id": "desc"
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:26:16.116Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:15.854Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "id": "desc"
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:15.857Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:22.175Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 100,
+  "orderBy": {
+    "id": "desc"
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:22.176Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:23.248Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 100,
+  "orderBy": {
+    "id": "desc"
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:23.250Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:23.490Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "id": "desc"
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:27:23.490Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:28:21.824Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "id": "desc"
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:28:21.825Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:30:57.072Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "id": "desc"
+  }
+}
+Error: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:30:57.074Z] Error in LocatairesService.findAll: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany(
+The column `colonne` does not exist in the current database.
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-25T20:44:38.096Z] Pagination Error:
+Options: {
+  "where": {
+    "date": {
+      "gte": "2026-02-26",
+      "lte": "2026-02-26"
+    }
+  },
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "heure": "asc"
+  },
+  "include": {
+    "affaire": {
+      "include": {
+        "parties_affaires": true
+      }
+    },
+    "resultat": true
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\dist\src\common\services\pagination.service.js:43:26
+
+  40     queryOptions.select = select;
+  41 try {
+  42     const [data, total] = await this.prisma.$transaction([
+→ 43         delegate.findMany({
+               where: {
+                 date: {
+                   gte: "2026-02-26",
+                        ~~~~~~~~~~~~
+                   lte: "2026-02-26"
+                 }
+               },
+               skip: 0,
+               take: 20,
+               orderBy: {
+                 heure: "asc"
+               },
+               include: {
+                 affaire: {
+                   include: {
+                     parties_affaires: true
+                   }
+                 },
+                 resultat: true
+               }
+             })
+
+Invalid value for argument `gte`: premature end of input. Expected ISO-8601 DateTime.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)

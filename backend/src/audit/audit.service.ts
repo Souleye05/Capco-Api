@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateAuditLogDto, AuditQueryDto, AuditLogResponseDto, PaginatedAuditResponse } from './dto/audit.dto';
+import { createDateFilter } from '../common/utils/date.utils';
 
 // Types de remplacement pour AuditLog
 interface AuditLogWhereInput {
@@ -140,14 +141,10 @@ export class AuditService {
     }
 
     if (fromDate || toDate) {
-      const dateCondition: DateTimeFilter = {};
-      if (fromDate) {
-        dateCondition.gte = new Date(fromDate);
+      const dateFilter = createDateFilter(fromDate, toDate);
+      if (dateFilter) {
+        conditions.push({ createdAt: dateFilter });
       }
-      if (toDate) {
-        dateCondition.lte = new Date(toDate);
-      }
-      conditions.push({ createdAt: dateCondition });
     }
 
     // Gestion du search avec AND pour éviter les conflits
@@ -236,12 +233,9 @@ export class AuditService {
     const where: AuditLogWhereInput = {};
 
     if (fromDate || toDate) {
-      where.createdAt = {};
-      if (fromDate) {
-        where.createdAt.gte = new Date(fromDate);
-      }
-      if (toDate) {
-        where.createdAt.lte = new Date(toDate);
+      const dateFilter = createDateFilter(fromDate, toDate);
+      if (dateFilter) {
+        where.createdAt = dateFilter;
       }
     }
 

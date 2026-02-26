@@ -22,6 +22,7 @@ import { GlobalPaiementFormDialog, ConfirmDeleteDialog, PaiementFormDialog } fro
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
+import { formatDate, parseDateFromAPI } from '@/lib/date-utils';
 
 const LIMIT = 15;
 
@@ -138,7 +139,7 @@ export default function PaiementsPage() {
           />
           <StatCard
             title="Dernier Paiement"
-            value={stats?.dernierPaiement ? new Date(stats.dernierPaiement).toLocaleDateString() : 'N/A'}
+            value={stats?.dernierPaiement ? formatDate(parseDateFromAPI(stats.dernierPaiement)) : 'N/A'}
             icon={<Calendar className="text-warning h-5 w-5" />}
             loading={isLoadingStats}
             subtext="Date du dernier encaissement"

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn, formatCurrency } from '@/lib/utils';
+import { formatDate, parseDateFromAPI } from '@/lib/date-utils';
 import { toast } from 'sonner';
 import {
   useDossierRecouvrement, useCreateActionRecouvrement,
@@ -135,9 +136,9 @@ export default function DossierDetailPage() {
   };
 
   const timelineEvents = [
-    ...(dossier.actions?.map(a => ({ type: 'action', date: new Date(a.date), data: a })) || []),
-    ...(dossier.paiements?.map(p => ({ type: 'paiement', date: new Date(p.date), data: p })) || []),
-    ...(dossier.depenses?.map(d => ({ type: 'depense', date: new Date(d.date), data: d })) || [])
+    ...(dossier.actions?.map(a => ({ type: 'action', date: parseDateFromAPI(a.date), data: a })) || []),
+    ...(dossier.paiements?.map(p => ({ type: 'paiement', date: parseDateFromAPI(p.date), data: p })) || []),
+    ...(dossier.depenses?.map(d => ({ type: 'depense', date: parseDateFromAPI(d.date), data: d })) || [])
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return (
@@ -153,7 +154,7 @@ export default function DossierDetailPage() {
                   {dossier.statut.replace('_', ' ')}
                 </Badge>
               </div>
-              <p className="text-sm text-slate-500 font-medium italic">Créé le {new Date(dossier.createdAt).toLocaleDateString()}</p>
+              <p className="text-sm text-slate-500 font-medium italic">Créé le {formatDate(parseDateFromAPI(dossier.createdAt))}</p>
             </div>
           </div>
         }
@@ -210,7 +211,7 @@ export default function DossierDetailPage() {
                               </p>
                             </div>
                             <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap ml-4">
-                              {event.date.toLocaleDateString()}
+                              {formatDate(event.date)}
                             </span>
                           </div>
                         </div>
@@ -233,7 +234,7 @@ export default function DossierDetailPage() {
                       <div className="flex justify-between items-start mb-1">
                         <div className="flex flex-col gap-1">
                           <Badge variant="outline" className="text-[10px] font-bold uppercase w-fit">{typeLabels[action.typeAction] || action.typeAction}</Badge>
-                          <span className="text-xs text-slate-400 font-medium">{new Date(action.date).toLocaleDateString()}</span>
+                          <span className="text-xs text-slate-400 font-medium">{formatDate(parseDateFromAPI(action.date))}</span>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -274,7 +275,7 @@ export default function DossierDetailPage() {
                         <div className="flex items-center gap-4">
                           <div className="flex gap-2 items-center">
                             <Badge variant="outline" className="text-[9px] font-black uppercase text-slate-400 border-slate-200">{modeLabels[p.mode] || p.mode}</Badge>
-                            <span className="text-xs font-bold text-slate-400">{new Date(p.date).toLocaleDateString()}</span>
+                            <span className="text-xs font-bold text-slate-400">{formatDate(parseDateFromAPI(p.date))}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-6">
@@ -314,7 +315,7 @@ export default function DossierDetailPage() {
                           <div className="h-9 w-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center shrink-0"><Receipt className="h-4 w-4" /></div>
                           <div>
                             <p className="text-sm font-bold text-slate-700">{d.nature}</p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase">{depenseLabels[d.typeDepense] || d.typeDepense} • {new Date(d.date).toLocaleDateString()}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">{depenseLabels[d.typeDepense] || d.typeDepense} • {formatDate(parseDateFromAPI(d.date))}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">

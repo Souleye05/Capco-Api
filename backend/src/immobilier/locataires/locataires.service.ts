@@ -54,7 +54,7 @@ export class LocatairesService {
         const locataire = await this.prisma.locataires.create({
             data: {
                 ...data,
-                dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : null,
+                dateNaissance: data.dateNaissance ? new Date(data.dateNaissance + 'T00:00:00.000Z') : null,
                 createdBy: userId,
             },
             include: LocatairesService.DEFAULT_INCLUDE,
@@ -109,7 +109,7 @@ export class LocatairesService {
                 where: { id },
                 data: {
                     ...data,
-                    dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : undefined,
+                    dateNaissance: data.dateNaissance ? new Date(data.dateNaissance + 'T00:00:00.000Z') : undefined,
                 },
                 include: LocatairesService.DEFAULT_INCLUDE,
             });

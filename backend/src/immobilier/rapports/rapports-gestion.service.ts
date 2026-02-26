@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/services/prisma.service';
 import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateRapportGestionDto, UpdateRapportStatutDto } from './dto/create-rapport.dto';
-import { parseDate } from '../../common/utils/date.utils';
+import { dateStringToISODateTime } from '../../common/utils/date.utils';
 
 /** Include used when returning a rapport with its immeuble + proprietaire */
 const RAPPORT_INCLUDE = {
@@ -36,8 +36,8 @@ export class RapportsGestionService {
             throw new NotFoundException(`Immeuble avec l'ID ${createDto.immeubleId} non trouvé`);
         }
 
-        const periodeDebut = parseDate(createDto.periodeDebut);
-        const periodeFin = parseDate(createDto.periodeFin);
+        const periodeDebut = new Date(createDto.periodeDebut + 'T00:00:00.000Z');
+        const periodeFin = new Date(createDto.periodeFin + 'T23:59:59.999Z');
 
         const [loyersResult, depensesResult] = await Promise.all([
             this.prisma.encaissementsLoyers.aggregate({

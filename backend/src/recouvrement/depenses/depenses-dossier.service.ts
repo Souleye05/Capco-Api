@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma.service';
 import { CreateDepenseDossierDto } from './dto/create-depense-dossier.dto';
 import { UpdateDepenseDossierDto } from './dto/update-depense-dossier.dto';
-import { parseDate } from '../../common/utils/date.utils';
 
 @Injectable()
 export class DepensesDossierService {
@@ -20,7 +19,7 @@ export class DepensesDossierService {
         const depense = await this.prisma.depensesDossier.create({
             data: {
                 dossierId: createDto.dossierId,
-                date: parseDate(createDto.date),
+                date: new Date(createDto.date + 'T00:00:00.000Z'),
                 nature: createDto.nature,
                 typeDepense: createDto.typeDepense || 'AUTRES',
                 montant: createDto.montant,
@@ -66,7 +65,7 @@ export class DepensesDossierService {
         await this.findOne(id);
 
         const data: any = {};
-        if (updateDto.date) data.date = parseDate(updateDto.date);
+        if (updateDto.date) data.date = new Date(updateDto.date + 'T00:00:00.000Z');
         if (updateDto.nature !== undefined) data.nature = updateDto.nature;
         if (updateDto.typeDepense) data.typeDepense = updateDto.typeDepense;
         if (updateDto.montant !== undefined) data.montant = updateDto.montant;

@@ -14,6 +14,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatCurrency } from '@/lib/utils';
+import { formatDate, formatTimeUTC, parseDateFromAPI } from '@/lib/date-utils';
+import { formatDate, formatTimeUTC, parseDateFromAPI } from '@/lib/date-utils';
 import { PaiementRecouvrement } from '@/hooks/useRecouvrement';
 
 const modeIcons: Record<string, React.ReactNode> = {
@@ -35,14 +37,14 @@ const modeLabels: Record<string, string> = {
 
 export const PaiementRow = ({ paiement, onEdit, onDelete }: { paiement: PaiementRecouvrement, onEdit?: (p: PaiementRecouvrement) => void, onDelete?: (p: PaiementRecouvrement) => void }) => {
     const navigate = useNavigate();
-    const dateObj = new Date(paiement.date);
+    const dateObj = parseDateFromAPI(paiement.date);
 
     return (
         <TableRow className="group hover:bg-slate-50/50 transition-colors border-slate-100">
             <TableCell className="pl-6">
                 <div className="flex flex-col">
-                    <span className="text-sm font-bold text-slate-900">{dateObj.toLocaleDateString()}</span>
-                    <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">{dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-sm font-bold text-slate-900">{formatDate(dateObj)}</span>
+                    <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">{formatTimeUTC(dateObj)}</span>
                 </div>
             </TableCell>
 

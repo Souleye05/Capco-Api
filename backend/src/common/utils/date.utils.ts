@@ -4,6 +4,7 @@
  */
 
 /**
+ * @deprecated Utiliser dateStringToISODateTime() ou new Date(dateStr + 'T00:00:00.000Z') pour un parsing UTC sécurisé
  * Parse une chaîne de date (ISO string) en objet Date
  * @param dateStr Chaîne de date à parser
  * @returns Date parsée
@@ -13,6 +14,7 @@ export function parseDate(dateStr: string): Date {
 }
 
 /**
+ * @deprecated Utiliser dateStringToISODateTime() ou new Date(dateStr + 'T00:00:00.000Z') pour un parsing UTC sécurisé
  * Parse une chaîne de date optionnelle en objet Date ou null
  * @param dateStr Chaîne de date optionnelle
  * @returns Date parsée ou null
@@ -113,7 +115,7 @@ export function dateStringToISODateTime(dateStr: string, isEndOfDay: boolean = f
  */
 export function createDateFilter(dateDebut?: string, dateFin?: string): any {
   if (!dateDebut && !dateFin) return undefined;
-  
+
   const filter: any = {};
   if (dateDebut) {
     filter.gte = dateStringToISODateTime(dateDebut, false);
@@ -134,4 +136,59 @@ export function dateToUTCDateString(date: Date): string {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const day = String(date.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Calcule le mois cible courant pour le calcul des impayés (format YYYY-MM)
+ * Règle: Si on est avant le 5 du mois, on retourne le mois précédent
+ */
+export function getCurrentImpayesMonth(): string {
+  const now = new Date();
+  let year = now.getUTCFullYear();
+  let month = now.getUTCMonth() + 1; // 1-12
+  const day = now.getUTCDate();
+
+  if (day < 5) {
+    month -= 1;
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+  }
+
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+/**
+ * Retourne le mois actuel au format YYYY-MM en UTC
+ */
+export function getCurrentMonthYM(): string {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
+
+/**
+ * Ajoute (ou soustrait) un nombre de mois à un mois au format YYYY-MM
+ */
+export function addMonthsToYM(moisYM: string, monthsToAdd: number): string {
+  const parts = moisYM.split('-');
+  if (parts.length !== 2) return moisYM;
+
+  let year = parseInt(parts[0], 10);
+  let month = parseInt(parts[1], 10);
+
+  month += monthsToAdd;
+
+  while (month <= 0) {
+    month += 12;
+    year -= 1;
+  }
+  while (month > 12) {
+    month -= 12;
+    year += 1;
+  }
+
+  return `${year}-${String(month).padStart(2, '0')}`;
 }

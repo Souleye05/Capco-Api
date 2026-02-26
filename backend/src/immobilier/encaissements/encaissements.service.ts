@@ -4,7 +4,6 @@ import { PrismaService } from '../../common/services/prisma.service';
 import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateEncaissementDto } from './dto/create-encaissement.dto';
 import { UpdateEncaissementDto } from './dto/update-encaissement.dto';
-import { parseDate } from '../../common/utils/date.utils';
 
 type EncaissementWithInclude = Prisma.EncaissementsLoyersGetPayload<{
     include: typeof EncaissementsService['DEFAULT_INCLUDE'];
@@ -58,7 +57,7 @@ export class EncaissementsService {
             data: {
                 lotId: createDto.lotId,
                 moisConcerne: createDto.moisConcerne,
-                dateEncaissement: parseDate(createDto.dateEncaissement),
+                dateEncaissement: new Date(createDto.dateEncaissement + 'T00:00:00.000Z'),
                 montantEncaisse: createDto.montantEncaisse,
                 modePaiement: createDto.modePaiement,
                 observation: createDto.observation,
@@ -125,7 +124,7 @@ export class EncaissementsService {
 
         const data: Prisma.EncaissementsLoyersUncheckedUpdateInput = {};
         if (updateDto.moisConcerne !== undefined) data.moisConcerne = updateDto.moisConcerne;
-        if (updateDto.dateEncaissement) data.dateEncaissement = parseDate(updateDto.dateEncaissement);
+        if (updateDto.dateEncaissement) data.dateEncaissement = new Date(updateDto.dateEncaissement + 'T00:00:00.000Z');
         if (updateDto.modePaiement) data.modePaiement = updateDto.modePaiement;
         if (updateDto.observation !== undefined) data.observation = updateDto.observation;
 

@@ -24,6 +24,7 @@ import {
 } from '@/hooks/useContentieuxDashboard';
 
 import { StatCard } from '@/components/ui/stat-card';
+import { formatDate, formatDateTimeUTC, parseDateFromAPI, createUTCDate, addDays } from '@/lib/date-utils';
 
 export default function ContentieuxDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,8 +36,8 @@ export default function ContentieuxDashboard() {
   const { data: indicateurs } = useIndicateursPerformance();
 
   // Calcul des dates pour le planning
-  const today = new Date();
-  const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const today = createUTCDate(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  const nextWeek = addDays(today, 7);
 
   if (dashboardLoading) {
     return (
@@ -257,7 +258,7 @@ export default function ContentieuxDashboard() {
         <CardHeader>
           <CardTitle>Planning des audiences - 7 prochains jours</CardTitle>
           <CardDescription>
-            Audiences programmées du {today.toLocaleDateString()} au {nextWeek.toLocaleDateString()}
+            Audiences programmées du {formatDate(today)} au {formatDate(nextWeek)}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -268,7 +269,7 @@ export default function ContentieuxDashboard() {
                   <div className="space-y-1">
                     <div className="font-medium">{audience.affaire.reference} - {audience.affaire.intitule}</div>
                     <div className="text-sm text-muted-foreground">
-                      {new Date(audience.date).toLocaleDateString()}
+                      {formatDate(parseDateFromAPI(audience.date))}
                       {audience.heure && ` à ${audience.heure}`} - {audience.juridiction}
                     </div>
                   </div>
@@ -308,7 +309,7 @@ export default function ContentieuxDashboard() {
                     <div className="font-medium">{activite.titre}</div>
                     <div className="text-sm text-muted-foreground">{activite.description}</div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(activite.date).toLocaleString()} par {activite.utilisateur}
+                      {formatDateTimeUTC(parseDateFromAPI(activite.date))} par {activite.utilisateur}
                     </div>
                   </div>
                   <Badge variant="outline">{activite.type}</Badge>

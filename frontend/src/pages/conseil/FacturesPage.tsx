@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseDateFromAPI } from '@/lib/date-utils';
+import { parseDateFromAPI, formatDateForAPI } from '@/lib/date-utils';
 import { format } from 'date-fns';
 import {
   Search,
@@ -93,7 +93,7 @@ export default function FacturesPage() {
     montant: 0,
     mode: 'VIREMENT' as ModePaiement,
     reference: '',
-    date: format(new Date(), 'yyyy-MM-dd')
+    date: formatDateForAPI(new Date())
   });
 
   const isLoading = facturesLoading || clientsLoading;
@@ -148,7 +148,7 @@ export default function FacturesPage() {
     }
 
     // Tri par date d'émission décroissante
-    return result.sort((a, b) => new Date(b.date_emission).getTime() - new Date(a.date_emission).getTime());
+    return result.sort((a, b) => parseDateFromAPI(b.date_emission).getTime() - parseDateFromAPI(a.date_emission).getTime());
   }, [enrichedFactures, filterStatut, searchTerm]);
 
   const handleOpenPaiement = (factureId: string) => {
@@ -159,7 +159,7 @@ export default function FacturesPage() {
         montant: facture.montant_ttc,
         mode: 'VIREMENT',
         reference: '',
-        date: format(new Date(), 'yyyy-MM-dd')
+        date: formatDateForAPI(new Date())
       });
       setIsPaiementDialogOpen(true);
     }
@@ -341,7 +341,7 @@ export default function FacturesPage() {
                       </TableCell>
                       <TableCell>
                         <span className={cn(
-                          new Date(facture.date_echeance) < new Date() && facture.statut !== 'PAYEE' && 'text-destructive font-medium'
+                          parseDateFromAPI(facture.date_echeance) < new Date() && facture.statut !== 'PAYEE' && 'text-destructive font-medium'
                         )}>
                           {new Intl.DateTimeFormat('fr-FR', {
                             day: '2-digit',

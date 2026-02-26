@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { parseDateFromAPI } from '@/lib/date-utils';
+import { parseDateFromAPI, formatDateForAPI, getFirstDayOfMonth } from '@/lib/date-utils';
 import { format } from 'date-fns';
 import {
   ArrowLeft,
@@ -143,7 +143,7 @@ export default function ClientDetailPage() {
     const totalPaye = paiementsClient.reduce((sum, p) => sum + p.montant, 0);
     const facturesImpayees = facturesClient.filter(f => f.statut === 'ENVOYEE' || f.statut === 'EN_RETARD').length;
     const tachesMoisCourant = tachesClient.filter(t => {
-      const moisCourant = format(new Date(), 'yyyy-MM');
+      const moisCourant = formatDateForAPI(getFirstDayOfMonth(new Date().getUTCFullYear(), new Date().getUTCMonth())).substring(0, 7);
       return t.moisConcerne === moisCourant;
     }).length;
     const tempsTotal = tachesClient.reduce((sum, t) => sum + (t.dureeMinutes || 0), 0);
@@ -175,7 +175,7 @@ export default function ClientDetailPage() {
       type: 'CONSULTATION',
       description: '',
       dureeMinutes: 60,
-      date: format(new Date(), 'yyyy-MM-dd')
+      date: formatDateForAPI(new Date())
     });
   };
 
@@ -380,7 +380,7 @@ export default function ClientDetailPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {tachesClient.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((tache) => (
+                      {tachesClient.sort((a, b) => parseDateFromAPI(b.date).getTime() - parseDateFromAPI(a.date).getTime()).map((tache) => (
                         <TableRow key={tache.id}>
                           <TableCell>
                             {new Intl.DateTimeFormat('fr-FR', {

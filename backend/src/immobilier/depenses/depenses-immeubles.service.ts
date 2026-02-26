@@ -4,7 +4,6 @@ import { PrismaService } from '../../common/services/prisma.service';
 import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateDepenseImmeubleDto } from './dto/create-depense-immeuble.dto';
 import { UpdateDepenseImmeubleDto } from './dto/update-depense-immeuble.dto';
-import { parseDate } from '../../common/utils/date.utils';
 
 type DepenseWithImmeuble = Prisma.DepensesImmeublesGetPayload<{
     include: typeof DepensesImmeublesService['DEFAULT_INCLUDE'];
@@ -30,7 +29,7 @@ export class DepensesImmeublesService {
         const depense = await this.prisma.depensesImmeubles.create({
             data: {
                 immeubleId: createDto.immeubleId,
-                date: parseDate(createDto.date),
+                date: new Date(createDto.date + 'T00:00:00.000Z'),
                 nature: createDto.nature,
                 description: createDto.description,
                 montant: createDto.montant,
@@ -69,7 +68,7 @@ export class DepensesImmeublesService {
 
     async update(id: string, updateDto: UpdateDepenseImmeubleDto) {
         const data: Prisma.DepensesImmeublesUncheckedUpdateInput = {};
-        if (updateDto.date) data.date = parseDate(updateDto.date);
+        if (updateDto.date) data.date = new Date(updateDto.date + 'T00:00:00.000Z');
         if (updateDto.nature !== undefined) data.nature = updateDto.nature;
         if (updateDto.description !== undefined) data.description = updateDto.description;
         if (updateDto.montant !== undefined) data.montant = updateDto.montant;

@@ -4,7 +4,6 @@ import { PrismaService } from '../../common/services/prisma.service';
 import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateBailDto } from './dto/create-bail.dto';
 import { UpdateBailDto } from './dto/update-bail.dto';
-import { parseDate, parseDateOptional } from '../../common/utils/date.utils';
 
 type BailWithInclude = Prisma.BauxGetPayload<{
     include: typeof BauxService['DEFAULT_INCLUDE'];
@@ -50,8 +49,8 @@ export class BauxService {
                     data: {
                         lotId: createDto.lotId,
                         locataireId: createDto.locataireId,
-                        dateDebut: parseDate(createDto.dateDebut),
-                        dateFin: parseDateOptional(createDto.dateFin),
+                        dateDebut: new Date(createDto.dateDebut + 'T00:00:00.000Z'),
+                        dateFin: createDto.dateFin ? new Date(createDto.dateFin + 'T00:00:00.000Z') : null,
                         montantLoyer: createDto.montantLoyer,
                         jourPaiementPrevu: createDto.jourPaiementPrevu || 5,
                         statut: createDto.statut || StatutBail.ACTIF,
@@ -116,8 +115,8 @@ export class BauxService {
     async update(id: string, updateDto: UpdateBailDto) {
         try {
             const data: Prisma.BauxUncheckedUpdateInput = {};
-            if (updateDto.dateDebut) data.dateDebut = parseDate(updateDto.dateDebut);
-            if (updateDto.dateFin !== undefined) data.dateFin = parseDateOptional(updateDto.dateFin);
+            if (updateDto.dateDebut) data.dateDebut = new Date(updateDto.dateDebut + 'T00:00:00.000Z');
+            if (updateDto.dateFin !== undefined) data.dateFin = updateDto.dateFin ? new Date(updateDto.dateFin + 'T00:00:00.000Z') : null;
             if (updateDto.montantLoyer !== undefined) data.montantLoyer = updateDto.montantLoyer;
             if (updateDto.jourPaiementPrevu !== undefined) data.jourPaiementPrevu = updateDto.jourPaiementPrevu;
             if (updateDto.statut !== undefined) data.statut = updateDto.statut;

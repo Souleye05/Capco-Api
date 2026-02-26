@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { formatDateForAPI, getFirstDayOfMonth } from '@/lib/date-utils';
 import { ArrowLeft, FileText, Loader2, Receipt, TrendingDown, Percent, FileBarChart } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
@@ -59,7 +60,7 @@ export default function ImmeubleDetailPage() {
           periode: data.moisConcerne,
           loyerMensuel: Number(lot.loyerMensuelAttendu),
           montantPaye: data.montantEncaisse,
-          datePaiement: format(new Date(), 'yyyy-MM-dd'),
+          datePaiement: formatDateForAPI(new Date()),
           modePaiement: data.modePaiement
         });
       }
@@ -68,15 +69,15 @@ export default function ImmeubleDetailPage() {
 
   const handleCreateDepense = async (data: any) => {
     try {
-      await createDepense.mutateAsync({ ...data, immeubleId: id, date: format(new Date(), 'yyyy-MM-dd') });
+      await createDepense.mutateAsync({ ...data, immeubleId: id, date: formatDateForAPI(new Date()) });
       toast.success('Dépense enregistrée');
     } catch (err) { }
   };
 
   const handleGenerateRapport = async () => {
     try {
-      const pDebut = filters.dateDebut ? format(filters.dateDebut, 'yyyy-MM-dd') : format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd');
-      const pFin = filters.dateFin ? format(filters.dateFin, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+      const pDebut = filters.dateDebut ? formatDateForAPI(filters.dateDebut) : formatDateForAPI(getFirstDayOfMonth(new Date().getUTCFullYear(), new Date().getUTCMonth()));
+      const pFin = filters.dateFin ? formatDateForAPI(filters.dateFin) : formatDateForAPI(new Date());
 
       await createRapport.mutateAsync({ immeubleId: id, periodeDebut: pDebut, periodeFin: pFin });
 

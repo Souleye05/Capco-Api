@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { mockAlertes } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import { formatDateLong, parseDateFromAPI } from '@/lib/date-utils';
 import { Alerte } from '@/types';
 
 const alerteIcons = {
@@ -176,13 +177,7 @@ function AlerteCard({ alerte, onMarkRead, onDelete }: AlerteCardProps) {
           </div>
           <p className="text-sm text-muted-foreground">{alerte.description}</p>
           <p className="text-xs text-muted-foreground mt-2">
-            {new Date(alerte.dateCreation).toLocaleDateString('fr-FR', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+            {formatDateLong(parseDateFromAPI(alerte.dateCreation))}
           </p>
         </div>
 

@@ -17,7 +17,7 @@ import { NouvelEvenementDialog } from '@/components/dialogs/NouvelEvenementDialo
 import { cn } from '@/lib/utils';
 import { useAudiences } from '@/hooks/useAudiences';
 import { useActionsRecouvrement } from '@/hooks/useRecouvrement';
-import { parseDateFromAPI } from '@/lib/date-utils';
+import { parseDateFromAPI, getUTCYear, getUTCMonth, getUTCDay, createUTCDate, format } from '@/lib/date-utils';
 
 interface CalendarEvent {
   id: string;
@@ -31,7 +31,7 @@ interface CalendarEvent {
 
 export default function AgendaPage() {
   const navigate = useNavigate();
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(createUTCDate(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
   const [showNouvelEvenement, setShowNouvelEvenement] = useState(false);
   const [filters, setFilters] = useState({
     audiences: true,
@@ -79,18 +79,18 @@ export default function AgendaPage() {
 
   // Calendar helpers
   const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+    const year = getUTCYear(date);
+    const month = getUTCMonth(date);
+    const firstDay = createUTCDate(year, month, 1);
+    const lastDay = createUTCDate(year, month + 1, 0);
+    const daysInMonth = getUTCDay(lastDay);
+    const startingDayOfWeek = firstDay.getUTCDay() === 0 ? 6 : firstDay.getUTCDay() - 1;
 
     return { daysInMonth, startingDayOfWeek, year, month };
   };
 
   const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentMonth);
-  const today = new Date();
+  const today = createUTCDate(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
 
   const getEventsForDay = (day: number) => {
     return events.filter(e => {
@@ -154,17 +154,17 @@ export default function AgendaPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
+                  onClick={() => setCurrentMonth(createUTCDate(year, month - 1, 1))}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <h3 className="font-semibold">
-                  {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                  {format(currentMonth, 'MMMM yyyy')}
                 </h3>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
+                  onClick={() => setCurrentMonth(createUTCDate(year, month + 1, 1))}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -173,7 +173,7 @@ export default function AgendaPage() {
                 variant="outline"
                 size="sm"
                 className="w-full"
-                onClick={() => setCurrentMonth(new Date())}
+                onClick={() => setCurrentMonth(createUTCDate(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1))}
               >
                 Aujourd'hui
               </Button>
@@ -233,9 +233,9 @@ export default function AgendaPage() {
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const day = i + 1;
                   const dayEvents = getEventsForDay(day);
-                  const isToday = today.getDate() === day &&
-                    today.getMonth() === month &&
-                    today.getFullYear() === year;
+                  const isToday = getUTCDay(today) === day &&
+                    getUTCMonth(today) === month &&
+                    getUTCYear(today) === year;
 
                   return (
                     <div

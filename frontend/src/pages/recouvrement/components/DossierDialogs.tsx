@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Check, ChevronsUpDown, AlertTriangle } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
+import { formatDateForAPI, parseDateFromAPI } from '@/lib/date-utils';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -40,7 +41,7 @@ export const ActionFormDialog = ({ open, onOpenChange, onSubmit, labels, initial
                 type: initialData.typeAction,
                 resume: initialData.resume || '',
                 prochaineEtape: initialData.prochaineEtape || '',
-                echeance: initialData.echeanceProchaineEtape ? new Date(initialData.echeanceProchaineEtape).toISOString().split('T')[0] : ''
+                echeance: initialData.echeanceProchaineEtape ? formatDateForAPI(parseDateFromAPI(initialData.echeanceProchaineEtape)) : ''
             });
         } else if (open && !initialData) {
             setData({ type: 'APPEL_TELEPHONIQUE', resume: '', prochaineEtape: '', echeance: '' });

@@ -21,7 +21,7 @@ interface AudienceTimelineProps {
 }
 
 export function AudienceTimeline({ audiences, onSaisirResultat, onPlanifier, derniereJuridiction }: AudienceTimelineProps) {
-    const sorted = [...audiences].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sorted = [...audiences].sort((a, b) => parseDateFromAPI(b.date).getTime() - parseDateFromAPI(a.date).getTime());
 
     return (
         <Card>

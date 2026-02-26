@@ -25,6 +25,7 @@ import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { Button } from '@/components/ui/button';
 import { NouvelleActionDialog } from '@/components/dialogs/NouvelleActionDialog';
 import { formatCurrency } from '@/lib/utils';
+import { formatDateLong } from '@/lib/date-utils';
 import capcoLogo from '@/assets/capco-logo.png';
 import { useDashboardStats, useAudiencesDemain } from '@/hooks/useDashboardStats';
 import { useAlertes } from '@/hooks/useAlertes';
@@ -61,7 +62,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <PageHeader
         title="Tableau de bord"
-        description={`${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
+        description={`${formatDateLong(new Date())}`}
         action={{
           label: "Nouvelle action",
           icon: <Plus className="h-4 w-4" />,

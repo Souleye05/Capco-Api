@@ -11,6 +11,7 @@ import { BauxController } from './baux/baux.controller';
 import { EncaissementsController } from './encaissements/encaissements.controller';
 import { DepensesImmeublesController } from './depenses/depenses-immeubles.controller';
 import { RapportsGestionController } from './rapports/rapports-gestion.controller';
+import { ImpayesController } from './impayes/impayes.controller';
 
 // Services
 import { ImmobilierService } from './immobilier.service';
@@ -22,6 +23,7 @@ import { BauxService } from './baux/baux.service';
 import { EncaissementsService } from './encaissements/encaissements.service';
 import { DepensesImmeublesService } from './depenses/depenses-immeubles.service';
 import { RapportsGestionService } from './rapports/rapports-gestion.service';
+import { ImpayesService } from './impayes/impayes.service';
 
 @Module({
     imports: [CommonModule],
@@ -35,6 +37,7 @@ import { RapportsGestionService } from './rapports/rapports-gestion.service';
         EncaissementsController,
         DepensesImmeublesController,
         RapportsGestionController,
+        ImpayesController,
     ],
     providers: [
         ImmobilierService,
@@ -46,6 +49,7 @@ import { RapportsGestionService } from './rapports/rapports-gestion.service';
         EncaissementsService,
         DepensesImmeublesService,
         RapportsGestionService,
+        ImpayesService,
     ],
     exports: [
         ImmobilierService,
@@ -57,6 +61,7 @@ import { RapportsGestionService } from './rapports/rapports-gestion.service';
         EncaissementsService,
         DepensesImmeublesService,
         RapportsGestionService,
+        ImpayesService,
     ],
 })
 export class ImmobilierModule { }

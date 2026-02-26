@@ -1,27 +1,52 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma.service';
+import { PaginationService } from '../../common/services/pagination.service';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
 import { ActionResponseDto } from './dto/action-response.dto';
-import { parseDate, parseDateOptional } from '../../common/utils/date.utils';
+import { ActionsQueryDto } from './dto/actions-query.dto';
+import { createDateFilter } from '../../common/utils/date.utils';
+import { PaginatedResponse } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class ActionsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly paginationService: PaginationService,
+    ) { }
 
-    async findAll(): Promise<ActionResponseDto[]> {
-        const actions = await this.prisma.actionsRecouvrement.findMany({
-            include: {
-                dossiersRecouvrement: {
-                    select: {
-                        reference: true,
+    async findAll(query: ActionsQueryDto): Promise<PaginatedResponse<ActionResponseDto>> {
+        const whereClause: any = {};
+
+        if (query.dossierId) whereClause.dossierId = query.dossierId;
+        if (query.typeAction) whereClause.typeAction = query.typeAction;
+        
+        // Filtre par période
+        if (query.dateDebut || query.dateFin) {
+            whereClause.date = createDateFilter(query.dateDebut, query.dateFin);
+        }
+
+        const result = await this.paginationService.paginate(
+            this.prisma.actionsRecouvrement,
+            query,
+            {
+                where: whereClause,
+                include: {
+                    dossiersRecouvrement: {
+                        select: {
+                            reference: true,
+                        },
                     },
                 },
-            },
-            orderBy: { date: 'desc' },
-        });
+                searchFields: ['resume', 'prochaineEtape', 'dossiersRecouvrement.reference'],
+                defaultSortBy: 'date',
+            }
+        );
 
-        return actions.map(action => this.mapToResponseDto(action));
+        return {
+            data: result.data.map(action => this.mapToResponseDto(action)),
+            pagination: result.pagination,
+        };
     }
 
     async create(createActionDto: CreateActionDto, userId: string): Promise<ActionResponseDto> {
@@ -37,11 +62,11 @@ export class ActionsService {
         const action = await this.prisma.actionsRecouvrement.create({
             data: {
                 dossierId: createActionDto.dossierId,
-                date: parseDate(createActionDto.date),
+                date: new Date(createActionDto.date + 'T00:00:00.000Z'),
                 typeAction: createActionDto.typeAction,
                 resume: createActionDto.resume,
                 prochaineEtape: createActionDto.prochaineEtape,
-                echeanceProchaineEtape: parseDateOptional(createActionDto.echeanceProchaineEtape),
+                echeanceProchaineEtape: createActionDto.echeanceProchaineEtape ? new Date(createActionDto.echeanceProchaineEtape + 'T00:00:00.000Z') : null,
                 pieceJointe: createActionDto.pieceJointe,
                 createdBy: userId,
             },
@@ -84,12 +109,12 @@ export class ActionsService {
         await this.findOne(id);
 
         const data: any = {};
-        if (updateActionDto.date) data.date = parseDate(updateActionDto.date);
+        if (updateActionDto.date) data.date = new Date(updateActionDto.date + 'T00:00:00.000Z');
         if (updateActionDto.typeAction) data.typeAction = updateActionDto.typeAction;
         if (updateActionDto.resume !== undefined) data.resume = updateActionDto.resume;
         if (updateActionDto.prochaineEtape !== undefined) data.prochaineEtape = updateActionDto.prochaineEtape;
         if (updateActionDto.echeanceProchaineEtape !== undefined) {
-            data.echeanceProchaineEtape = parseDateOptional(updateActionDto.echeanceProchaineEtape);
+            data.echeanceProchaineEtape = updateActionDto.echeanceProchaineEtape ? new Date(updateActionDto.echeanceProchaineEtape + 'T00:00:00.000Z') : null;
         }
         if (updateActionDto.pieceJointe !== undefined) data.pieceJointe = updateActionDto.pieceJointe;
 

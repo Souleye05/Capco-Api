@@ -193,6 +193,7 @@ export function Sidebar() {
       icon: <Building2 className="h-4 w-4" />,
       label: 'Immobilier',
       children: [
+        { to: '/immobilier/proprietaires', label: 'Propriétaires' },
         { to: '/immobilier/immeubles', label: 'Immeubles' },
         { to: '/immobilier/lots', label: 'Lots' },
         { to: '/immobilier/locataires', label: 'Locataires' },

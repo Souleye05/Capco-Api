@@ -117,6 +117,35 @@ export function useBauxByLocataire(locataireId: string) {
   });
 }
 
+// Fetch encaissements for a locataire
+export function useEncaissementsByLocataire(locataireId: string) {
+  return useQuery({
+    queryKey: ['encaissements', 'locataire', locataireId],
+    queryFn: async () => {
+      try {
+        const response = await nestjsApi.getEncaissementsByLocataire(locataireId);
+        return response.data as any[];
+      } catch (error: any) {
+        console.error('Error fetching encaissements:', error);
+        if (error.response?.status === 404) {
+          return []; // Return empty array for not found
+        }
+        throw error;
+      }
+    },
+    enabled: !!locataireId,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 404 or validation errors
+      if (error?.response?.status === 404 || error?.response?.status === 400) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
 // Delete locataire
 export function useDeleteLocataire() {
   const queryClient = useQueryClient();

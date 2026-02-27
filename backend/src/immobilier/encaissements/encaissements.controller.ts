@@ -1,5 +1,6 @@
 import {
     Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseUUIDPipe,
+    BadRequestException, NotFoundException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { EncaissementsService } from './encaissements.service';
@@ -12,6 +13,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuditLog } from '../../common/decorators/audit-log.decorator';
 import { AppRole } from '@prisma/client';
+import { isUUID } from 'class-validator';
 
 @ApiTags('Immobilier - Encaissements Loyers')
 @ApiBearerAuth()
@@ -60,6 +62,31 @@ export class EncaissementsController {
     @ApiOperation({ summary: 'Récupérer les encaissements d\'un immeuble' })
     async findByImmeuble(@Param('immeubleId', ParseUUIDPipe) immeubleId: string) {
         return this.encaissementsService.findByImmeuble(immeubleId);
+    }
+
+    @Get('locataire/:locataireId')
+    @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+    @ApiOperation({ summary: 'Récupérer les encaissements d\'un locataire' })
+    async findByLocataire(@Param('locataireId', ParseUUIDPipe) locataireId: string) {
+        // Additional validation
+        if (!isUUID(locataireId)) {
+            throw new BadRequestException('ID locataire invalide');
+        }
+
+        try {
+            const encaissements = await this.encaissementsService.findByLocataire(locataireId);
+            
+            if (!encaissements || encaissements.length === 0) {
+                return [];
+            }
+
+            return encaissements;
+        } catch (error) {
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Locataire non trouvé');
+            }
+            throw error;
+        }
     }
 
     @Get(':id')

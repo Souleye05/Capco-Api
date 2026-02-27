@@ -4,6 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { CreateLocataireDialog, EditLocataireDialog } from '@/components/immobilier/LocataireDialogs';
+import { LocataireDetailDialog } from '@/components/immobilier/locataires/LocataireDetailDialog';
+import { LocatairesFilters } from '@/components/immobilier/locataires/LocatairesFilters';
+import { LocatairesExport } from '@/components/immobilier/locataires/LocatairesExport';
 import { Plus, Search } from 'lucide-react';
 import { useLocatairesPage } from '@/hooks/useLocatairesPage';
 import { LocatairesStats } from '@/components/immobilier/locataires/LocatairesStats';
@@ -27,10 +30,20 @@ export default function LocatairesPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [professionFilter, setProfessionFilter] = useState('all');
 
   const handleEdit = (locataire: LocataireComplete) => {
     setSelectedLocataire(locataire);
     setEditDialogOpen(true);
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter('all');
+    setProfessionFilter('all');
+    setSearchTerm('');
   };
 
   const handleDetail = (locataire: LocataireComplete) => {
@@ -50,26 +63,32 @@ export default function LocatairesPage() {
         }}
       />
 
+      <div className="flex justify-end mb-4">
+        <LocatairesExport 
+          locataires={filteredLocataires} 
+          isLoading={isLoading}
+        />
+      </div>
+
       <LocatairesStats
         totalLocataires={totalCount}
         activeLeases={activeLeasesCount}
         unpaidCount={0}
+        withoutLot={totalCount - activeLeasesCount}
       />
 
-      <Card className="border-border/50 shadow-sm overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher un locataire..."
-                className="pl-9 h-11 rounded-xl"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
+      <LocatairesFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        professionFilter={professionFilter}
+        onProfessionFilterChange={setProfessionFilter}
+        onClearFilters={handleClearFilters}
+      />
 
+      <Card className="border-border/50 shadow-sm overflow-hidden rounded-2xl">
+        <CardContent className="p-0">
           <LocatairesTable
             locataires={filteredLocataires}
             isLoading={isLoading}
@@ -88,11 +107,23 @@ export default function LocatairesPage() {
       />
 
       {selectedLocataire && (
-        <EditLocataireDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          locataire={selectedLocataire}
-        />
+        <>
+          <EditLocataireDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            locataire={selectedLocataire}
+          />
+          
+          <LocataireDetailDialog
+            open={detailDialogOpen}
+            onOpenChange={setDetailDialogOpen}
+            locataire={selectedLocataire}
+            onEdit={(locataire) => {
+              setDetailDialogOpen(false);
+              setEditDialogOpen(true);
+            }}
+          />
+        </>
       )}
     </div>
   );

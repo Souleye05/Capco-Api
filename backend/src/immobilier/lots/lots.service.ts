@@ -7,6 +7,7 @@ import { UpdateLotDto } from './dto/update-lot.dto';
 import { LotResponseDto } from './dto/lot-response.dto';
 import { LotsQueryDto } from './dto/lots-query.dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
+import { AssignLocataireDto } from './dto/assign-locataire.dto';
 
 type LotWithInclude = Prisma.LotsGetPayload<{
     include: typeof LotsService['DEFAULT_INCLUDE'];
@@ -177,6 +178,114 @@ export class LotsService {
         } catch (error) {
             handlePrismaError(error, 'Lot');
         }
+    }
+
+    /**
+     * Assigne un locataire à un lot et crée automatiquement un bail
+     */
+    async assignLocataire(lotId: string, assignDto: AssignLocataireDto, userId: string): Promise<LotResponseDto> {
+        // Vérifier que le lot existe et est libre
+        const lot = await this.prisma.lots.findUnique({
+            where: { id: lotId },
+            include: LotsService.DEFAULT_INCLUDE,
+        });
+
+        if (!lot) {
+            throw new NotFoundException(`Lot avec l'ID ${lotId} non trouvé`);
+        }
+
+        if (lot.locataireId) {
+            throw new Error('Ce lot est déjà occupé par un autre locataire');
+        }
+
+        // Vérifier que le locataire existe
+        const locataire = await this.prisma.locataires.findUnique({
+            where: { id: assignDto.locataireId },
+        });
+
+        if (!locataire) {
+            throw new NotFoundException(`Locataire avec l'ID ${assignDto.locataireId} non trouvé`);
+        }
+
+        // Transaction pour assigner le locataire et créer le bail
+        const result = await this.prisma.$transaction(async (tx) => {
+            // 1. Mettre à jour le lot
+            const updatedLot = await tx.lots.update({
+                where: { id: lotId },
+                data: {
+                    locataireId: assignDto.locataireId,
+                    statut: 'OCCUPE',
+                    loyerMensuelAttendu: assignDto.montantLoyer || lot.loyerMensuelAttendu,
+                },
+                include: LotsService.DEFAULT_INCLUDE,
+            });
+
+            // 2. Créer un bail si les informations sont fournies
+            if (assignDto.dateDebutBail || assignDto.montantLoyer) {
+                await tx.baux.create({
+                    data: {
+                        lotId: lotId,
+                        locataireId: assignDto.locataireId,
+                        dateDebut: assignDto.dateDebutBail ? new Date(assignDto.dateDebutBail) : new Date(),
+                        dateFin: assignDto.dateFinBail ? new Date(assignDto.dateFinBail) : null,
+                        montantLoyer: assignDto.montantLoyer || lot.loyerMensuelAttendu,
+                        jourPaiementPrevu: assignDto.jourPaiementPrevu || 5,
+                        statut: 'ACTIF',
+                        createdBy: userId,
+                    },
+                });
+            }
+
+            return updatedLot;
+        });
+
+        return LotsService.mapToResponseDto(result);
+    }
+
+    /**
+     * Libère un lot (retire le locataire et désactive le bail)
+     */
+    async libererLot(lotId: string, userId: string): Promise<LotResponseDto> {
+        const lot = await this.prisma.lots.findUnique({
+            where: { id: lotId },
+        });
+
+        if (!lot) {
+            throw new NotFoundException(`Lot avec l'ID ${lotId} non trouvé`);
+        }
+
+        if (!lot.locataireId) {
+            throw new Error('Ce lot est déjà libre');
+        }
+
+        // Transaction pour libérer le lot et désactiver le bail
+        const result = await this.prisma.$transaction(async (tx) => {
+            // 1. Désactiver les baux actifs
+            await tx.baux.updateMany({
+                where: {
+                    lotId: lotId,
+                    statut: 'ACTIF',
+                },
+                data: {
+                    statut: 'INACTIF',
+                    dateFin: new Date(),
+                },
+            });
+
+            // 2. Libérer le lot
+            const updatedLot = await tx.lots.update({
+                where: { id: lotId },
+                data: {
+                    locataireId: null,
+                    statut: 'LIBRE',
+                },
+                include: LotsService.DEFAULT_INCLUDE,
+            });
+
+            return updatedLot;
+        });
+
+        return LotsService.mapToResponseDto(result);
     }
 
     private static mapToResponseDto(lot: LotWithInclude): LotResponseDto {

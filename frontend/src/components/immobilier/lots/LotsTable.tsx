@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Home, Building2, Check, X, MoreHorizontal, Eye, Edit } from 'lucide-react';
+import { Home, Building2, Check, X, MoreHorizontal, Eye, Edit, UserPlus, UserMinus } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -14,6 +14,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -22,11 +23,13 @@ import { Pagination } from '@/components/ui/pagination-custom';
 interface LotsTableProps {
     lots: any[];
     onEdit: (lot: any) => void;
+    onAssignLocataire?: (lot: any) => void;
+    onLibererLot?: (lot: any) => void;
     pagination?: any;
     onPageChange?: (page: number) => void;
 }
 
-export function LotsTable({ lots, onEdit, pagination, onPageChange }: LotsTableProps) {
+export function LotsTable({ lots, onEdit, onAssignLocataire, onLibererLot, pagination, onPageChange }: LotsTableProps) {
     const navigate = useNavigate();
 
     return (
@@ -109,6 +112,26 @@ export function LotsTable({ lots, onEdit, pagination, onPageChange }: LotsTableP
                                                 >
                                                     <Edit className="h-4 w-4" /> Modifier
                                                 </DropdownMenuItem>
+                                                
+                                                <DropdownMenuSeparator />
+                                                
+                                                {lot.statut === 'LIBRE' && onAssignLocataire && (
+                                                    <DropdownMenuItem
+                                                        className="gap-2 font-bold text-success"
+                                                        onClick={() => onAssignLocataire(lot)}
+                                                    >
+                                                        <UserPlus className="h-4 w-4" /> Assigner locataire
+                                                    </DropdownMenuItem>
+                                                )}
+                                                
+                                                {lot.statut === 'OCCUPE' && onLibererLot && (
+                                                    <DropdownMenuItem
+                                                        className="gap-2 font-bold text-warning"
+                                                        onClick={() => onLibererLot(lot)}
+                                                    >
+                                                        <UserMinus className="h-4 w-4" /> Libérer le lot
+                                                    </DropdownMenuItem>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>

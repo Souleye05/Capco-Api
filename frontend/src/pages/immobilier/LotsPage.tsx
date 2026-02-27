@@ -19,6 +19,8 @@ import { useLotsPage } from '@/hooks/useLotsPage';
 import { LotsTable } from '@/components/immobilier/lots/LotsTable';
 import { NouvelLotDialog } from '@/components/immobilier/lots/NouvelLotDialog';
 import { EditLotDialog } from '@/components/immobilier/lots/EditLotDialog';
+import { AssignLocataireDialog } from '@/components/immobilier/AssignLocataireDialog';
+import { LibererLotDialog } from '@/components/immobilier/LibererLotDialog';
 
 export default function LotsPage() {
   const {
@@ -36,10 +38,24 @@ export default function LotsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingLot, setEditingLot] = useState<any | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assigningLot, setAssigningLot] = useState<any | null>(null);
+  const [libererDialogOpen, setLibererDialogOpen] = useState(false);
+  const [liberatingLot, setLiberatingLot] = useState<any | null>(null);
 
   const handleEdit = (lot: any) => {
     setEditingLot(lot);
     setEditDialogOpen(true);
+  };
+
+  const handleAssignLocataire = (lot: any) => {
+    setAssigningLot(lot);
+    setAssignDialogOpen(true);
+  };
+
+  const handleLibererLot = (lot: any) => {
+    setLiberatingLot(lot);
+    setLibererDialogOpen(true);
   };
 
   if (isLoading) {
@@ -103,6 +119,8 @@ export default function LotsPage() {
         <LotsTable
           lots={lots}
           onEdit={handleEdit}
+          onAssignLocataire={handleAssignLocataire}
+          onLibererLot={handleLibererLot}
           pagination={pagination}
           onPageChange={setPage}
         />
@@ -124,6 +142,32 @@ export default function LotsPage() {
           }}
           lot={editingLot}
           locataires={locataires}
+        />
+      )}
+
+      {assigningLot && (
+        <AssignLocataireDialog
+          open={assignDialogOpen}
+          onOpenChange={(open) => {
+            setAssignDialogOpen(open);
+            if (!open) setAssigningLot(null);
+          }}
+          lotId={assigningLot.id}
+          lotNumero={assigningLot.numero}
+          locataires={locataires}
+        />
+      )}
+
+      {liberatingLot && (
+        <LibererLotDialog
+          open={libererDialogOpen}
+          onOpenChange={(open) => {
+            setLibererDialogOpen(open);
+            if (!open) setLiberatingLot(null);
+          }}
+          lotId={liberatingLot.id}
+          lotNumero={liberatingLot.numero}
+          locataireNom={liberatingLot.locataireNom}
         />
       )}
     </div>

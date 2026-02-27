@@ -135,6 +135,18 @@ export class EncaissementsService {
         return encaissements.map(EncaissementsService.mapToResponseDto);
     }
 
+    async findByLocataire(locataireId: string) {
+        const encaissements = await this.prisma.encaissementsLoyers.findMany({
+            where: {
+                lot: { locataireId },
+            },
+            include: EncaissementsService.DEFAULT_INCLUDE,
+            orderBy: { dateEncaissement: 'desc' },
+        });
+
+        return encaissements.map(EncaissementsService.mapToResponseDto);
+    }
+
     async findOne(id: string) {
         const encaissement = await this.prisma.encaissementsLoyers.findUnique({
             where: { id },

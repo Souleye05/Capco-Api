@@ -27,6 +27,7 @@ import ImpayesPage from "@/pages/immobilier/ImpayesPage";
 import ArrieresPage from "@/pages/immobilier/ArrieresPage";
 import DepensesImmeublesPage from "@/pages/immobilier/DepensesPage";
 import RapportsPage from "@/pages/immobilier/RapportsPage";
+import ProprietairesPage from "@/pages/immobilier/ProprietairesPage";
 import ClientsPage from "@/pages/conseil/ClientsPage";
 import ClientDetailPage from "@/pages/conseil/ClientDetailPage";
 import FacturesPage from "@/pages/conseil/FacturesPage";
@@ -90,6 +91,7 @@ const App = () => (
 
                 {/* Immobilier */}
                 <Route path="/immobilier" element={<Navigate to="/immobilier/immeubles" replace />} />
+                <Route path="/immobilier/proprietaires" element={<ProprietairesPage />} />
                 <Route path="/immobilier/immeubles" element={<ImmeublesPage />} />
                 <Route path="/immobilier/immeubles/:id" element={<ImmeubleDetailPage />} />
                 <Route path="/immobilier/lots" element={<LotsPage />} />

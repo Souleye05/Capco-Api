@@ -8,8 +8,10 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Phone, Mail, Eye, Edit, Users, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Phone, Mail, Eye, Edit, Users, Loader2, Home } from 'lucide-react';
 import { type LocataireComplete } from '@/hooks/useLocataires';
+import { LocataireQuickActions } from './LocataireQuickActions';
 import { Pagination } from '@/components/ui/pagination-custom';
 
 interface LocatairesTableProps {
@@ -50,6 +52,7 @@ export function LocatairesTable({ locataires, isLoading, onEdit, onDetail, pagin
                             <TableHead className="font-bold py-4">Locataire</TableHead>
                             <TableHead className="font-bold py-4">Contact</TableHead>
                             <TableHead className="font-bold py-4">Profession</TableHead>
+                            <TableHead className="font-bold py-4 text-center">Lots</TableHead>
                             <TableHead className="font-bold py-4 text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -82,25 +85,28 @@ export function LocatairesTable({ locataires, isLoading, onEdit, onDetail, pagin
                                 <TableCell>
                                     <StatusBadge label={locataire.profession || 'Non renseigné'} variant={locataire.profession ? "info" : "muted"} />
                                 </TableCell>
-                                <TableCell className="text-right py-4">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
-                                            onClick={() => onDetail(locataire)}
-                                        >
-                                            <Eye className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-9 w-9 rounded-xl hover:bg-info/10 hover:text-info transition-all"
-                                            onClick={() => onEdit(locataire)}
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
+                                <TableCell className="text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Badge variant={locataire.nombreLots > 0 ? "default" : "secondary"} className="text-xs">
+                                            <Home className="h-3 w-3 mr-1" />
+                                            {locataire.nombreLots}
+                                        </Badge>
+                                        {locataire.nombreBauxActifs > 0 && (
+                                            <Badge variant="success" className="text-xs">
+                                                {locataire.nombreBauxActifs} bail{locataire.nombreBauxActifs > 1 ? 'x' : ''}
+                                            </Badge>
+                                        )}
                                     </div>
+                                </TableCell>
+                                <TableCell className="text-right py-4">
+                                    <LocataireQuickActions
+                                        locataire={locataire}
+                                        onView={onDetail}
+                                        onEdit={onEdit}
+                                        onAssignLot={(loc) => console.log('Assign lot to:', loc.nom)}
+                                        onViewPayments={(loc) => console.log('View payments for:', loc.nom)}
+                                        onViewDocuments={(loc) => console.log('View documents for:', loc.nom)}
+                                    />
                                 </TableCell>
                             </TableRow>
                         ))}

@@ -786,6 +786,45 @@ export function useCreateRapportGestion() {
   });
 }
 
+// Hooks pour l'assignation de locataires
+export function useAssignLocataireToLot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ lotId, data }: { lotId: string; data: any }) => {
+      const response = await nestjsApi.post(`/immobilier/lots/${lotId}/assign-locataire`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lots'] });
+      queryClient.invalidateQueries({ queryKey: ['lots-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ['baux'] });
+      toast.success('Locataire assigné avec succès');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'assignation du locataire');
+    }
+  });
+}
+
+export function useLibererLot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (lotId: string) => {
+      const response = await nestjsApi.post(`/immobilier/lots/${lotId}/liberer`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lots'] });
+      queryClient.invalidateQueries({ queryKey: ['lots-statistics'] });
+      queryClient.invalidateQueries({ queryKey: ['baux'] });
+      toast.success('Lot libéré avec succès');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Erreur lors de la libération du lot');
+    }
+  });
+}
+
 // ─── Backward-compat type aliases (for pages that still import old names) ─────
 /** @deprecated Use Proprietaire */
 export type ProprietaireDB = Proprietaire;

@@ -651,6 +651,9 @@ class NestJSApiClient {
   async getEncaissementsByImmeuble(immeubleId: string) {
     return this.get<any>(`/immobilier/encaissements/immeuble/${immeubleId}`);
   }
+  async getEncaissementsByLocataire(locataireId: string) {
+    return this.get<any>(`/immobilier/encaissements/locataire/${locataireId}`);
+  }
   async getEncaissement(id: string) {
     return this.get<any>(`/immobilier/encaissements/${id}`);
   }
@@ -727,11 +730,11 @@ class NestJSApiClient {
     return this.get<any>('/immobilier/arrierages/statistics', params);
   }
 
-  
+
   async importExcelData(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     // Custom fetch because we are handling multipart/form-data
     const token = this.getToken();
     const headers: any = {};
@@ -774,13 +777,13 @@ class NestJSApiClient {
     const headers: any = {
       ...options.headers
     };
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
     // Pour les téléchargements de fichiers, ne pas ajouter Content-Type
-    if (options.responseType !== 'blob' && !options.body instanceof FormData) {
+    if (options.responseType !== 'blob' && !(options.body instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
     }
 

@@ -8,6 +8,7 @@ import { UpdateLotDto } from './dto/update-lot.dto';
 import { LotResponseDto } from './dto/lot-response.dto';
 import { LotsQueryDto } from './dto/lots-query.dto';
 import { LotsStatisticsQueryDto } from './dto/lots-statistics-query.dto';
+import { AssignLocataireDto } from './dto/assign-locataire.dto';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -84,5 +85,30 @@ export class LotsController {
     async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
         await this.lotsService.remove(id);
         return { message: 'Lot supprimé avec succès' };
+    }
+
+    @Post(':id/assign-locataire')
+    @Roles(AppRole.admin, AppRole.collaborateur)
+    @AuditLog({ action: 'ASSIGN_LOCATAIRE_TO_LOT', module: 'IMMOBILIER' })
+    @ApiOperation({ summary: 'Assigner un locataire à un lot' })
+    @ApiResponse({ status: 200, type: LotResponseDto })
+    async assignLocataire(
+        @Param('id', ParseUUIDPipe) lotId: string,
+        @Body() assignDto: AssignLocataireDto,
+        @CurrentUser('id') userId: string,
+    ): Promise<LotResponseDto> {
+        return this.lotsService.assignLocataire(lotId, assignDto, userId);
+    }
+
+    @Post(':id/liberer')
+    @Roles(AppRole.admin, AppRole.collaborateur)
+    @AuditLog({ action: 'LIBERER_LOT', module: 'IMMOBILIER' })
+    @ApiOperation({ summary: 'Libérer un lot (retirer le locataire)' })
+    @ApiResponse({ status: 200, type: LotResponseDto })
+    async libererLot(
+        @Param('id', ParseUUIDPipe) lotId: string,
+        @CurrentUser('id') userId: string,
+    ): Promise<LotResponseDto> {
+        return this.lotsService.libererLot(lotId, userId);
     }
 }

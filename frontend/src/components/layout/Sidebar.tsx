@@ -198,6 +198,8 @@ export function Sidebar() {
         { to: '/immobilier/locataires', label: 'Locataires' },
         { to: '/immobilier/loyers', label: 'Loyers' },
         { to: '/immobilier/impayes', label: 'Impayés' },
+        { to: '/immobilier/arrieres', label: 'Arriérés' },
+        { to: '/immobilier/depenses', label: 'Dépenses' },
         { to: '/immobilier/rapports', label: 'Rapports' },
       ],
     },

@@ -31,14 +31,26 @@ export interface LocataireComplete {
   baux?: any[];
 }
 
+// Basic PaginatedResult type if not imported
+interface PaginatedResult<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 // Fetch all locataires
-export function useLocatairesComplete() {
+export function useLocatairesComplete(params?: { page?: number; limit?: number; search?: string }) {
   return useQuery({
-    queryKey: ['locataires'],
+    queryKey: ['locataires', params],
     queryFn: async () => {
-      const response = await nestjsApi.getLocataires();
-      // Handle paginated response - the API returns { data: [...], pagination: {...} }
-      return response.data?.data as LocataireComplete[] || [];
+      const response = await nestjsApi.getLocataires(params);
+      return response.data as PaginatedResult<LocataireComplete>;
     },
   });
 }
@@ -49,7 +61,7 @@ export function useLocataireComplete(id: string) {
     queryKey: ['locataires', id],
     queryFn: async () => {
       const response = await nestjsApi.getLocataire(id);
-      return response as LocataireComplete;
+      return response.data as LocataireComplete;
     },
     enabled: !!id,
   });
@@ -59,7 +71,10 @@ export function useLocataireComplete(id: string) {
 export function useCreateLocataire() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<LocataireComplete>) => nestjsApi.createLocataire(data as any),
+    mutationFn: async (data: Partial<LocataireComplete>) => {
+      const response = await nestjsApi.createLocataire(data as any);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locataires'] });
       toast.success('Locataire créé avec succès');
@@ -76,7 +91,8 @@ export function useUpdateLocataire() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<LocataireComplete> & { id: string }) => {
-      return nestjsApi.updateLocataire(id, updates as any);
+      const response = await nestjsApi.updateLocataire(id, updates as any);
+      return response.data;
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['locataires'] });
@@ -95,7 +111,7 @@ export function useBauxByLocataire(locataireId: string) {
     queryKey: ['baux', 'locataire', locataireId],
     queryFn: async () => {
       const response = await nestjsApi.getBauxByLocataire(locataireId);
-      return response as any[];
+      return response.data as any[];
     },
     enabled: !!locataireId,
   });
@@ -105,7 +121,10 @@ export function useBauxByLocataire(locataireId: string) {
 export function useDeleteLocataire() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => nestjsApi.deleteLocataire(id),
+    mutationFn: async (id: string) => {
+      const response = await nestjsApi.deleteLocataire(id);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locataires'] });
       toast.success('Locataire supprimé');

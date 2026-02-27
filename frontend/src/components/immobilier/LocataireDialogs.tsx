@@ -4,7 +4,8 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter
+    DialogFooter,
+    DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +92,7 @@ export function CreateLocataireDialog({ open, onOpenChange, onSuccess, userId }:
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Nouveau Locataire</DialogTitle>
+                    <DialogDescription>Ajoutez un nouveau locataire au système.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
@@ -173,6 +175,7 @@ export function EditLocataireDialog({ open, onOpenChange, locataire }: EditLocat
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Modifier le locataire</DialogTitle>
+                    <DialogDescription>Mettez à jour les informations du locataire.</DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">

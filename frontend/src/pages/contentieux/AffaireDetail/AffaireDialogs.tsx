@@ -28,6 +28,7 @@ export function AffaireDialogs({ ui, actions, finance }: { ui: any; actions: any
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Montant des honoraires</DialogTitle>
+                        <DialogDescription>Définissez le montant total convenu pour ce dossier.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
@@ -44,7 +45,10 @@ export function AffaireDialogs({ ui, actions, finance }: { ui: any; actions: any
 
             <Dialog open={ui.showPaiement} onOpenChange={ui.setShowPaiement}>
                 <DialogContent>
-                    <DialogHeader><DialogTitle>Enregistrer un paiement</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle>Enregistrer un paiement</DialogTitle>
+                        <DialogDescription>Ajoutez un versement d'honoraires pour cette affaire.</DialogDescription>
+                    </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label>Montant (FCFA)</Label>
@@ -75,7 +79,10 @@ export function AffaireDialogs({ ui, actions, finance }: { ui: any; actions: any
 
             <Dialog open={ui.showDepense} onOpenChange={ui.setShowDepense}>
                 <DialogContent>
-                    <DialogHeader><DialogTitle>Nouvelle dépense</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle>Nouvelle dépense</DialogTitle>
+                        <DialogDescription>Enregistrez les frais liés à cette procédure.</DialogDescription>
+                    </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label>Nature</Label>

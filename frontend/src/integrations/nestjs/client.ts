@@ -582,8 +582,11 @@ class NestJSApiClient {
   }
 
   // Lots
-  async getLotsByImmeuble(immeubleId: string) {
-    return this.get<any>(`/immobilier/lots/immeuble/${immeubleId}`);
+  async getLots(params?: { page?: number; limit?: number; search?: string; immeubleId?: string; statut?: string; type?: string }) {
+    return this.get<any>('/immobilier/lots', params);
+  }
+  async getLotsByImmeuble(immeubleId: string, params?: { page?: number; limit?: number; search?: string }) {
+    return this.get<any>(`/immobilier/lots/immeuble/${immeubleId}`, params);
   }
   async getLot(id: string) {
     return this.get<any>(`/immobilier/lots/${id}`);
@@ -596,6 +599,9 @@ class NestJSApiClient {
   }
   async deleteLot(id: string) {
     return this.delete<any>(`/immobilier/lots/${id}`);
+  }
+  async getLotsStatistics(params?: { immeubleId?: string }) {
+    return this.get<any>('/immobilier/lots/statistics', params);
   }
 
   // Locataires
@@ -636,6 +642,9 @@ class NestJSApiClient {
   }
 
   // Encaissements de loyers
+  async getEncaissements(params?: any) {
+    return this.get<any>('/immobilier/encaissements', params);
+  }
   async getEncaissementsByLot(lotId: string) {
     return this.get<any>(`/immobilier/lots/${lotId}/encaissements`);
   }
@@ -654,13 +663,16 @@ class NestJSApiClient {
   async deleteEncaissement(id: string) {
     return this.delete<any>(`/immobilier/encaissements/${id}`);
   }
-  async getEncaissementsStatistics(params?: { immeubleId?: string; moisConcerne?: string }) {
-    return this.get<any>('/immobilier/encaissements/statistics', params);
+  async getDepensesStatistics(params?: { immeubleId?: string }) {
+    return this.get<any>('/immobilier/depenses/statistics', params);
   }
 
   // Dépenses immeubles
+  async getDepensesImmeubles(params?: { immeubleId?: string }) {
+    return this.get<any>('/immobilier/depenses', params);
+  }
   async getDepensesByImmeuble(immeubleId: string) {
-    return this.get<any>(`/immobilier/depenses/immeuble/${immeubleId}`);
+    return this.getDepensesImmeubles({ immeubleId });
   }
   async getDepenseImmeuble(id: string) {
     return this.get<any>(`/immobilier/depenses/${id}`);
@@ -690,6 +702,29 @@ class NestJSApiClient {
   }
   async deleteRapport(id: string) {
     return this.delete<any>(`/immobilier/rapports/${id}`);
+  }
+
+  // Arrieres
+  async getArrierages(params?: { page?: number; limit?: number; search?: string; immeubleId?: string; statut?: string }) {
+    return this.get<any>('/immobilier/arrierages', params);
+  }
+  async getArrierage(id: string) {
+    return this.get<any>(`/immobilier/arrierages/${id}`);
+  }
+  async createArrierage(data: any) {
+    return this.post<any>('/immobilier/arrierages', data);
+  }
+  async updateArrierage(id: string, data: any) {
+    return this.patch<any>(`/immobilier/arrierages/${id}`, data);
+  }
+  async deleteArrierage(id: string) {
+    return this.delete<any>(`/immobilier/arrierages/${id}`);
+  }
+  async createPaiementArrierage(arrierageId: string, data: any) {
+    return this.post<any>(`/immobilier/arrierages/${arrierageId}/paiements`, data);
+  }
+  async getArrieragesStatistics(params?: { immeubleId?: string }) {
+    return this.get<any>('/immobilier/arrierages/statistics', params);
   }
 
   // Tableau de bord immobilier

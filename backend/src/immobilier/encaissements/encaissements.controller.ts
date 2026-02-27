@@ -5,6 +5,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { EncaissementsService } from './encaissements.service';
 import { CreateEncaissementDto } from './dto/create-encaissement.dto';
 import { UpdateEncaissementDto } from './dto/update-encaissement.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -18,6 +19,13 @@ import { AppRole } from '@prisma/client';
 @Controller('immobilier/encaissements')
 export class EncaissementsController {
     constructor(private readonly encaissementsService: EncaissementsService) { }
+
+    @Get()
+    @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+    @ApiOperation({ summary: 'Récupérer tous les encaissements avec pagination' })
+    async findAll(@Query() query: PaginationQueryDto) {
+        return this.encaissementsService.findAll(query);
+    }
 
     @Post()
     @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)

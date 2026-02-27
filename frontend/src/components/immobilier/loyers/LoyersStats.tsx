@@ -11,8 +11,8 @@ interface LoyersStatsProps {
 export function LoyersStats({ totalEncaisse, totalCommissions, totalNet }: LoyersStatsProps) {
     const stats = [
         { label: 'Total encaissé', value: totalEncaisse, color: 'text-success', bg: 'bg-success/10' },
-        { label: 'Commissions CAPCO', value: totalCommissions, color: 'text-immobilier', bg: 'bg-immobilier/10' },
-        { label: 'Net propriétaires', value: totalNet, color: 'text-primary', bg: 'bg-primary/10' },
+        { label: 'Commissions CAPCO', value: totalCommissions, color: 'text-warning', bg: 'bg-warning/10' },
+        { label: 'Net propriétaires', value: totalNet, color: 'text-info', bg: 'bg-info/10' },
     ];
 
     return (

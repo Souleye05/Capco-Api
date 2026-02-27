@@ -22,7 +22,10 @@ export default function LoyersPage() {
     uniqueMois,
     totals,
     isLoading,
-    filters
+    filters,
+    page,
+    setPage,
+    pagination
   } = useLoyersPage();
 
   const [encaissementDialogOpen, setEncaissementDialogOpen] = useState(false);
@@ -70,6 +73,8 @@ export default function LoyersPage() {
 
         <LoyersTable
           encaissements={encaissements}
+          pagination={pagination}
+          onPageChange={setPage}
         />
       </div>
 

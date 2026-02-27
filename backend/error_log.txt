@@ -1061,3 +1061,1869 @@ Invalid value for argument `gte`: premature end of input. Expected ISO-8601 Date
     at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
     at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
     at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-26T23:36:37.505Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-26T23:36:38.533Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-26T23:54:11.681Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-26T23:54:12.712Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-26T23:54:14.757Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-26T23:54:18.796Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:09:23.455Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:09:24.495Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:09:26.518Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:31:42.550Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:31:43.572Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:31:45.599Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:31:49.618Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `delegate.findMany()` invocation in
+C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:111:18
+
+  108 try {
+  109   // Use Prisma transaction for optimized parallel queries
+  110   const [data, total] = await this.prisma.$transaction([
+→ 111     delegate.findMany({
+            where: {},
+            skip: 0,
+            take: "20",
+                  ~~~~
+            orderBy: {
+              dateEncaissement: "desc"
+            },
+            include: {
+              lot: {
+                select: {
+                  id: true,
+                  numero: true,
+                  immeuble: {
+                    select: {
+                      id: true,
+                      nom: true,
+                      reference: true,
+                      tauxCommissionCapco: true
+                    }
+                  },
+                  locataire: {
+                    select: {
+                      id: true,
+                      nom: true
+                    }
+                  }
+                }
+              }
+            }
+          })
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:35:01.931Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:35:02.969Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:35:05.007Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:35:09.030Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:13.125Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:14.187Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:16.208Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:20.236Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:28.563Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:29.581Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:31.719Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:36:35.739Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": "20",
+  "orderBy": {
+    "dateEncaissement": "desc"
+  },
+  "include": {
+    "lot": {
+      "select": {
+        "id": true,
+        "numero": true,
+        "immeuble": {
+          "select": {
+            "id": true,
+            "nom": true,
+            "reference": true,
+            "tauxCommissionCapco": true
+          }
+        },
+        "locataire": {
+          "select": {
+            "id": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: PrismaClientValidationError: 
+Invalid `prisma.encaissementsLoyers.findMany()` invocation:
+
+{
+  where: {},
+  skip: 0,
+  take: "20",
+        ~~~~
+  orderBy: {
+    dateEncaissement: "desc"
+  },
+  include: {
+    lot: {
+      select: {
+        id: true,
+        numero: true,
+        immeuble: {
+          select: {
+            id: true,
+            nom: true,
+            reference: true,
+            tauxCommissionCapco: true
+          }
+        },
+        locataire: {
+          select: {
+            id: true,
+            nom: true
+          }
+        }
+      }
+    }
+  }
+}
+
+Argument `take`: Invalid value provided. Expected Int, provided String.
+    at wn (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Workspaces\CAPCOS\node_modules\@prisma\client\runtime\library.js:130:9633)
+[2026-02-27T00:37:19.531Z] Error in LocatairesService.findAll: Error: Limit cannot exceed 100
+    at PaginationService.paginate (C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:77:13)
+    at LocatairesService.findAll (C:\Workspaces\CAPCOS\backend\src\immobilier\locataires\locataires.service.ts:68:57)
+    at LocatairesController.findAll (C:\Workspaces\CAPCOS\backend\src\immobilier\locataires\locataires.controller.ts:41:39)
+    at C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:38:29
+    at async C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-proxy.js:9:17
+[2026-02-27T00:37:20.566Z] Error in LocatairesService.findAll: Error: Limit cannot exceed 100
+    at PaginationService.paginate (C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:77:13)
+    at LocatairesService.findAll (C:\Workspaces\CAPCOS\backend\src\immobilier\locataires\locataires.service.ts:68:57)
+    at LocatairesController.findAll (C:\Workspaces\CAPCOS\backend\src\immobilier\locataires\locataires.controller.ts:41:39)
+    at C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:38:29
+    at async C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-proxy.js:9:17

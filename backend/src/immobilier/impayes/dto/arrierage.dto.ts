@@ -114,6 +114,9 @@ export class ArrierageDto {
     @ApiProperty({ description: 'ID de l\'arriéré' })
     id: string;
 
+    @ApiProperty({ description: 'ID de l\'immeuble' })
+    immeubleId: string;
+
     @ApiProperty({ description: 'ID du lot concerné' })
     lotId: string;
 
@@ -125,6 +128,9 @@ export class ArrierageDto {
 
     @ApiProperty({ description: 'Référence de l\'immeuble' })
     immeubleReference: string;
+
+    @ApiPropertyOptional({ description: 'Taux de commission de l\'immeuble (%)' })
+    immeubleTauxCommission?: number;
 
     @ApiPropertyOptional({ description: 'Nom du locataire' })
     locataireNom?: string;

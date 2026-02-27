@@ -145,11 +145,11 @@ export function PaiementLoyerDialog({ open, onOpenChange, loyer }: PaiementLoyer
                         <div className="bg-muted/50 p-5 rounded-2xl space-y-3 border border-border/50">
                             <div className="flex justify-between items-center">
                                 <span className="text-xs font-bold text-muted-foreground">Commission CAPCO ({loyer.tauxCommission}%)</span>
-                                <span className="font-black text-immobilier">{formatCurrency(commission)}</span>
+                                <span className="font-black text-warning">{formatCurrency(commission)}</span>
                             </div>
                             <div className="flex justify-between items-center pt-2 border-t border-border/30">
                                 <span className="text-xs font-bold text-muted-foreground">Net propriétaire</span>
-                                <span className="font-black text-primary text-lg">{formatCurrency(net)}</span>
+                                <span className="font-black text-info text-lg">{formatCurrency(net)}</span>
                             </div>
                         </div>
                     )}

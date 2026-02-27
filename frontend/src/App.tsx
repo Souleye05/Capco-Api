@@ -24,6 +24,8 @@ import LotsPage from "@/pages/immobilier/LotsPage";
 import LocatairesPage from "@/pages/immobilier/LocatairesPage";
 import LoyersPage from "@/pages/immobilier/LoyersPage";
 import ImpayesPage from "@/pages/immobilier/ImpayesPage";
+import ArrieresPage from "@/pages/immobilier/ArrieresPage";
+import DepensesImmeublesPage from "@/pages/immobilier/DepensesPage";
 import RapportsPage from "@/pages/immobilier/RapportsPage";
 import ClientsPage from "@/pages/conseil/ClientsPage";
 import ClientDetailPage from "@/pages/conseil/ClientDetailPage";
@@ -94,6 +96,8 @@ const App = () => (
                 <Route path="/immobilier/locataires" element={<LocatairesPage />} />
                 <Route path="/immobilier/loyers" element={<LoyersPage />} />
                 <Route path="/immobilier/impayes" element={<ImpayesPage />} />
+                <Route path="/immobilier/arrieres" element={<ArrieresPage />} />
+                <Route path="/immobilier/depenses" element={<DepensesImmeublesPage />} />
                 <Route path="/immobilier/rapports" element={<RapportsPage />} />
 
                 {/* Conseils / Assistance juridique */}

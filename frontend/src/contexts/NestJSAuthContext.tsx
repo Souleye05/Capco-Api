@@ -174,3 +174,5 @@ export function useNestJSAuth() {
   }
   return context;
 }
+
+export const useAuth = useNestJSAuth;

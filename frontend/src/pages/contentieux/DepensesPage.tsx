@@ -65,7 +65,7 @@ const typeDepenseLabels: Record<string, string> = {
 
 const getTypeDepenseColor = (type: string) => {
   const colors: Record<string, string> = {
-    'FRAIS_JUSTICE': 'bg-blue-100 text-blue-800',
+    'FRAIS_JUSTICE': 'bg-blue-100 text-blue-600',
     'FRAIS_HUISSIER': 'bg-purple-100 text-purple-800',
     'FRAIS_GREFFE': 'bg-green-100 text-green-800',
     'FRAIS_EXPERTISE': 'bg-orange-100 text-orange-800',

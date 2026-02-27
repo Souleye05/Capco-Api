@@ -9,8 +9,11 @@ export function useRapportsPage() {
     const { user } = useNestJSAuth();
     const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
 
-    const { data: immeubles = [], isLoading: immLoading } = useImmeubles();
-    const { data: lots = [], isLoading: lotsLoading } = useLots();
+    const { data: immeublesResult, isLoading: immLoading } = useImmeubles({ limit: 100 });
+    const { data: lotsResult, isLoading: lotsLoading } = useLots({ limit: 200 });
+
+    const immeubles = useMemo(() => immeublesResult?.data || [], [immeublesResult]);
+    const lots = useMemo(() => lotsResult?.data || [], [lotsResult]);
 
     // Aggregate rapports
     const { data: rapports = [], isLoading: rapportsLoading } = useQuery({

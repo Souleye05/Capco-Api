@@ -123,7 +123,7 @@ export function PaiementsTab({
                                         <TableCell>{new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.moisConcerne + '-01'))}</TableCell>
                                         <TableCell><Badge variant="secondary">{enc.modePaiement}</Badge></TableCell>
                                         <TableCell className="text-right font-medium">{formatCurrency(Number(enc.montantEncaisse))}</TableCell>
-                                        <TableCell className="text-right text-immobilier">{formatCurrency(Number(enc.commissionCapco))}</TableCell>
+                                        <TableCell className="text-right text-warning">{formatCurrency(Number(enc.commissionCapco))}</TableCell>
                                         <TableCell className="text-right font-medium">{formatCurrency(Number(enc.netProprietaire))}</TableCell>
                                         <TableCell>
                                             <Button variant="ghost" size="sm" className="gap-1" onClick={() => onDownloadQuittance(enc)}>
@@ -146,7 +146,7 @@ export function PaiementsTab({
                         </div>
                         <div className="text-right">
                             <p className="text-sm text-muted-foreground">Total commissions</p>
-                            <p className="text-lg font-bold text-immobilier">{formatCurrency(totalCommissions)}</p>
+                            <p className="text-lg font-bold text-warning">{formatCurrency(totalCommissions)}</p>
                         </div>
                     </div>
                 )}

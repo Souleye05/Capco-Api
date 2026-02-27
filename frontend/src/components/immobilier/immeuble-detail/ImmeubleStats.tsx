@@ -36,15 +36,15 @@ export function ImmeubleStats({
             label: `Commissions CAPCO (${tauxCommission}%)`,
             value: totalCommissions,
             icon: Percent,
-            bg: 'bg-immobilier/10',
-            color: 'text-immobilier'
+            bg: 'bg-warning/10',
+            color: 'text-warning'
         },
         {
             label: 'Net propriétaire',
             value: netProprietaire,
             icon: Users,
-            bg: 'bg-primary/10',
-            color: 'text-primary'
+            bg: 'bg-info/10',
+            color: 'text-info'
         }
     ];
 

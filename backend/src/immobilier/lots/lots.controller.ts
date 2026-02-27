@@ -1,11 +1,14 @@
 import {
-    Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe,
+    Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { LotsService } from './lots.service';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { UpdateLotDto } from './dto/update-lot.dto';
 import { LotResponseDto } from './dto/lot-response.dto';
+import { LotsQueryDto } from './dto/lots-query.dto';
+import { LotsStatisticsQueryDto } from './dto/lots-statistics-query.dto';
+import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -32,11 +35,25 @@ export class LotsController {
         return this.lotsService.create(createDto, userId);
     }
 
+    @Get('statistics')
+    @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+    @ApiOperation({ summary: 'Statistiques des lots' })
+    async getStatistics(@Query() query: LotsStatisticsQueryDto) {
+        return this.lotsService.getStatistics(query.immeubleId);
+    }
+
+    @Get()
+    @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+    @ApiOperation({ summary: 'Récupérer tous les lots avec pagination' })
+    async findAll(@Query() query: LotsQueryDto): Promise<PaginatedResponse<LotResponseDto>> {
+        return this.lotsService.findAll(query);
+    }
+
     @Get('immeuble/:immeubleId')
     @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
-    @ApiOperation({ summary: 'Récupérer les lots d\'un immeuble' })
-    async findByImmeuble(@Param('immeubleId', ParseUUIDPipe) immeubleId: string): Promise<LotResponseDto[]> {
-        return this.lotsService.findByImmeuble(immeubleId);
+    @ApiOperation({ summary: 'Récupérer les lots d\'un immeuble (paginé par défaut)' })
+    async findByImmeuble(@Param('immeubleId', ParseUUIDPipe) immeubleId: string, @Query() query: LotsQueryDto): Promise<PaginatedResponse<LotResponseDto>> {
+        return this.lotsService.findAll({ ...query, immeubleId });
     }
 
     @Get(':id')

@@ -9,9 +9,12 @@ import {
 
 export function useImmeubleDetail(id: string) {
     const { data: immeuble, isLoading: immeubleLoading } = useImmeuble(id);
-    const { data: lots = [], isLoading: lotsLoading } = useLotsByImmeuble(id);
+    const { data: lotsResult, isLoading: lotsLoading } = useLotsByImmeuble(id, { limit: 200 });
+    const lots = lotsResult?.data || [];
+
     const { data: encaissements = [] } = useEncaissementsByImmeuble(id);
-    const { data: depenses = [] } = useDepensesImmeubles(id);
+    const { data: depensesResult } = useDepensesImmeubles({ immeubleId: id, limit: 200 });
+    const depenses = depensesResult?.data || [];
     const { data: rapports = [] } = useRapportsGestion(id);
 
     // Filter States

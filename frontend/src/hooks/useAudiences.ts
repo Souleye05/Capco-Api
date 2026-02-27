@@ -83,7 +83,7 @@ export function useAudiences() {
   return useQuery({
     queryKey: ['audiences'],
     queryFn: async () => {
-      const response = await nestjsApi.getAudiences({ limit: 1000 });
+      const response = await nestjsApi.getAudiences({ limit: 200 });
       if (response.error) {
         throw new Error(response.error);
       }

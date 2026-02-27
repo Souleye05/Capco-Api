@@ -537,9 +537,11 @@ export class ArrieragesService {
         return {
             id: arrierage.id,
             lotId: arrierage.lotId,
+            immeubleId: arrierage.lot.immeubleId,
             lotNumero: arrierage.lot.numero,
             immeubleNom: arrierage.lot.immeuble.nom,
             immeubleReference: arrierage.lot.immeuble.reference,
+            immeubleTauxCommission: Number(arrierage.lot.immeuble.tauxCommissionCapco),
             locataireNom: arrierage.lot.locataire?.nom || 'Non renseigné',
             periodeDebut: arrierage.periodeDebut,
             periodeFin: arrierage.periodeFin,

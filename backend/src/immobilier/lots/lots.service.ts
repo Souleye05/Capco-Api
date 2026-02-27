@@ -5,6 +5,8 @@ import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { UpdateLotDto } from './dto/update-lot.dto';
 import { LotResponseDto } from './dto/lot-response.dto';
+import { LotsQueryDto } from './dto/lots-query.dto';
+import { PaginatedResponse } from '../../common/dto/pagination.dto';
 
 type LotWithInclude = Prisma.LotsGetPayload<{
     include: typeof LotsService['DEFAULT_INCLUDE'];
@@ -56,6 +58,61 @@ export class LotsService {
         });
 
         return LotsService.mapToResponseDto(lot);
+    }
+
+    async getStatistics(immeubleId?: string) {
+        const where: Prisma.LotsWhereInput = {};
+        if (immeubleId) where.immeubleId = immeubleId;
+
+        const [total, occupes, libres] = await Promise.all([
+            this.prisma.lots.count({ where }),
+            this.prisma.lots.count({ where: { ...where, statut: StatutLot.OCCUPE } }),
+            this.prisma.lots.count({ where: { ...where, statut: StatutLot.LIBRE } }),
+        ]);
+
+        return { total, occupes, libres };
+    }
+
+    async findAll(query: LotsQueryDto): Promise<PaginatedResponse<LotResponseDto>> {
+        const { page = 1, limit = 20, search, immeubleId, type, statut, sortBy = 'numero', sortOrder = 'asc' } = query;
+        const skip = (page - 1) * limit;
+
+        const where: Prisma.LotsWhereInput = {};
+        if (immeubleId) where.immeubleId = immeubleId;
+        if (type) where.type = type;
+        if (statut) where.statut = statut;
+        if (search) {
+            where.OR = [
+                { numero: { contains: search, mode: 'insensitive' } },
+                { locataire: { nom: { contains: search, mode: 'insensitive' } } },
+                { immeuble: { nom: { contains: search, mode: 'insensitive' } } },
+            ];
+        }
+
+        const [total, items] = await Promise.all([
+            this.prisma.lots.count({ where }),
+            this.prisma.lots.findMany({
+                where,
+                include: LotsService.DEFAULT_INCLUDE,
+                orderBy: { [sortBy]: sortOrder },
+                skip,
+                take: limit,
+            }),
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            data: items.map(LotsService.mapToResponseDto),
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+            },
+        };
     }
 
     async findByImmeuble(immeubleId: string): Promise<LotResponseDto[]> {

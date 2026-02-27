@@ -4,6 +4,7 @@ import {
   Download,
   Upload
 } from 'lucide-react';
+import { Pagination } from '@/components/ui/pagination-custom';
 import { generateImportTemplate } from '@/utils/generateExcelTemplate';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,9 @@ export default function ImmeublesPage() {
     isLoading,
     searchQuery,
     setSearchQuery,
+    page,
+    setPage,
+    pagination,
     dialogs
   } = useImmeublesPage();
 
@@ -77,6 +81,17 @@ export default function ImmeublesPage() {
           onRapport={handleRapport}
           onNew={() => dialogs.setShowNouvelImmeuble(true)}
         />
+
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 flex justify-center">
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              onPageChange={setPage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Dialogs */}

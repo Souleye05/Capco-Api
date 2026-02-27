@@ -4,6 +4,8 @@ import { PrismaService } from '../../common/services/prisma.service';
 import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateDepenseImmeubleDto } from './dto/create-depense-immeuble.dto';
 import { UpdateDepenseImmeubleDto } from './dto/update-depense-immeuble.dto';
+import { DepensesQueryDto } from './dto/depenses-query.dto';
+import { PaginatedResponse } from '../../common/dto/pagination.dto';
 
 type DepenseWithImmeuble = Prisma.DepensesImmeublesGetPayload<{
     include: typeof DepensesImmeublesService['DEFAULT_INCLUDE'];
@@ -43,14 +45,49 @@ export class DepensesImmeublesService {
         return DepensesImmeublesService.mapToResponseDto(depense);
     }
 
-    async findByImmeuble(immeubleId: string) {
-        const depenses = await this.prisma.depensesImmeubles.findMany({
-            where: { immeubleId },
-            include: DepensesImmeublesService.DEFAULT_INCLUDE,
-            orderBy: { date: 'desc' },
-        });
+    async findAll(query: DepensesQueryDto): Promise<PaginatedResponse<any>> {
+        const { page = 1, limit = 20, search, immeubleId, typeDepense, sortBy = 'date', sortOrder = 'desc' } = query;
+        const skip = (page - 1) * limit;
 
-        return depenses.map(DepensesImmeublesService.mapToResponseDto);
+        const where: Prisma.DepensesImmeublesWhereInput = {};
+        if (immeubleId) where.immeubleId = immeubleId;
+        if (typeDepense) where.typeDepense = typeDepense as any;
+        if (search) {
+            where.OR = [
+                { nature: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { immeuble: { nom: { contains: search, mode: 'insensitive' } } },
+            ];
+        }
+
+        const [total, items] = await Promise.all([
+            this.prisma.depensesImmeubles.count({ where }),
+            this.prisma.depensesImmeubles.findMany({
+                where,
+                include: DepensesImmeublesService.DEFAULT_INCLUDE,
+                orderBy: { [sortBy]: sortOrder },
+                skip,
+                take: limit,
+            }),
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            data: items.map(DepensesImmeublesService.mapToResponseDto),
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+            },
+        };
+    }
+
+    async findByImmeuble(immeubleId: string) {
+        return this.findAll({ immeubleId });
     }
 
     async findOne(id: string) {

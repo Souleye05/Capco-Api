@@ -5,6 +5,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DepensesImmeublesService } from './depenses-immeubles.service';
 import { CreateDepenseImmeubleDto } from './dto/create-depense-immeuble.dto';
 import { UpdateDepenseImmeubleDto } from './dto/update-depense-immeuble.dto';
+import { DepensesQueryDto } from './dto/depenses-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -30,6 +31,19 @@ export class DepensesImmeublesController {
         return this.depensesService.create(createDto, userId);
     }
 
+    @Get('test')
+    @ApiOperation({ summary: 'Test endpoint sans authentification' })
+    async test() {
+        return { message: 'Endpoint dépenses fonctionne correctement', timestamp: new Date().toISOString() };
+    }
+
+    @Get()
+    @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+    @ApiOperation({ summary: 'Lister les dépenses avec pagination et filtres' })
+    async findAll(@Query() query: DepensesQueryDto) {
+        return this.depensesService.findAll(query);
+    }
+
     @Get('statistics')
     @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
     @ApiOperation({ summary: 'Statistiques des dépenses' })
@@ -39,9 +53,9 @@ export class DepensesImmeublesController {
 
     @Get('immeuble/:immeubleId')
     @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
-    @ApiOperation({ summary: 'Récupérer les dépenses d\'un immeuble' })
-    async findByImmeuble(@Param('immeubleId', ParseUUIDPipe) immeubleId: string) {
-        return this.depensesService.findByImmeuble(immeubleId);
+    @ApiOperation({ summary: 'Récupérer les dépenses d\'un immeuble (avec pagination par défaut)' })
+    async findByImmeuble(@Param('immeubleId', ParseUUIDPipe) immeubleId: string, @Query() query: DepensesQueryDto) {
+        return this.depensesService.findAll({ ...query, immeubleId });
     }
 
     @Get(':id')

@@ -1,36 +1,35 @@
-import { useState, useMemo } from 'react';
-import { useLots, useImmeubles, useLocataires } from '@/hooks/useImmobilier';
+import { useState } from 'react';
+import { useLots, useImmeubles, useLocataires, useLotsStatistics } from '@/hooks/useImmobilier';
 
 export function useLotsPage() {
-    const { data: lots = [], isLoading: lotsLoading } = useLots();
-    const { data: immeubles = [], isLoading: immeublesLoading } = useImmeubles();
-    const { data: locataires = [] } = useLocataires();
-
+    const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
     const [selectedStatut, setSelectedStatut] = useState<string>('all');
 
-    const filteredLots = useMemo(() => {
-        return lots.map(lot => ({
-            ...lot,
-            immeuble: immeubles.find(i => i.id === lot.immeubleId)
-        })).filter(lot => {
-            const matchesSearch =
-                lot.numero.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (lot.immeuble?.nom && lot.immeuble.nom.toLowerCase().includes(searchQuery.toLowerCase()));
+    const { data: lotsResult, isLoading: lotsLoading } = useLots({
+        page,
+        limit: 20,
+        search: searchQuery || undefined,
+        immeubleId: selectedImmeuble === 'all' ? undefined : selectedImmeuble,
+        statut: selectedStatut === 'all' ? undefined : (selectedStatut as any)
+    });
+    const lots = lotsResult?.data || [];
+    const pagination = lotsResult?.pagination;
 
-            const matchesImmeuble = selectedImmeuble === 'all' || lot.immeubleId === selectedImmeuble;
-            const matchesStatut = selectedStatut === 'all' || lot.statut === selectedStatut;
+    const { data: immeublesResult, isLoading: immeublesLoading } = useImmeubles({ limit: 100 });
+    const { data: locatairesResult } = useLocataires({ limit: 200 });
 
-            return matchesSearch && matchesImmeuble && matchesStatut;
-        });
-    }, [lots, immeubles, searchQuery, selectedImmeuble, selectedStatut]);
+    const immeubles = immeublesResult?.data || [];
+    const locataires = locatairesResult?.data || [];
 
-    const stats = useMemo(() => ({
-        total: lots.length,
-        occupes: lots.filter(l => l.statut === 'OCCUPE').length,
-        libres: lots.filter(l => l.statut === 'LIBRE').length
-    }), [lots]);
+    const { data: statsData } = useLotsStatistics({
+        immeubleId: selectedImmeuble === 'all' ? undefined : selectedImmeuble
+    });
+
+    const filteredLots = lots; // Server-side
+
+    const stats = statsData || { total: 0, occupes: 0, libres: 0 };
 
     return {
         lots: filteredLots,
@@ -38,13 +37,16 @@ export function useLotsPage() {
         locataires,
         stats,
         isLoading: lotsLoading || immeublesLoading,
+        page,
+        setPage,
+        pagination,
         filters: {
             searchQuery,
-            setSearchQuery,
+            setSearchQuery: (v: string) => { setSearchQuery(v); setPage(1); },
             selectedImmeuble,
-            setSelectedImmeuble,
+            setSelectedImmeuble: (v: string) => { setSelectedImmeuble(v); setPage(1); },
             selectedStatut,
-            setSelectedStatut
+            setSelectedStatut: (v: string) => { setSelectedStatut(v); setPage(1); }
         }
     };
 }

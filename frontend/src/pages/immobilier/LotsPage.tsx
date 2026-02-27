@@ -4,6 +4,7 @@ import {
   Search,
   Loader2
 } from 'lucide-react';
+import { Pagination } from '@/components/ui/pagination-custom';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,10 @@ export default function LotsPage() {
     locataires,
     stats,
     isLoading,
-    filters
+    filters,
+    page,
+    setPage,
+    pagination,
   } = useLotsPage();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -99,7 +103,10 @@ export default function LotsPage() {
         <LotsTable
           lots={lots}
           onEdit={handleEdit}
+          pagination={pagination}
+          onPageChange={setPage}
         />
+
       </div>
 
       <NouvelLotDialog

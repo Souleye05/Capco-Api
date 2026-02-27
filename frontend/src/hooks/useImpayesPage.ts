@@ -19,8 +19,10 @@ export interface LoyerAttendu {
 }
 
 export function useImpayesPage() {
-    const { data: immeubles = [], isLoading: immLoading } = useImmeubles();
-    const { data: lots = [], isLoading: lotsLoading } = useLots();
+    const { data: immeublesResult, isLoading: immLoading } = useImmeubles({ limit: 100 });
+    const { data: lotsResult, isLoading: lotsLoading } = useLots({ limit: 200 });
+    const immeubles = immeublesResult?.data || [];
+    const lots = lotsResult?.data || [];
 
     // Aggregate encaissements like in LoyersPage since useEncaissementsLoyers is empty
     const { data: encaissements = [], isLoading: encLoading } = useQuery({

@@ -146,6 +146,37 @@ export interface DepenseImmeuble {
   createdAt: string;
 }
 
+export interface Arrierage {
+  id: string;
+  lotId: string;
+  immeubleId: string;
+  lotNumero: string;
+  immeubleNom: string;
+  immeubleReference: string;
+  immeubleTauxCommission?: number;
+  locataireNom?: string;
+  periodeDebut: string;
+  periodeFin: string;
+  montantDu: number;
+  montantPaye: number;
+  montantRestant: number;
+  statut: string;
+  description?: string;
+  paiementsPartiels: PaiementArrierage[];
+  createdAt: string;
+}
+
+export interface PaiementArrierage {
+  id: string;
+  date: string;
+  montant: number;
+  mode: string;
+  reference?: string;
+  commentaire?: string;
+  createdAt: string;
+}
+
+
 export interface RapportGestion {
   id: string;
   immeubleId: string;
@@ -190,9 +221,8 @@ export function useProprietaires(params?: { page?: number; limit?: number; searc
   return useQuery({
     queryKey: ['proprietaires', params],
     queryFn: async () => {
-      const result = await nestjsApi.getProprietaires({ limit: 100, ...params });
-      const data = unwrap<PaginatedResult<Proprietaire>>(result);
-      return data.data;
+      const result = await nestjsApi.getProprietaires({ limit: 20, ...params });
+      return unwrap<PaginatedResult<Proprietaire>>(result);
     },
   });
 }
@@ -260,9 +290,8 @@ export function useImmeubles(params?: { page?: number; limit?: number; search?: 
   return useQuery({
     queryKey: ['immeubles', params],
     queryFn: async () => {
-      const result = await nestjsApi.getImmeubles({ limit: 100, ...params });
-      const data = unwrap<PaginatedResult<Immeuble>>(result);
-      return data.data;
+      const result = await nestjsApi.getImmeubles({ limit: 20, ...params });
+      return unwrap<PaginatedResult<Immeuble>>(result);
     },
   });
 }
@@ -326,52 +355,23 @@ export function useDeleteImmeuble() {
 
 // ─── Lots ─────────────────────────────────────────────────────────────────────
 
-export function useLotsByImmeuble(immeubleId: string) {
+export function useLotsByImmeuble(immeubleId: string, params?: { page?: number; limit?: number; search?: string }) {
   return useQuery({
-    queryKey: ['lots', 'immeuble', immeubleId],
+    queryKey: ['lots', 'immeuble', immeubleId, params],
     queryFn: async () => {
-      const result = await nestjsApi.getLotsByImmeuble(immeubleId);
-      return unwrap<Lot[]>(result);
+      const result = await nestjsApi.getLotsByImmeuble(immeubleId, params);
+      return unwrap<PaginatedResult<Lot>>(result);
     },
     enabled: !!immeubleId,
   });
 }
 
-export function useLot(id: string) {
+export function useLots(params?: { page?: number; limit?: number; search?: string; immeubleId?: string; statut?: string; type?: string }) {
   return useQuery({
-    queryKey: ['lots', id],
+    queryKey: ['lots', params],
     queryFn: async () => {
-      const result = await nestjsApi.getLot(id);
-      return unwrap<Lot>(result);
-    },
-    enabled: !!id,
-  });
-}
-
-// Kept for backward compat: returns lots from all immeubles (not paginated, loaded lazily)
-export function useLots() {
-  return useQuery({
-    queryKey: ['lots', 'all'],
-    queryFn: async () => {
-      // Fetch immeubles first, then aggregate lots from each
-      const immeublesResult = await nestjsApi.getImmeubles({ limit: 100 });
-      const immeubles = unwrap<PaginatedResult<Immeuble>>(immeublesResult).data;
-      const allLots: Lot[] = immeubles.flatMap(imm =>
-        (imm.lots || []).map(l => ({
-          id: l.id,
-          immeubleId: imm.id,
-          numero: l.numero,
-          etage: l.etage,
-          type: l.type,
-          loyerMensuelAttendu: l.loyerMensuelAttendu,
-          statut: l.statut as 'LIBRE' | 'OCCUPE',
-          locataireNom: l.locataireNom,
-          immeubleNom: imm.nom,
-          immeubleReference: imm.reference,
-          createdAt: imm.createdAt,
-        }))
-      );
-      return allLots;
+      const result = await nestjsApi.getLots(params);
+      return unwrap<PaginatedResult<Lot>>(result);
     },
   });
 }
@@ -416,9 +416,8 @@ export function useLocataires(params?: { page?: number; limit?: number; search?:
   return useQuery({
     queryKey: ['locataires', params],
     queryFn: async () => {
-      const result = await nestjsApi.getLocataires({ limit: 100, ...params });
-      const data = unwrap<PaginatedResult<Locataire>>(result);
-      return data.data;
+      const result = await nestjsApi.getLocataires({ limit: 20, ...params });
+      return unwrap<PaginatedResult<Locataire>>(result);
     },
   });
 }
@@ -477,7 +476,15 @@ export function useBauxByLot(lotId: string) {
     enabled: !!lotId,
   });
 }
-
+export function useLotsStatistics(params?: { immeubleId?: string }) {
+  return useQuery({
+    queryKey: ['lots', 'statistics', params],
+    queryFn: async () => {
+      const result = await nestjsApi.get<any>('/immobilier/lots/statistics', params);
+      return unwrap<any>(result);
+    },
+  });
+}
 export function useBauxByLocataire(locataireId: string) {
   return useQuery({
     queryKey: ['baux', 'locataire', locataireId],
@@ -523,6 +530,26 @@ export function useUpdateBail() {
 }
 
 // ─── Encaissements de loyers ──────────────────────────────────────────────────
+
+export function useEncaissements(params?: any) {
+  return useQuery({
+    queryKey: ['encaissements', 'list', params],
+    queryFn: async () => {
+      const result = await nestjsApi.getEncaissements(params);
+      return unwrap<PaginatedResult<Encaissement>>(result);
+    },
+  });
+}
+
+export function useEncaissementsStatistics(params?: { immeubleId?: string; moisConcerne?: string }) {
+  return useQuery({
+    queryKey: ['encaissements', 'statistics', params],
+    queryFn: async () => {
+      const result = await nestjsApi.get<any>('/immobilier/encaissements/statistics', params);
+      return unwrap<any>(result);
+    },
+  });
+}
 
 export function useEncaissementsByImmeuble(immeubleId: string) {
   return useQuery({
@@ -572,15 +599,13 @@ export function useCreateEncaissementLoyer() {
 
 // ─── Dépenses immeubles ────────────────────────────────────────────────────────
 
-export function useDepensesImmeubles(immeubleId?: string) {
+export function useDepensesImmeubles(params?: { page?: number; limit?: number; search?: string; immeubleId?: string; typeDepense?: string }) {
   return useQuery({
-    queryKey: ['depenses-immeubles', immeubleId],
+    queryKey: ['depenses-immeubles', params],
     queryFn: async () => {
-      if (!immeubleId) return [] as DepenseImmeuble[];
-      const result = await nestjsApi.getDepensesByImmeuble(immeubleId);
-      return unwrap<DepenseImmeuble[]>(result);
+      const result = await nestjsApi.getDepensesImmeubles({ limit: 20, ...params });
+      return unwrap<PaginatedResult<DepenseImmeuble>>(result);
     },
-    enabled: !!immeubleId,
   });
 }
 
@@ -592,12 +617,135 @@ export function useCreateDepenseImmeuble() {
       return unwrap<DepenseImmeuble>(result);
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['depenses-immeubles', data.immeubleId] });
+      queryClient.invalidateQueries({ queryKey: ['depenses-immeubles'] });
       toast.success('Dépense enregistrée');
     },
     onError: (error: Error) => toast.error(error.message),
   });
 }
+
+export function useUpdateDepenseImmeuble() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; date?: string; nature?: string; description?: string; montant?: number; typeDepense?: string }) => {
+      const result = await nestjsApi.updateDepenseImmeuble(id, data);
+      return unwrap<DepenseImmeuble>(result);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['depenses-immeubles'] });
+      toast.success('Dépense mise à jour');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+export function useDeleteDepenseImmeuble() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await nestjsApi.deleteDepenseImmeuble(id);
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['depenses-immeubles'] });
+      toast.success('Dépense supprimée');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+export function useDepensesStatistics(params?: { immeubleId?: string; typeDepense?: string }) {
+  return useQuery({
+    queryKey: ['depenses-statistics', params],
+    queryFn: async () => {
+      const result = await nestjsApi.getDepensesStatistics(params);
+      return unwrap<any>(result);
+    },
+  });
+}
+
+// ─── Arriérés de loyers ──────────────────────────────────────────────────────
+
+export function useArrieres(params?: { page?: number; limit?: number; search?: string; immeubleId?: string; statut?: string }) {
+  return useQuery({
+    queryKey: ['arrieres', params],
+    queryFn: async () => {
+      const result = await nestjsApi.getArrierages({ limit: 20, ...params });
+      return unwrap<PaginatedResult<Arrierage>>(result);
+    },
+  });
+}
+
+/** @deprecated alias for backward compat */
+export const useArrieresLoyers = useArrieres;
+
+export function useCreateArriere() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { lotId: string; periodeDebut: string; periodeFin: string; montantDu: number; description?: string }) => {
+      const result = await nestjsApi.createArrierage(data);
+      return unwrap<Arrierage>(result);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['arrieres'] });
+      toast.success('Arriéré créé avec succès');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+export function useUpdateArriere() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; periodeDebut?: string; periodeFin?: string; montantDu?: number; description?: string; statut?: string }) => {
+      const result = await nestjsApi.updateArrierage(id, data);
+      return unwrap<Arrierage>(result);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['arrieres'] });
+      toast.success('Arriéré mis à jour');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+export function useDeleteArriere() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await nestjsApi.deleteArrierage(id);
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['arrieres'] });
+      toast.success('Arriéré supprimé');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+export function useCreatePaiementArriere() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ arrierageId, ...data }: { arrierageId: string; date: string; montant: number; mode: string; reference?: string; commentaire?: string }) => {
+      const result = await nestjsApi.createPaiementArrierage(arrierageId, data);
+      return unwrap<Arrierage>(result);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['arrieres'] });
+      toast.success('Paiement enregistré avec succès');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+} export function useArrieresStatistics(immeubleId?: string) {
+  return useQuery({
+    queryKey: ['arrieres-statistics', immeubleId],
+    queryFn: async () => {
+      const result = await nestjsApi.getArrieragesStatistics({ immeubleId });
+      return unwrap<any>(result);
+    },
+  });
+}
+
 
 // ─── Rapports de gestion ──────────────────────────────────────────────────────
 

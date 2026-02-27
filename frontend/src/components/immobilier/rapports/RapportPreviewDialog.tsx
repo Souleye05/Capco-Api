@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import {
-    Users, CheckCircle2, XCircle, Download, Building2
+    Users, CheckCircle2, XCircle, Download
 } from 'lucide-react';
 import {
     Dialog,
@@ -13,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { parseDateFromAPI } from '@/lib/date-utils';
 
 interface RapportPreviewDialogProps {
@@ -72,162 +74,197 @@ export function RapportPreviewDialog({ open, onOpenChange, rapport, lots, encais
         };
     }, [rapport, lots, encaissements, depenses]);
 
-    if (!rapport || !reportDetails) return null;
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[32px] p-0 flex flex-col">
-                <DialogHeader className="p-8 pb-0">
-                    <DialogTitle className="text-2xl font-black">Aperçu détaillé du rapport</DialogTitle>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>Rapport de gestion détaillé</DialogTitle>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 bg-muted/20 rounded-[28px] border border-border/30">
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.2em]">
-                                <Building2 className="h-3 w-3" /> Immeuble
-                            </div>
-                            <h2 className="text-2xl font-black">{rapport.immeubleNom}</h2>
-                            <p className="font-bold text-muted-foreground">{rapport.immeubleAdresse}</p>
+                {rapport && reportDetails && (
+                    <div className="space-y-6 py-4">
+                        {/* Header */}
+                        <div className="text-center border-b pb-6">
+                            <h2 className="text-2xl font-bold">CABINET CAPCO</h2>
+                            <p className="text-muted-foreground">Rapport de gestion immobilière</p>
                         </div>
-                        <div className="text-right md:text-right space-y-1">
-                            <div className="font-black uppercase text-[10px] tracking-[0.2em] text-muted-foreground/60">Période de gestion</div>
-                            <p className="text-lg font-black text-foreground">
-                                {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periodeDebut))}
-                                <span className="mx-2 opacity-30 text-xs">—</span>
-                                {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(rapport.periodeFin))}
+
+                        {/* Building info */}
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Immeuble</h3>
+                                <p className="font-medium text-lg">{rapport.immeubleNom}</p>
+                                <p className="text-sm text-muted-foreground">{rapport.immeubleAdresse}</p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Propriétaire</h3>
+                                <p className="font-medium text-lg">{rapport.proprietaireNom || rapport.immeubles?.proprietaires?.nom || '-'}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">Période</h3>
+                            <p className="font-medium">
+                                Du {format(parseDateFromAPI(rapport.periodeDebut), 'dd MMMM yyyy', { locale: fr })} au {format(parseDateFromAPI(rapport.periodeFin), 'dd MMMM yyyy', { locale: fr })}
                             </p>
                         </div>
-                    </div>
 
-                    <Tabs defaultValue="resume" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 h-14 bg-muted/30 p-1.5 rounded-2xl mb-8">
-                            <TabsTrigger value="resume" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Résumé Financier</TabsTrigger>
-                            <TabsTrigger value="locataires" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Encaissements</TabsTrigger>
-                            <TabsTrigger value="depenses" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Dépenses</TabsTrigger>
-                        </TabsList>
+                        <Separator />
 
-                        <TabsContent value="resume" className="space-y-4 animate-in fade-in duration-300">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-6 rounded-[24px] border border-border/50 space-y-4">
-                                    <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Recettes & Commissions</h3>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between font-bold">
-                                            <span>Encaissements loyers</span>
-                                            <span className="text-success">+{formatCurrency(rapport.totalLoyers)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-immobilier">
-                                            <span>Commissions Capco ({rapport.tauxCommission}%)</span>
-                                            <span>-{formatCurrency(rapport.totalCommissions)}</span>
-                                        </div>
-                                    </div>
+                        <Tabs defaultValue="locataires" className="w-full">
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="locataires" className="gap-2">
+                                    <Users className="h-4 w-4" />
+                                    Locataires ({reportDetails.locatairesStatus.length})
+                                </TabsTrigger>
+                                <TabsTrigger value="depenses" className="gap-2">
+                                    Dépenses
+                                </TabsTrigger>
+                                <TabsTrigger value="resume" className="gap-2">
+                                    Résumé financier
+                                </TabsTrigger>
+                            </TabsList>
+
+                            {/* Locataires Tab */}
+                            <TabsContent value="locataires" className="space-y-4">
+                                <div className="flex gap-4 mb-4">
+                                    <Badge className="bg-success/10 text-success gap-1">
+                                        <CheckCircle2 className="h-3 w-3" />
+                                        {reportDetails.totalPaid} payé(s)
+                                    </Badge>
+                                    <Badge className="bg-destructive/10 text-destructive gap-1">
+                                        <XCircle className="h-3 w-3" />
+                                        {reportDetails.totalUnpaid} impayé(s)
+                                    </Badge>
                                 </div>
 
-                                <div className="p-6 rounded-[24px] border border-border/50 space-y-4">
-                                    <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Charges & Net</h3>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between font-bold text-destructive">
-                                            <span>Charges immeuble</span>
-                                            <span>-{formatCurrency(rapport.totalDepenses)}</span>
-                                        </div>
-                                        <div className="pt-3 border-t border-border/50 flex justify-between items-center">
-                                            <span className="font-black text-lg">NET PROPRIÉTAIRE</span>
-                                            <span className="text-2xl font-black text-primary">{formatCurrency(rapport.netProprietaire)}</span>
-                                        </div>
-                                    </div>
+                                <div className="border rounded-lg overflow-hidden">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-muted/50">
+                                            <tr>
+                                                <th className="text-left px-4 py-3 font-medium">Locataire</th>
+                                                <th className="text-left px-4 py-3 font-medium">Appartement</th>
+                                                <th className="text-left px-4 py-3 font-medium">Loyer attendu</th>
+                                                <th className="text-left px-4 py-3 font-medium">Montant payé</th>
+                                                <th className="text-left px-4 py-3 font-medium">Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {reportDetails.locatairesStatus.map((item, idx) => (
+                                                <tr key={item.lot.id} className={idx % 2 === 0 ? '' : 'bg-muted/20'}>
+                                                    <td className="px-4 py-3 font-medium">{item.locataire?.nom || '-'}</td>
+                                                    <td className="px-4 py-3">{item.lot.numero} ({item.lot.type})</td>
+                                                    <td className="px-4 py-3">{formatCurrency(item.lot.loyerMensuelAttendu || item.lot.loyer_mensuel_attendu)}</td>
+                                                    <td className="px-4 py-3">
+                                                        {item.paiement ? formatCurrency(item.paiement.montantEncaisse || item.paiement.montant_encaisse) : '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        {item.hasPaid ? (
+                                                            <Badge className="bg-success/10 text-success gap-1">
+                                                                <CheckCircle2 className="h-3 w-3" />
+                                                                Payé
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge className="bg-destructive/10 text-destructive gap-1">
+                                                                <XCircle className="h-3 w-3" />
+                                                                Impayé
+                                                            </Badge>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
-                        </TabsContent>
+                            </TabsContent>
 
-                        <TabsContent value="locataires" className="space-y-6 animate-in fade-in duration-300">
-                            <div className="flex gap-4">
-                                <Badge className="bg-success text-success-foreground border-none font-bold py-1 px-3 rounded-lg flex gap-2">
-                                    <CheckCircle2 className="h-4 w-4" /> {reportDetails.totalPaid} payés
-                                </Badge>
-                                <Badge className="bg-destructive text-destructive-foreground border-none font-bold py-1 px-3 rounded-lg flex gap-2">
-                                    <XCircle className="h-4 w-4" /> {reportDetails.totalUnpaid} impayés
-                                </Badge>
-                            </div>
-
-                            <div className="border border-border/50 rounded-2xl overflow-hidden">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-muted/50 border-b border-border/50">
-                                        <tr>
-                                            <th className="text-left px-5 py-4 font-black text-[11px] uppercase tracking-widest text-muted-foreground">Locataire / Lot</th>
-                                            <th className="text-right px-5 py-4 font-black text-[11px] uppercase tracking-widest text-muted-foreground">Loyer HC</th>
-                                            <th className="text-right px-5 py-4 font-black text-[11px] uppercase tracking-widest text-muted-foreground">Reçu</th>
-                                            <th className="text-center px-5 py-4 font-black text-[11px] uppercase tracking-widest text-muted-foreground">Statut</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportDetails.locatairesStatus.map((item, idx) => (
-                                            <tr key={item.lot.id} className={cn("border-b border-border/20 last:border-0", idx % 2 === 0 ? 'bg-background' : 'bg-muted/5')}>
-                                                <td className="px-5 py-4">
-                                                    <div className="font-black">{item.locataire?.nom || 'Inoccupé'}</div>
-                                                    <div className="text-[10px] font-bold text-muted-foreground uppercase">{item.lot.numero} ({item.lot.type})</div>
-                                                </td>
-                                                <td className="px-5 py-4 text-right font-bold text-muted-foreground">{formatCurrency(item.lot.loyerMensuelAttendu)}</td>
-                                                <td className="px-5 py-4 text-right font-black">
-                                                    {item.paiement ? formatCurrency(item.paiement.montantEncaisse) : '—'}
-                                                </td>
-                                                <td className="px-5 py-4 text-center">
-                                                    {item.hasPaid ? (
-                                                        <Badge className="bg-success/10 text-success border-none font-bold text-[10px]">PAYÉ</Badge>
-                                                    ) : (
-                                                        <Badge className="bg-destructive/10 text-destructive border-none font-bold text-[10px]">IMPAYÉ</Badge>
-                                                    )}
+                            {/* Dépenses Tab */}
+                            <TabsContent value="depenses" className="space-y-4">
+                                <div className="border rounded-lg overflow-hidden">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-muted/50">
+                                            <tr>
+                                                <th className="text-left px-4 py-3 font-medium">Type de dépense</th>
+                                                <th className="text-left px-4 py-3 font-medium">Désignation</th>
+                                                <th className="text-left px-4 py-3 font-medium">Date</th>
+                                                <th className="text-right px-4 py-3 font-medium">Montant</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {Object.entries(reportDetails.expensesByType).map(([type, data]: [string, any]) => (
+                                                <div key={`expenses-${type}`} className="contents">
+                                                    {/* Type header */}
+                                                    <tr key={`header-${type}`} className="bg-muted/30">
+                                                        <td colSpan={3} className="px-4 py-2 font-semibold">
+                                                            {typeDepenseLabels[type] || type}
+                                                        </td>
+                                                        <td className="px-4 py-2 text-right font-semibold">
+                                                            {formatCurrency(data.total)}
+                                                        </td>
+                                                    </tr>
+                                                    {/* Individual items */}
+                                                    {data.items.map((dep, idx) => (
+                                                        <tr key={dep.id} className={idx % 2 === 0 ? '' : 'bg-muted/10'}>
+                                                            <td className="px-4 py-2 pl-8 text-muted-foreground">└</td>
+                                                            <td className="px-4 py-2">{dep.nature}</td>
+                                                            <td className="px-4 py-2">{format(parseDateFromAPI(dep.date), 'dd/MM/yyyy')}</td>
+                                                            <td className="px-4 py-2 text-right">{formatCurrency(dep.montant)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </tbody>
+                                        <tfoot className="bg-muted/50 border-t-2">
+                                            <tr>
+                                                <td colSpan={3} className="px-4 py-3 font-bold">TOTAL DES DÉPENSES</td>
+                                                <td className="px-4 py-3 text-right font-bold text-destructive">
+                                                    {formatCurrency(rapport.totalDepenses || rapport.total_depenses)}
                                                 </td>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </TabsContent>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </TabsContent>
 
-                        <TabsContent value="depenses" className="space-y-6 animate-in fade-in duration-300">
-                            <div className="border border-border/50 rounded-2xl overflow-hidden">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-muted/50 border-b border-border/50">
-                                        <tr>
-                                            <th className="text-left px-5 py-4 font-black text-[11px] uppercase tracking-widest text-muted-foreground text-left">Désignation</th>
-                                            <th className="text-center px-5 py-4 font-black text-[11px] uppercase tracking-widest text-muted-foreground">Date</th>
-                                            <th className="text-right px-5 py-4 font-black text-[11px] uppercase tracking-widest text-muted-foreground">Montant</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {Object.entries(reportDetails.expensesByType).map(([type, data]: [string, any]) => (
-                                            <div key={type} className="contents">
-                                                <tr className="bg-muted/20">
-                                                    <td colSpan={2} className="px-5 py-2 font-black text-xs uppercase tracking-wider text-primary">{typeDepenseLabels[type] || type}</td>
-                                                    <td className="px-5 py-2 text-right font-black text-primary">{formatCurrency(data.total)}</td>
-                                                </tr>
-                                                {data.items.map((dep, idx) => (
-                                                    <tr key={dep.id} className="border-b border-border/20 last:border-0 hover:bg-muted/10">
-                                                        <td className="px-5 py-3 pl-8">
-                                                            <div className="font-bold">{dep.nature}</div>
-                                                            <div className="text-[10px] text-muted-foreground line-clamp-1">{dep.description}</div>
-                                                        </td>
-                                                        <td className="px-5 py-3 text-center font-medium text-muted-foreground">
-                                                            {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(dep.date))}
-                                                        </td>
-                                                        <td className="px-5 py-3 text-right font-bold">{formatCurrency(dep.montant)}</td>
-                                                    </tr>
-                                                ))}
-                                            </div>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </TabsContent>
-                    </Tabs>
-                </div>
+                            {/* Résumé financier Tab */}
+                            <TabsContent value="resume" className="space-y-4">
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center py-3 px-4 border rounded-lg">
+                                        <span className="font-medium">Loyers encaissés</span>
+                                        <span className="text-lg font-semibold text-success">+{formatCurrency(rapport.totalLoyers || rapport.total_loyers)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-3 px-4 border rounded-lg">
+                                        <span className="font-medium">Total des dépenses</span>
+                                        <span className="text-lg font-semibold text-destructive">-{formatCurrency(rapport.totalDepenses || rapport.total_depenses)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-3 px-4 border rounded-lg">
+                                        <span className="font-medium">Commission CAPCO ({rapport.tauxCommission || rapport.immeubles?.taux_commission_capco}%)</span>
+                                        <span className="text-lg font-semibold text-immobilier">-{formatCurrency(rapport.totalCommissions || rapport.total_commissions)}</span>
+                                    </div>
+                                    <Separator />
+                                    <div className="flex justify-between items-center py-4 px-4 bg-primary/5 rounded-lg border-2 border-primary/20">
+                                        <span className="font-bold text-lg">Net à reverser au propriétaire</span>
+                                        <span className="text-2xl font-bold">{formatCurrency(rapport.netProprietaire || rapport.net_proprietaire)}</span>
+                                    </div>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
 
-                <Separator className="opacity-50" />
+                        <Separator />
 
-                <DialogFooter className="p-8 gap-3 sm:gap-0">
-                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl font-bold h-12">Fermer</Button>
-                    <Button onClick={() => onDownload(rapport)} className="rounded-xl font-black h-12 px-8 bg-primary shadow-lg shadow-primary/20 gap-2">
-                        <Download className="h-4 w-4" /> Version PDF Imprimable
+                        {/* Footer */}
+                        <div className="text-center text-sm text-muted-foreground">
+                            <p>Rapport généré le {format(parseDateFromAPI(rapport.dateGeneration || rapport.date_generation), 'dd/MM/yyyy à HH:mm', { locale: fr })}</p>
+                            <p>Cabinet CAPCO - Gestion Immobilière</p>
+                        </div>
+                    </div>
+                )}
+
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Fermer</Button>
+                    <Button onClick={() => rapport && onDownload(rapport)} className="gap-2">
+                        <Download className="h-4 w-4" />
+                        Télécharger PDF
                     </Button>
                 </DialogFooter>
             </DialogContent>

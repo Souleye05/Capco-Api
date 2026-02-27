@@ -61,12 +61,21 @@ export class PaginationService {
     options: PaginationOptions = {}
   ): Promise<PaginatedResponse<T>> {
     const {
-      page = 1,
-      limit = 20,
+      page: pageParam = 1,
+      limit: limitParam = 20,
       search,
       sortBy,
       sortOrder = 'desc'
     } = paginationQuery;
+
+    // Convert string parameters to numbers and validate
+    const page = this.parseIntParam(pageParam, 1, 'page');
+    const limit = this.parseIntParam(limitParam, 20, 'limit');
+
+    // Validate limit bounds
+    if (limit > 500) {
+      throw new Error('Limit cannot exceed 500');
+    }
 
     const {
       where = {},
@@ -207,6 +216,23 @@ export class PaginationService {
       hasNext,
       hasPrev
     };
+  }
+
+  /**
+   * Helper method to parse and validate integer parameters
+   */
+  private parseIntParam(value: any, defaultValue: number, paramName: string): number {
+    if (value === undefined || value === null) {
+      return defaultValue;
+    }
+    
+    const parsed = typeof value === 'string' ? parseInt(value, 10) : Number(value);
+    
+    if (isNaN(parsed) || parsed < 1) {
+      throw new Error(`Invalid ${paramName} parameter: must be a positive integer`);
+    }
+    
+    return parsed;
   }
 
   /**

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/services/prisma.service';
+import { PaginationService } from '../../common/services/pagination.service';
 import { handlePrismaError } from '../../common/utils/prisma-error.utils';
 import { CreateEncaissementDto } from './dto/create-encaissement.dto';
 import { UpdateEncaissementDto } from './dto/update-encaissement.dto';
@@ -11,7 +12,10 @@ type EncaissementWithInclude = Prisma.EncaissementsLoyersGetPayload<{
 
 @Injectable()
 export class EncaissementsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly paginationService: PaginationService,
+    ) { }
 
     private statsCache = new Map<string, { data: any, timestamp: number }>();
     private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -34,6 +38,44 @@ export class EncaissementsService {
             },
         },
     } satisfies Prisma.EncaissementsLoyersInclude;
+
+    async findAll(query: { page?: number; limit?: number; search?: string; immeubleId?: string; lotId?: string; moisConcerne?: string; dateDebut?: string; dateFin?: string }) {
+        const { dateDebut, dateFin, immeubleId, lotId, moisConcerne } = query;
+
+        const where: Prisma.EncaissementsLoyersWhereInput = {};
+        if (immeubleId) where.lot = { immeubleId };
+        if (lotId) where.lotId = lotId;
+        if (moisConcerne) where.moisConcerne = moisConcerne;
+        if (dateDebut || dateFin) {
+            where.dateEncaissement = {};
+            if (dateDebut) where.dateEncaissement.gte = new Date(dateDebut);
+            if (dateFin) where.dateEncaissement.lte = new Date(dateFin);
+        }
+
+        const result = await this.paginationService.paginate(
+            this.prisma.encaissementsLoyers,
+            {
+                page: query.page,
+                limit: query.limit,
+                search: query.search,
+            },
+            {
+                where,
+                include: EncaissementsService.DEFAULT_INCLUDE,
+                searchFields: [
+                    'lot.numero',
+                    'lot.immeuble.nom',
+                    'lot.locataire.nom'
+                ],
+                defaultSortBy: 'dateEncaissement'
+            }
+        );
+
+        return {
+            data: result.data.map(EncaissementsService.mapToResponseDto),
+            pagination: result.pagination,
+        };
+    }
 
     async create(createDto: CreateEncaissementDto, userId: string) {
         const lot = await this.prisma.lots.findUnique({

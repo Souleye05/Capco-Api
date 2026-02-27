@@ -49,11 +49,11 @@ export function ImmeubleCard({
             className="bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
             onClick={() => navigate(`/immobilier/immeubles/${immeuble.id}`)}
         >
-            <div className="bg-gradient-to-r from-immobilier/10 to-immobilier/5 p-6 border-b">
+            <div className="bg-gradient-to-r from-info/10 to-info/5 p-6 border-b">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-immobilier/20 group-hover:scale-110 transition-transform">
-                            <Building2 className="h-7 w-7 text-immobilier" />
+                        <div className="p-3 rounded-xl bg-info/20 group-hover:scale-110 transition-transform">
+                            <Building2 className="h-7 w-7 text-info" />
                         </div>
                         <div>
                             <h3 className="text-lg font-bold">{immeuble.nom}</h3>
@@ -97,7 +97,7 @@ export function ImmeubleCard({
                     </div>
                     <div className="flex items-center gap-2">
                         <Badge variant="outline" className="font-bold">{immeubleLots.length} lots</Badge>
-                        <Badge className="bg-success/10 text-success border-none font-bold">{lotsOccupes} occupés</Badge>
+                        <Badge variant="outline" className="bg-success/10 text-success border-success/20 font-bold uppercase text-[10px]">{lotsOccupes} occupés</Badge>
                     </div>
                 </div>
 
@@ -114,12 +114,12 @@ export function ImmeubleCard({
                 <div className="flex items-center justify-between pt-4 border-t border-dashed">
                     <div>
                         <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-1">Commission CAPCO ({immeuble.tauxCommissionCapco}%)</p>
-                        <p className="text-xl font-black text-immobilier">{formatCurrency(commissions)}</p>
+                        <p className="text-xl font-black text-warning">{formatCurrency(commissions)}</p>
                     </div>
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-2 hover:bg-immobilier/5 hover:text-immobilier font-bold rounded-lg"
+                        className="gap-2 hover:bg-info/5 hover:text-info font-bold rounded-lg"
                         onClick={(e) => { e.stopPropagation(); onRapport(immeuble.nom); }}
                     >
                         <FileText className="h-4 w-4" />

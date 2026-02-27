@@ -26,11 +26,11 @@ export function CommissionsTab({ encaissements, lots, tauxCommission }: Commissi
                 <CardTitle>Commissions CAPCO encaissées</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="mb-6 p-4 bg-immobilier/5 rounded-lg border border-immobilier/20">
+                <div className="mb-6 p-4 bg-warning/5 rounded-lg border border-warning/20">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-muted-foreground">Taux de commission appliqué</p>
-                            <p className="text-3xl font-bold text-immobilier">{tauxCommission}%</p>
+                            <p className="text-3xl font-bold text-warning">{tauxCommission}%</p>
                         </div>
                         <div className="text-right">
                             <p className="text-sm text-muted-foreground">Total commissions (période filtrée)</p>
@@ -67,7 +67,7 @@ export function CommissionsTab({ encaissements, lots, tauxCommission }: Commissi
                                         <TableCell>{new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(enc.moisConcerne + '-01'))}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(Number(enc.montantEncaisse))}</TableCell>
                                         <TableCell className="text-right">{tauxCommission}%</TableCell>
-                                        <TableCell className="text-right font-medium text-immobilier">
+                                        <TableCell className="text-right font-medium text-warning">
                                             {formatCurrency(Number(enc.commissionCapco))}
                                         </TableCell>
                                     </TableRow>

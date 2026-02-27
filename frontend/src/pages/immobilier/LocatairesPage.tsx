@@ -18,7 +18,9 @@ export default function LocatairesPage() {
     setSearchTerm,
     isLoading,
     totalCount,
-    activeLeasesCount
+    activeLeasesCount,
+    pagination,
+    setPage
   } = useLocatairesPage();
 
   const [selectedLocataire, setSelectedLocataire] = useState<LocataireComplete | null>(null);
@@ -73,6 +75,8 @@ export default function LocatairesPage() {
             isLoading={isLoading}
             onEdit={handleEdit}
             onDetail={handleDetail}
+            pagination={pagination}
+            onPageChange={setPage}
           />
         </CardContent>
       </Card>

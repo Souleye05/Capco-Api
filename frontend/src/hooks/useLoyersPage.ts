@@ -1,26 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useImmeubles, useLots } from '@/hooks/useImmobilier';
-import { nestjsApi } from '@/integrations/nestjs/client';
+import { useImmeubles, useLots, useEncaissements, useEncaissementsStatistics, type Encaissement } from '@/hooks/useImmobilier';
 
 export function useLoyersPage() {
-    const { data: immeubles = [], isLoading: immLoading } = useImmeubles();
-    const { data: lots = [], isLoading: lotsLoading } = useLots();
-
-    const { data: encaissements = [], isLoading: encLoading } = useQuery({
-        queryKey: ['encaissements', 'all', immeubles.map(i => i.id)],
-        queryFn: async () => {
-            if (immeubles.length === 0) return [];
-            const results = await Promise.all(
-                immeubles.map(imm =>
-                    nestjsApi.getEncaissementsByImmeuble(imm.id).then(r => (r.data as any[]) || [])
-                )
-            );
-            return results.flat();
-        },
-        enabled: immeubles.length > 0,
-    });
-
+    const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedImmeuble, setSelectedImmeuble] = useState<string>('all');
     const [selectedLot, setSelectedLot] = useState<string>('all');
@@ -28,39 +10,45 @@ export function useLoyersPage() {
     const [dateDebut, setDateDebut] = useState<Date | undefined>();
     const [dateFin, setDateFin] = useState<Date | undefined>();
 
+    const { data: result, isLoading: encLoading } = useEncaissements({
+        page,
+        limit: 20,
+        search: searchQuery || undefined,
+        immeubleId: selectedImmeuble === 'all' ? undefined : selectedImmeuble,
+        lotId: selectedLot === 'all' ? undefined : selectedLot,
+        moisConcerne: selectedMois === 'all' ? undefined : selectedMois,
+        dateDebut: dateDebut?.toISOString().split('T')[0],
+        dateFin: dateFin?.toISOString().split('T')[0]
+    });
+
+    const encaissements = result?.data || [];
+    const pagination = result?.pagination;
+
+    const { data: statsData } = useEncaissementsStatistics({
+        immeubleId: selectedImmeuble === 'all' ? undefined : selectedImmeuble,
+        moisConcerne: selectedMois === 'all' ? undefined : selectedMois
+    });
+
+    const { data: immeublesResult, isLoading: immLoading } = useImmeubles({ limit: 100 });
+    const { data: lotsResult, isLoading: lotsLoading } = useLots({ limit: 200 });
+
+    const immeubles = immeublesResult?.data || [];
+    const lots = lotsResult?.data || [];
+
     const enrichedLots = useMemo(() => lots.map(lot => ({
         ...lot,
         immeuble: immeubles.find(i => i.id === lot.immeubleId)
     })), [lots, immeubles]);
 
-    const uniqueMois = useMemo(() =>
-        [...new Set(encaissements.map(e => (e as any).moisConcerne))].sort().reverse()
-        , [encaissements]);
+    const uniqueMois: string[] = []; // Can be fetched from separate endpoint or just a list of months
 
-    const filteredEncaissements = useMemo(() => {
-        return encaissements.map(enc => ({
-            ...enc,
-            lot: enrichedLots.find(l => l.id === (enc as any).lotId)
-        })).filter(enc => {
-            const matchesSearch =
-                (enc.lot?.numero.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                (enc.lot?.immeuble?.nom.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filteredEncaissements = encaissements; // Server-side
 
-            const matchesImmeuble = selectedImmeuble === 'all' || enc.lot?.immeubleId === selectedImmeuble;
-            const matchesLot = selectedLot === 'all' || (enc as any).lotId === selectedLot;
-            const matchesMois = selectedMois === 'all' || (enc as any).moisConcerne === selectedMois;
-            const matchesDateDebut = !dateDebut || new Date((enc as any).dateEncaissement) >= dateDebut;
-            const matchesDateFin = !dateFin || new Date((enc as any).dateEncaissement) <= dateFin;
-
-            return matchesSearch && matchesImmeuble && matchesLot && matchesMois && matchesDateDebut && matchesDateFin;
-        });
-    }, [encaissements, enrichedLots, searchQuery, selectedImmeuble, selectedLot, selectedMois, dateDebut, dateFin]);
-
-    const totals = useMemo(() => ({
-        totalEncaisse: filteredEncaissements.reduce((sum, e) => sum + (e as any).montantEncaisse, 0),
-        totalCommissions: filteredEncaissements.reduce((sum, e) => sum + (e as any).commissionCapco, 0),
-        totalNet: filteredEncaissements.reduce((sum, e) => sum + (e as any).netProprietaire, 0),
-    }), [filteredEncaissements]);
+    const totals = {
+        totalEncaisse: statsData?.totalEncaisse || 0,
+        totalCommissions: statsData?.totalCommissions || 0,
+        totalNet: statsData?.totalNetProprietaire || 0,
+    };
 
     const clearFilters = () => {
         setSearchQuery('');
@@ -73,19 +61,22 @@ export function useLoyersPage() {
 
     return {
         encaissements: filteredEncaissements,
-        allEncaissementsCount: encaissements.length,
+        allEncaissementsCount: pagination?.total || 0,
         immeubles,
         lots: enrichedLots,
         uniqueMois,
         totals,
         isLoading: encLoading || immLoading || lotsLoading,
+        page,
+        setPage,
+        pagination,
         filters: {
-            searchQuery, setSearchQuery,
-            selectedImmeuble, setSelectedImmeuble,
-            selectedLot, setSelectedLot,
-            selectedMois, setSelectedMois,
-            dateDebut, setDateDebut,
-            dateFin, setDateFin,
+            searchQuery, setSearchQuery: (v: string) => { setSearchQuery(v); setPage(1); },
+            selectedImmeuble, setSelectedImmeuble: (v: string) => { setSelectedImmeuble(v); setPage(1); },
+            selectedLot, setSelectedLot: (v: string) => { setSelectedLot(v); setPage(1); },
+            selectedMois, setSelectedMois: (v: string) => { setSelectedMois(v); setPage(1); },
+            dateDebut, setDateDebut: (v: Date | undefined) => { setDateDebut(v); setPage(1); },
+            dateFin, setDateFin: (v: Date | undefined) => { setDateFin(v); setPage(1); },
             clearFilters
         }
     };

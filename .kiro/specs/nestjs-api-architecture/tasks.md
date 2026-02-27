@@ -182,7 +182,7 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - Optimiser les requêtes de statistiques
     - Améliorer la gestion d'erreurs
 
-  - [ ]* 9.7 Écrire les tests de propriété pour le module Immobilier
+  - [ ] 9.7 Écrire les tests de propriété pour le module Immobilier
     - **Propriété 9: Transformation automatique des données**
     - **Propriété 26: Détection automatique des impayés**
     - **Propriété 27: Cohérence des calculs d'arriérés**
@@ -191,26 +191,26 @@ Ce plan d'implémentation transforme la conception de l'API CAPCO en une série 
     - **Propriété 30: Génération d'alertes automatiques**
     - **Valide: Exigences 4.5, 11.1, 11.2, 11.4, 11.5, 11.6, 12.2, 12.4, 12.5**
 
-- [ ] 10. Module Conseil
-  - [ ] 10.1 Créer les entités et DTOs du conseil
+- [x] 10. Module Conseil
+  - [x] 10.1 Créer les entités et DTOs du conseil
     - Créer les DTOs pour ClientsConseil avec validation
     - Créer les DTOs pour TachesConseil et FacturesConseil
     - Créer les DTOs pour PaiementsConseil
     - _Exigences: 4.1, 4.3_
 
-  - [ ] 10.2 Implémenter ConseilService
+  - [x] 10.2 Implémenter ConseilService
     - Créer ClientsConseilService avec gestion du statut
     - Créer TachesConseilService et FacturesConseilService
     - Implémenter la logique de facturation automatique
     - Intégrer la génération de références de factures
     - _Exigences: 5.4, 6.2_
 
-  - [ ] 10.3 Créer ConseilController
+  - [x] 10.3 Créer ConseilController
     - Implémenter tous les endpoints CRUD pour les clients conseil
     - Implémenter les endpoints de gestion des tâches et facturation
     - _Exigences: 5.4_
 
-  - [ ]* 10.4 Écrire les tests de propriété pour le module Conseil
+  - [x] 10.4 Écrire les tests de propriété pour le module Conseil
     - **Propriété 11: Cohérence des réponses API**
     - **Valide: Exigences 5.6**
 

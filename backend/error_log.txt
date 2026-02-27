@@ -2927,3 +2927,90 @@ Argument `take`: Invalid value provided. Expected Int, provided String.
     at C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:38:29
     at async C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:46:28
     at async C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-proxy.js:9:17
+[2026-02-27T22:21:41.281Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "date": "desc"
+  },
+  "include": {
+    "facturesConseil": {
+      "select": {
+        "id": true,
+        "reference": true,
+        "moisConcerne": true,
+        "montantTtc": true,
+        "clientsConseil": {
+          "select": {
+            "id": true,
+            "reference": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: TypeError: this.prisma.$transaction is not a function
+    at PaginationService.paginate (C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:119:47)
+    at PaiementsConseilService.findAll (C:\Workspaces\CAPCOS\backend\src\conseil\paiements-conseil\paiements-conseil.service.ts:132:51)
+    at PaiementsConseilController.findAll (C:\Workspaces\CAPCOS\backend\src\conseil\paiements-conseil\paiements-conseil.controller.ts:84:41)
+    at C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:38:29
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[2026-02-27T22:21:41.330Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "date": "desc"
+  },
+  "include": {
+    "facturesConseil": {
+      "select": {
+        "id": true,
+        "reference": true,
+        "moisConcerne": true,
+        "montantTtc": true,
+        "clientsConseil": {
+          "select": {
+            "id": true,
+            "reference": true,
+            "nom": true
+          }
+        }
+      }
+    }
+  }
+}
+Error: TypeError: this.prisma.$transaction is not a function
+    at PaginationService.paginate (C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:119:47)
+    at PaiementsConseilService.findAll (C:\Workspaces\CAPCOS\backend\src\conseil\paiements-conseil\paiements-conseil.service.ts:132:51)
+    at PaiementsConseilController.findAll (C:\Workspaces\CAPCOS\backend\src\conseil\paiements-conseil\paiements-conseil.controller.ts:84:41)
+    at C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:38:29
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[2026-02-27T22:21:41.386Z] Pagination Error:
+Options: {
+  "where": {},
+  "skip": 0,
+  "take": 20,
+  "orderBy": {
+    "createdAt": "desc"
+  },
+  "include": {
+    "_count": {
+      "select": {
+        "tachesConseils": true,
+        "facturesConseils": true
+      }
+    }
+  }
+}
+Error: TypeError: this.prisma.$transaction is not a function
+    at PaginationService.paginate (C:\Workspaces\CAPCOS\backend\src\common\services\pagination.service.ts:119:47)
+    at ClientsConseilService.findAll (C:\Workspaces\CAPCOS\backend\src\conseil\clients-conseil\clients-conseil.service.ts:75:51)
+    at ClientsConseilController.findAll (C:\Workspaces\CAPCOS\backend\src\conseil\clients-conseil\clients-conseil.controller.ts:86:39)
+    at C:\Workspaces\CAPCOS\node_modules\@nestjs\core\router\router-execution-context.js:38:29
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)

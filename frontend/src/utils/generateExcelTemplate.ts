@@ -1,5 +1,10 @@
 import * as XLSX from 'xlsx';
 
+/**
+ * @deprecated Utilisez TemplateService.downloadImportTemplate() à la place
+ * Cette fonction génère les templates côté frontend, ce qui est moins optimal
+ * que l'utilisation de l'API backend qui génère des templates plus robustes.
+ */
 export const generateImportTemplate = () => {
   // Créer un nouveau workbook
   const wb = XLSX.utils.book_new();

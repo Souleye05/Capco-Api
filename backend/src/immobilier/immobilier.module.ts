@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { CommonModule } from '../common/common.module';
+import { ImportExcelModule } from './import/import-excel.module';
 
 // Controllers
 import { ImmobilierController } from './immobilier.controller';
@@ -14,8 +15,6 @@ import { DepensesImmeublesController } from './depenses/depenses-immeubles.contr
 import { RapportsGestionController } from './rapports/rapports-gestion.controller';
 import { ImpayesController } from './impayes/impayes.controller';
 import { ArrieragesController } from './impayes/arrierages.controller';
-import { ImportExcelController } from './import/import-excel.controller';
-
 
 // Services
 import { ImmobilierService } from './immobilier.service';
@@ -30,11 +29,11 @@ import { RapportsGestionService } from './rapports/rapports-gestion.service';
 import { ImpayesService } from './impayes/impayes.service';
 import { ArrieragesService } from './impayes/arrierages.service';
 import { AlertesService } from './impayes/alertes.service';
-import { ImportExcelService } from './import/import-excel.service';
 
 @Module({
     imports: [
         CommonModule,
+        ImportExcelModule,
         MulterModule.register({
             limits: {
                 fileSize: 10 * 1024 * 1024, // 10MB
@@ -53,7 +52,6 @@ import { ImportExcelService } from './import/import-excel.service';
         RapportsGestionController,
         ImpayesController,
         ArrieragesController,
-        ImportExcelController,
     ],
     providers: [
         ImmobilierService,
@@ -68,7 +66,6 @@ import { ImportExcelService } from './import/import-excel.service';
         ImpayesService,
         ArrieragesService,
         AlertesService,
-        ImportExcelService,
     ],
     exports: [
         ImmobilierService,
@@ -83,7 +80,6 @@ import { ImportExcelService } from './import/import-excel.service';
         ImpayesService,
         ArrieragesService,
         AlertesService,
-        ImportExcelService,
     ],
 })
 export class ImmobilierModule { }

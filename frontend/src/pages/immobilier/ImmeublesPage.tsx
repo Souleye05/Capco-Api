@@ -5,7 +5,6 @@ import {
   Upload
 } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination-custom';
-import { generateImportTemplate } from '@/utils/generateExcelTemplate';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +13,7 @@ import { EditImmeubleDialog } from '@/components/dialogs/EditImmeubleDialog';
 import { ImportExcelDialog } from '@/components/dialogs/ImportExcelDialog';
 import { toast } from 'sonner';
 import { useImmeublesPage } from '@/hooks/useImmeublesPage';
+import { useTemplates } from '@/hooks/useTemplates';
 import { ImmeublesGrid } from '@/components/immobilier/immeubles/ImmeublesGrid';
 
 export default function ImmeublesPage() {
@@ -32,6 +32,8 @@ export default function ImmeublesPage() {
     dialogs
   } = useImmeublesPage();
 
+  const { downloadImportTemplate, isDownloading } = useTemplates();
+
   const handleRapport = (nom: string) => {
     toast.success(`Rapport généré pour ${nom}`);
   };
@@ -43,9 +45,14 @@ export default function ImmeublesPage() {
         subtitle={`${allImmeublesCount} immeubles gérés`}
         actions={
           <div className="flex gap-3">
-            <Button variant="outline" className="gap-2 rounded-xl" onClick={generateImportTemplate}>
+            <Button 
+              variant="outline" 
+              className="gap-2 rounded-xl" 
+              onClick={downloadImportTemplate}
+              disabled={isDownloading}
+            >
               <Download className="h-4 w-4" />
-              Template
+              {isDownloading ? 'Téléchargement...' : 'Template'}
             </Button>
             <Button variant="outline" className="gap-2 rounded-xl" onClick={() => dialogs.setShowImportExcel(true)}>
               <Upload className="h-4 w-4" />

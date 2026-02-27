@@ -154,7 +154,22 @@ export class ImportExcelController {
     return await this.importService.validateImportData(data, entityType as EntityType);
   }
 
+  
+  @Post('all')
+  @UseInterceptors(FileInterceptor('file', FileValidationUtil.createMulterOptions()))
+  @ApiOperation({ summary: 'Importer tout via le backend' })
+  @ApiConsumes('multipart/form-data')
+  @Roles('admin', 'collaborateur')
+  async importAll(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser('id') userId: string
+  ): Promise<ImportResultDto> {
+    if (!file) throw new BadRequestException('Aucun fichier fourni');
+    return await this.importService.importAll(file, userId);
+  }
+  
   @Get('progress/:importId')
+
   @ApiOperation({ 
     summary: 'Obtenir la progression d\'un import',
     description: 'Récupère le statut et la progression d\'un import en cours'
@@ -184,22 +199,34 @@ export class ImportExcelController {
   })
   @Roles('admin', 'collaborateur')
   async getImportReports(): Promise<any[]> {
-    // Pour l'instant, retourner les imports actifs
+    // Retourner une liste vide pour l'instant
     // Dans une implémentation complète, ceci devrait être stocké en base
-    const activeImports = Array.from(this.importService['activeImports'].values());
-    return activeImports.map(progress => ({
-      importId: progress.importId,
-      status: progress.status,
-      totalRows: progress.totalRows,
-      processedRows: progress.processedRows,
-      successfulRows: progress.successfulRows,
-      failedRows: progress.failedRows,
-      progressPercentage: progress.progressPercentage,
-      startTime: progress.startTime,
-      lastUpdate: progress.lastUpdate,
-      estimatedTimeRemainingMs: progress.estimatedTimeRemainingMs,
-      errorCount: progress.errors.length
-    }));
+    return [];
+  }
+
+  @Get('templates/multi-sheet')
+  @ApiOperation({ 
+    summary: 'Télécharger un template Excel multi-feuilles',
+    description: 'Génère et télécharge un template Excel complet avec toutes les entités (Propriétaires, Immeubles, Locataires, Lots)'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Template Excel multi-feuilles généré',
+    content: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+        schema: { type: 'string', format: 'binary' }
+      }
+    }
+  })
+  @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  @Roles('admin', 'collaborateur')
+  async downloadMultiSheetTemplate(): Promise<StreamableFile> {
+    const buffer = await this.importService.generateMultiSheetTemplate();
+    
+    return new StreamableFile(buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: 'attachment; filename="template_import_immobilier.xlsx"'
+    });
   }
 
   @Get('templates/:entityType')

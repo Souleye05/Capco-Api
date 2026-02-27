@@ -18,6 +18,12 @@ export class ImportErrorDto {
     description: 'Sévérité de l\'erreur' 
   })
   severity: 'ERROR' | 'WARNING';
+
+  @ApiPropertyOptional({ description: 'Type d\'erreur classifié' })
+  errorType?: string;
+
+  @ApiPropertyOptional({ description: 'Code d\'erreur technique' })
+  code?: string;
 }
 
 export class ImportResultDto {

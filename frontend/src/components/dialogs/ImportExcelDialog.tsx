@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { importExcelData } from '@/utils/importExcelData';
+import { nestjsApi } from '@/integrations/nestjs/client';
 import { cn } from '@/lib/utils';
 
 interface ImportExcelDialogProps {
@@ -64,7 +64,7 @@ export function ImportExcelDialog({ open, onOpenChange }: ImportExcelDialogProps
     setStatus('loading');
     setMessage('Import en cours...');
     
-    const result = await importExcelData(file);
+    const result = await nestjsApi.importExcelData(file);
     
     setStatus(result.success ? 'success' : 'error');
     setMessage(result.message);

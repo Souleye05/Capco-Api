@@ -727,7 +727,71 @@ class NestJSApiClient {
     return this.get<any>('/immobilier/arrierages/statistics', params);
   }
 
+  
+  async importExcelData(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Custom fetch because we are handling multipart/form-data
+    const token = this.getToken();
+    const headers: any = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    try {
+      const response = await fetch(`${this.baseUrl}/immobilier/import/all`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+      const data = await response.json();
+      if (!response.ok) return { success: false, message: data.message || 'Erreur API', data: null };
+      return { success: data.success !== false, message: data.summary || 'Import terminé avec succès', data };
+    } catch (e) {
+      return { success: false, message: 'Erreur réseau ou fichier invalide', data: null };
+    }
+  }
+
+  async downloadImportTemplate(): Promise<{ success: boolean; message: string; blob?: Blob }> {
+    try {
+      const response = await this.fetch('/immobilier/import/templates/multi-sheet', {
+        method: 'GET',
+        responseType: 'blob'
+      });
+
+      if (!response.ok) {
+        return { success: false, message: 'Erreur lors du téléchargement du template' };
+      }
+
+      const blob = await response.blob();
+      return { success: true, message: 'Template téléchargé avec succès', blob };
+    } catch (error) {
+      return { success: false, message: 'Erreur réseau lors du téléchargement' };
+    }
+  }
+
+  private async fetch(endpoint: string, options: any = {}) {
+    const token = this.getToken();
+    const headers: any = {
+      ...options.headers
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Pour les téléchargements de fichiers, ne pas ajouter Content-Type
+    if (options.responseType !== 'blob' && !options.body instanceof FormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return fetch(`${this.baseUrl}${endpoint}`, {
+      ...options,
+      headers
+    });
+  }
+
   // Tableau de bord immobilier
+
   async getImmobilierDashboard() {
     return this.get<any>('/immobilier/dashboard');
   }

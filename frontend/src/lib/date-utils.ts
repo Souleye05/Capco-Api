@@ -49,15 +49,29 @@ export function isSameDay(date1: Date, date2: Date): boolean {
  * 
  * @example
  * formatDate(new Date("2026-02-15T12:00:00.000Z")); // "15 février 2026"
+ * formatDate("2026-02-15T12:00:00.000Z"); // "15 février 2026"
  * // Reste "15 février 2026" même si tu changes ton timezone OS!
  */
-export function formatDate(date: Date, locale: string = 'fr-FR'): string {
+export function formatDate(date: Date | string, locale: string = 'fr-FR'): string {
+  let dateObj: Date;
+  
+  if (typeof date === 'string') {
+    dateObj = new Date(date);
+  } else {
+    dateObj = date;
+  }
+  
+  // Vérifier si la date est valide
+  if (isNaN(dateObj.getTime())) {
+    return 'Date invalide';
+  }
+  
   return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     timeZone: 'UTC',  // ✅ CRITIQUE : Force UTC
-  }).format(date);
+  }).format(dateObj);
 }
 
 /**
@@ -66,15 +80,29 @@ export function formatDate(date: Date, locale: string = 'fr-FR'): string {
  * 
  * @example
  * formatDateLong(new Date("2026-02-15T12:00:00.000Z")); // "dimanche 15 février 2026"
+ * formatDateLong("2026-02-15T12:00:00.000Z"); // "dimanche 15 février 2026"
  */
-export function formatDateLong(date: Date, locale: string = 'fr-FR'): string {
+export function formatDateLong(date: Date | string, locale: string = 'fr-FR'): string {
+  let dateObj: Date;
+  
+  if (typeof date === 'string') {
+    dateObj = new Date(date);
+  } else {
+    dateObj = date;
+  }
+  
+  // Vérifier si la date est valide
+  if (isNaN(dateObj.getTime())) {
+    return 'Date invalide';
+  }
+  
   return new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     timeZone: 'UTC',  // ✅ CRITIQUE : Force UTC
-  }).format(date);
+  }).format(dateObj);
 }
 
 /**

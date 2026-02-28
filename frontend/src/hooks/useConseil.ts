@@ -1,309 +1,496 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { nestjsApi } from '@/integrations/nestjs/client';
 import { toast } from 'sonner';
+import type {
+  ClientConseil,
+  TacheConseil,
+  FactureConseil,
+  PaiementConseil,
+  CreateClientConseilDto,
+  UpdateClientConseilDto,
+  CreateTacheConseilDto,
+  UpdateTacheConseilDto,
+  CreateFactureConseilDto,
+  UpdateFactureConseilDto,
+  CreatePaiementConseilDto,
+  UpdatePaiementConseilDto,
+  ClientsConseilQueryDto,
+  TachesConseilQueryDto,
+  FacturesConseilQueryDto,
+  PaiementsConseilQueryDto,
+  PaginatedResponse,
+  StatistiquesClientsConseil,
+} from '@/types/conseil';
 
-// Clients Conseil
-export interface ClientConseilDB {
-  id: string;
-  reference: string;
-  nom: string;
-  type: 'physique' | 'morale';
-  telephone: string | null;
-  email: string | null;
-  adresse: string | null;
-  honoraire_mensuel: number;
-  jour_facturation: number;
-  statut: 'ACTIF' | 'SUSPENDU' | 'RESILIE';
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-}
+// ===== CLIENTS CONSEIL =====
 
-export function useClientsConseil() {
+export const useClientsConseil = (params?: ClientsConseilQueryDto) => {
   return useQuery({
-    queryKey: ['clients-conseil'],
+    queryKey: ['clients-conseil', params],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clients_conseil')
-        .select('*')
-        .order('nom');
-      
-      if (error) throw error;
-      return data as ClientConseilDB[];
+      const response = await nestjsApi.getClientsConseil(params);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaginatedResponse<ClientConseil>;
     },
   });
-}
+};
 
-export function useClientConseil(id: string) {
+export const useClientConseil = (id: string) => {
   return useQuery({
-    queryKey: ['clients-conseil', id],
+    queryKey: ['client-conseil', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clients_conseil')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data as ClientConseilDB | null;
+      const response = await nestjsApi.getClientConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as ClientConseil;
     },
     enabled: !!id,
   });
-}
+};
 
-export function useCreateClientConseil() {
+export const useCreateClientConseil = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (client: Omit<ClientConseilDB, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase
-        .from('clients_conseil')
-        .insert(client)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+    mutationFn: async (data: CreateClientConseilDto) => {
+      const response = await nestjsApi.createClientConseil(data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as ClientConseil;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients-conseil'] });
-      toast.success('Client créé');
+      toast.success('Client conseil créé avec succès');
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la création : ${error.message}`);
     },
   });
-}
+};
 
-export function useUpdateClientConseil() {
+export const useUpdateClientConseil = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<ClientConseilDB> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('clients_conseil')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['clients-conseil'] });
-      queryClient.invalidateQueries({ queryKey: ['clients-conseil', data.id] });
-      toast.success('Client mis à jour');
-    },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
-}
-
-// Tâches Conseil
-export interface TacheConseilDB {
-  id: string;
-  client_id: string;
-  date: string;
-  type: 'CONSULTATION' | 'REDACTION' | 'NEGOCIATION' | 'RECHERCHE' | 'REUNION' | 'APPEL' | 'EMAIL' | 'AUTRE';
-  description: string;
-  duree_minutes: number | null;
-  mois_concerne: string;
-  created_at: string;
-  created_by: string;
-  clients_conseil?: ClientConseilDB;
-}
-
-export function useTachesConseil(clientId?: string) {
-  return useQuery({
-    queryKey: ['taches-conseil', clientId],
-    queryFn: async () => {
-      let query = supabase
-        .from('taches_conseil')
-        .select(`
-          *,
-          clients_conseil (*)
-        `)
-        .order('date', { ascending: false });
-      
-      if (clientId) {
-        query = query.eq('client_id', clientId);
+    mutationFn: async ({ id, data }: { id: string; data: UpdateClientConseilDto }) => {
+      const response = await nestjsApi.updateClientConseil(id, data);
+      if (response.error) {
+        throw new Error(response.error);
       }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return data as TacheConseilDB[];
+      return response.data as ClientConseil;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['clients-conseil'] });
+      queryClient.invalidateQueries({ queryKey: ['client-conseil', id] });
+      toast.success('Client conseil mis à jour avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la mise à jour : ${error.message}`);
     },
   });
-}
+};
 
-export function useCreateTacheConseil() {
+export const useDeleteClientConseil = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (tache: Omit<TacheConseilDB, 'id' | 'created_at' | 'clients_conseil'>) => {
-      const { data, error } = await supabase
-        .from('taches_conseil')
-        .insert([tache])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+    mutationFn: async (id: string) => {
+      const response = await nestjsApi.deleteClientConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients-conseil'] });
+      toast.success('Client conseil supprimé avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la suppression : ${error.message}`);
+    },
+  });
+};
+
+export const useUpdateClientConseilStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, statut }: { id: string; statut: string }) => {
+      const response = await nestjsApi.updateClientConseilStatus(id, statut);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as ClientConseil;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['clients-conseil'] });
+      queryClient.invalidateQueries({ queryKey: ['client-conseil', id] });
+      toast.success('Statut mis à jour avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la mise à jour du statut : ${error.message}`);
+    },
+  });
+};
+
+export const useClientsConseilStatistics = () => {
+  return useQuery({
+    queryKey: ['clients-conseil-statistics'],
+    queryFn: async () => {
+      const response = await nestjsApi.getClientsConseilStatistics();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as StatistiquesClientsConseil;
+    },
+  });
+};
+
+// ===== TÂCHES CONSEIL =====
+
+export const useTachesConseil = (params?: TachesConseilQueryDto) => {
+  return useQuery({
+    queryKey: ['taches-conseil', params],
+    queryFn: async () => {
+      const response = await nestjsApi.getTachesConseil(params);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaginatedResponse<TacheConseil>;
+    },
+  });
+};
+
+export const useTacheConseil = (id: string) => {
+  return useQuery({
+    queryKey: ['tache-conseil', id],
+    queryFn: async () => {
+      const response = await nestjsApi.getTacheConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as TacheConseil;
+    },
+    enabled: !!id,
+  });
+};
+
+export const useCreateTacheConseil = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateTacheConseilDto) => {
+      const response = await nestjsApi.createTacheConseil(data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as TacheConseil;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taches-conseil'] });
-      toast.success('Tâche enregistrée');
+      toast.success('Tâche créée avec succès');
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
-}
-
-// Factures Conseil
-export interface FactureConseilDB {
-  id: string;
-  client_id: string;
-  reference: string;
-  mois_concerne: string;
-  montant_ht: number;
-  tva: number | null;
-  montant_ttc: number;
-  date_emission: string;
-  date_echeance: string;
-  statut: 'BROUILLON' | 'ENVOYEE' | 'PAYEE' | 'EN_RETARD' | 'ANNULEE';
-  notes: string | null;
-  created_at: string;
-  created_by: string;
-  clients_conseil?: ClientConseilDB;
-}
-
-export function useFacturesConseil() {
-  return useQuery({
-    queryKey: ['factures-conseil'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('factures_conseil')
-        .select(`
-          *,
-          clients_conseil (*)
-        `)
-        .order('date_emission', { ascending: false });
-      
-      if (error) throw error;
-      return data as FactureConseilDB[];
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la création : ${error.message}`);
     },
   });
-}
+};
 
-export function useCreateFactureConseil() {
+export const useUpdateTacheConseil = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (facture: Omit<FactureConseilDB, 'id' | 'created_at' | 'clients_conseil'>) => {
-      const { data, error } = await supabase
-        .from('factures_conseil')
-        .insert(facture)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
-      toast.success('Facture créée');
-    },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
-}
-
-export function useUpdateFactureConseil() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<FactureConseilDB> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('factures_conseil')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
-      toast.success('Facture mise à jour');
-    },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
-    },
-  });
-}
-
-// Paiements Conseil
-export interface PaiementConseilDB {
-  id: string;
-  facture_id: string;
-  date: string;
-  montant: number;
-  mode: 'CASH' | 'VIREMENT' | 'CHEQUE' | 'WAVE' | 'OM';
-  reference: string | null;
-  commentaire: string | null;
-  created_at: string;
-  created_by: string;
-}
-
-export function usePaiementsConseil(factureId?: string) {
-  return useQuery({
-    queryKey: ['paiements-conseil', factureId],
-    queryFn: async () => {
-      let query = supabase
-        .from('paiements_conseil')
-        .select('*')
-        .order('date', { ascending: false });
-      
-      if (factureId) {
-        query = query.eq('facture_id', factureId);
+    mutationFn: async ({ id, data }: { id: string; data: UpdateTacheConseilDto }) => {
+      const response = await nestjsApi.updateTacheConseil(id, data);
+      if (response.error) {
+        throw new Error(response.error);
       }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return data as PaiementConseilDB[];
+      return response.data as TacheConseil;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['taches-conseil'] });
+      queryClient.invalidateQueries({ queryKey: ['tache-conseil', id] });
+      toast.success('Tâche mise à jour avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la mise à jour : ${error.message}`);
     },
   });
-}
+};
 
-export function useCreatePaiementConseil() {
+export const useDeleteTacheConseil = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (paiement: Omit<PaiementConseilDB, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('paiements_conseil')
-        .insert(paiement)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+    mutationFn: async (id: string) => {
+      const response = await nestjsApi.deleteTacheConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taches-conseil'] });
+      toast.success('Tâche supprimée avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la suppression : ${error.message}`);
+    },
+  });
+};
+
+// ===== FACTURES CONSEIL =====
+
+export const useFacturesConseil = (params?: FacturesConseilQueryDto) => {
+  return useQuery({
+    queryKey: ['factures-conseil', params],
+    queryFn: async () => {
+      const response = await nestjsApi.getFacturesConseil(params);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaginatedResponse<FactureConseil>;
+    },
+  });
+};
+
+export const useFactureConseil = (id: string) => {
+  return useQuery({
+    queryKey: ['facture-conseil', id],
+    queryFn: async () => {
+      const response = await nestjsApi.getFactureConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as FactureConseil;
+    },
+    enabled: !!id,
+  });
+};
+
+export const useCreateFactureConseil = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateFactureConseilDto) => {
+      const response = await nestjsApi.createFactureConseil(data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as FactureConseil;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
+      toast.success('Facture créée avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la création : ${error.message}`);
+    },
+  });
+};
+
+export const useUpdateFactureConseil = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateFactureConseilDto }) => {
+      const response = await nestjsApi.updateFactureConseil(id, data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as FactureConseil;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
+      queryClient.invalidateQueries({ queryKey: ['facture-conseil', id] });
+      toast.success('Facture mise à jour avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la mise à jour : ${error.message}`);
+    },
+  });
+};
+
+export const useDeleteFactureConseil = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await nestjsApi.deleteFactureConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
+      toast.success('Facture supprimée avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la suppression : ${error.message}`);
+    },
+  });
+};
+
+export const useGenerateMonthlyBill = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ clientId, moisConcerne }: { clientId: string; moisConcerne: string }) => {
+      const response = await nestjsApi.generateMonthlyBill(clientId, moisConcerne);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as FactureConseil;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
+      toast.success('Facture mensuelle générée avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la génération : ${error.message}`);
+    },
+  });
+};
+
+// ===== PAIEMENTS CONSEIL =====
+
+export const usePaiementsConseil = (params?: PaiementsConseilQueryDto) => {
+  return useQuery({
+    queryKey: ['paiements-conseil', params],
+    queryFn: async () => {
+      const response = await nestjsApi.getPaiementsConseil(params);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaginatedResponse<PaiementConseil>;
+    },
+  });
+};
+
+export const usePaiementConseil = (id: string) => {
+  return useQuery({
+    queryKey: ['paiement-conseil', id],
+    queryFn: async () => {
+      const response = await nestjsApi.getPaiementConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaiementConseil;
+    },
+    enabled: !!id,
+  });
+};
+
+export const useCreatePaiementConseil = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreatePaiementConseilDto) => {
+      const response = await nestjsApi.createPaiementConseil(data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaiementConseil;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['paiements-conseil'] });
       queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
-      toast.success('Paiement enregistré');
+      toast.success('Paiement enregistré avec succès');
     },
-    onError: (error) => {
-      toast.error('Erreur: ' + error.message);
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de l'enregistrement : ${error.message}`);
     },
   });
-}
+};
+
+export const useUpdatePaiementConseil = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdatePaiementConseilDto }) => {
+      const response = await nestjsApi.updatePaiementConseil(id, data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaiementConseil;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['paiements-conseil'] });
+      queryClient.invalidateQueries({ queryKey: ['paiement-conseil', id] });
+      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
+      toast.success('Paiement mis à jour avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la mise à jour : ${error.message}`);
+    },
+  });
+};
+
+export const useDeletePaiementConseil = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await nestjsApi.deletePaiementConseil(id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paiements-conseil'] });
+      queryClient.invalidateQueries({ queryKey: ['factures-conseil'] });
+      toast.success('Paiement supprimé avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la suppression : ${error.message}`);
+    },
+  });
+};
+
+export const usePaiementsByFacture = (factureId: string) => {
+  return useQuery({
+    queryKey: ['paiements-facture', factureId],
+    queryFn: async () => {
+      const response = await nestjsApi.getPaiementsByFacture(factureId);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaiementConseil[];
+    },
+    enabled: !!factureId,
+  });
+};
+
+// ===== DASHBOARD & STATISTIQUES =====
+
+export const useConseilDashboard = () => {
+  return useQuery({
+    queryKey: ['conseil-dashboard'],
+    queryFn: async () => {
+      const response = await nestjsApi.getConseilDashboard();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data;
+    },
+  });
+};
+
+export const useConseilStatistics = () => {
+  return useQuery({
+    queryKey: ['conseil-statistics'],
+    queryFn: async () => {
+      const response = await nestjsApi.getConseilStatistics();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data;
+    },
+  });
+};

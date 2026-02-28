@@ -798,6 +798,171 @@ class NestJSApiClient {
   async getImmobilierDashboard() {
     return this.get<any>('/immobilier/dashboard');
   }
+
+  // ===== CONSEIL MODULE =====
+
+  // Clients Conseil
+  async getClientsConseil(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    statut?: string;
+    type?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    return this.get<any>('/conseil/clients', params);
+  }
+
+  async getClientConseil(id: string) {
+    return this.get<any>(`/conseil/clients/${id}`);
+  }
+
+  async createClientConseil(data: any) {
+    return this.post<any>('/conseil/clients', data);
+  }
+
+  async updateClientConseil(id: string, data: any) {
+    return this.patch<any>(`/conseil/clients/${id}`, data);
+  }
+
+  async deleteClientConseil(id: string) {
+    return this.delete<any>(`/conseil/clients/${id}`);
+  }
+
+  async updateClientConseilStatus(id: string, statut: string) {
+    return this.patch<any>(`/conseil/clients/${id}/status`, { statut });
+  }
+
+  async getClientsConseilStatistics() {
+    return this.get<any>('/conseil/clients/statistics');
+  }
+
+  // Tâches Conseil
+  async getTachesConseil(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    clientId?: string;
+    type?: string;
+    moisConcerne?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    return this.get<any>('/conseil/taches', params);
+  }
+
+  async getTacheConseil(id: string) {
+    return this.get<any>(`/conseil/taches/${id}`);
+  }
+
+  async createTacheConseil(data: any) {
+    return this.post<any>('/conseil/taches', data);
+  }
+
+  async updateTacheConseil(id: string, data: any) {
+    return this.patch<any>(`/conseil/taches/${id}`, data);
+  }
+
+  async deleteTacheConseil(id: string) {
+    return this.delete<any>(`/conseil/taches/${id}`);
+  }
+
+  async getTachesByClientAndMonth(clientId: string, moisConcerne: string) {
+    return this.get<any>(`/conseil/taches/client/${clientId}/month/${moisConcerne}`);
+  }
+
+  async getTotalTimeByClientAndMonth(clientId: string, moisConcerne: string) {
+    return this.get<any>(`/conseil/taches/client/${clientId}/month/${moisConcerne}/time`);
+  }
+
+  // Factures Conseil
+  async getFacturesConseil(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    clientId?: string;
+    statut?: string;
+    moisConcerne?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    return this.get<any>('/conseil/factures', params);
+  }
+
+  async getFactureConseil(id: string) {
+    return this.get<any>(`/conseil/factures/${id}`);
+  }
+
+  async createFactureConseil(data: any) {
+    return this.post<any>('/conseil/factures', data);
+  }
+
+  async updateFactureConseil(id: string, data: any) {
+    return this.patch<any>(`/conseil/factures/${id}`, data);
+  }
+
+  async deleteFactureConseil(id: string) {
+    return this.delete<any>(`/conseil/factures/${id}`);
+  }
+
+  async generateMonthlyBill(clientId: string, moisConcerne: string) {
+    return this.post<any>('/conseil/factures/generate', { clientId, moisConcerne });
+  }
+
+  async markFactureAsSent(id: string) {
+    return this.patch<any>(`/conseil/factures/${id}/sent`);
+  }
+
+  async getTotalPaidForFacture(factureId: string) {
+    return this.get<any>(`/conseil/factures/${factureId}/total-paid`);
+  }
+
+  // Paiements Conseil
+  async getPaiementsConseil(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    factureId?: string;
+    mode?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    return this.get<any>('/conseil/paiements', params);
+  }
+
+  async getPaiementConseil(id: string) {
+    return this.get<any>(`/conseil/paiements/${id}`);
+  }
+
+  async createPaiementConseil(data: any) {
+    return this.post<any>('/conseil/paiements', data);
+  }
+
+  async updatePaiementConseil(id: string, data: any) {
+    return this.patch<any>(`/conseil/paiements/${id}`, data);
+  }
+
+  async deletePaiementConseil(id: string) {
+    return this.delete<any>(`/conseil/paiements/${id}`);
+  }
+
+  async getPaiementsByFacture(factureId: string) {
+    return this.get<any>(`/conseil/paiements/facture/${factureId}`);
+  }
+
+  async getPaymentStatsByMode() {
+    return this.get<any>('/conseil/paiements/stats/mode');
+  }
+
+  // Dashboard Conseil
+  async getConseilDashboard() {
+    return this.get<any>('/conseil/dashboard');
+  }
+
+  async getConseilStatistics() {
+    return this.get<any>('/conseil/statistics');
+  }
 }
 
 export const nestjsApi = new NestJSApiClient();

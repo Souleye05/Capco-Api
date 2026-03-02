@@ -223,31 +223,31 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
+      {/* Mobile menu button - redesigned for 2026 */}
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-3 left-3 z-50 lg:hidden h-9 w-9 bg-background/80 backdrop-blur-md shadow-sm border border-border"
+        className="fixed top-4 left-4 z-50 lg:hidden h-10 w-10 bg-background/80 backdrop-blur-xl shadow-lg border border-border/50 rounded-2xl animate-in fade-in zoom-in duration-500"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
         {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay - premium blur */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-md animate-in fade-in duration-500"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Adaptive width and transitions */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out',
+          'fixed top-0 left-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
           sidebarWidth,
           'lg:translate-x-0 overflow-hidden',
-          isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full'
+          isMobileOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full'
         )}
       >
         <div className="flex flex-col h-full">

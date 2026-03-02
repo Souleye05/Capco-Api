@@ -49,11 +49,11 @@ export function ImmeubleCard({
             className="bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
             onClick={() => navigate(`/immobilier/immeubles/${immeuble.id}`)}
         >
-            <div className="bg-gradient-to-r from-info/10 to-info/5 p-6 border-b">
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 border-b">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-info/20 group-hover:scale-110 transition-transform">
-                            <Building2 className="h-7 w-7 text-info" />
+                        <div className="p-3 rounded-xl bg-primary/20 group-hover:scale-110 transition-transform">
+                            <Building2 className="h-7 w-7 text-primary" />
                         </div>
                         <div>
                             <h3 className="text-lg font-bold">{immeuble.nom}</h3>
@@ -119,7 +119,7 @@ export function ImmeubleCard({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-2 hover:bg-info/5 hover:text-info font-bold rounded-lg"
+                        className="gap-2 hover:bg-primary/5 hover:text-primary font-bold rounded-lg"
                         onClick={(e) => { e.stopPropagation(); onRapport(immeuble.nom); }}
                     >
                         <FileText className="h-4 w-4" />

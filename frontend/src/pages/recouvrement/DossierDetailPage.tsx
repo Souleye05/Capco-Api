@@ -142,7 +142,7 @@ export default function DossierDetailPage() {
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return (
-    <div className="min-h-screen bg-slate-50/30">
+    <div className="flex flex-col h-full">
       <Header
         title={
           <div className="flex items-center gap-4">

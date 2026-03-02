@@ -57,10 +57,17 @@ export class ProprietairesService {
      * Récupérer tous les propriétaires avec pagination
      */
     async findAll(query: ProprietairesQueryDto): Promise<PaginatedResponse<ProprietaireResponseDto>> {
+        const where: Prisma.ProprietairesWhereInput = {};
+
+        if (query.withImmeublesOnly === 'true') {
+            where.immeubles = { some: {} };
+        }
+
         const result = await this.paginationService.paginate(
             this.prisma.proprietaires,
             query,
             {
+                where,
                 include: ProprietairesService.DEFAULT_INCLUDE,
                 searchFields: ['nom', 'telephone', 'email', 'adresse'],
                 defaultSortBy: 'createdAt',

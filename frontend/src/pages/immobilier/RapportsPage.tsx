@@ -9,13 +9,7 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { toast } from 'sonner';
 import { generateRapportPDF } from '@/utils/generateRapportPDF';
 import { useRapportsPage } from '@/hooks/useRapportsPage';
@@ -115,22 +109,21 @@ export default function RapportsPage() {
       />
 
       <div className="p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
-        <div className="flex items-center gap-4 bg-background p-4 rounded-2xl border border-border/50 shadow-sm w-fit">
-          <div className="flex items-center gap-2 px-2 border-r border-border/50 mr-2">
-            <Filter className="h-4 w-4 text-primary" />
-            <span className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Filtrer par</span>
+        <div className="flex items-center gap-4 bg-background/60 backdrop-blur-xl p-3 px-5 rounded-2xl border border-border/40 shadow-sm w-fit group transition-all hover:bg-background/80 hover:shadow-md">
+          <div className="flex items-center gap-2 pr-4 border-r border-border/20 mr-1">
+            <Filter className="h-3.5 w-3.5 text-primary/70 group-hover:text-primary transition-colors" />
+            <span className="font-black text-[9px] uppercase tracking-widest text-muted-foreground/60">Filtrage actif</span>
           </div>
-          <Select value={selectedImmeuble} onValueChange={setSelectedImmeuble}>
-            <SelectTrigger className="w-[280px] h-10 border-none shadow-none font-black text-sm bg-transparent focus:ring-0">
-              <SelectValue placeholder="Tous les immeubles" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl">
-              <SelectItem value="all" className="font-bold">Tous les immeubles</SelectItem>
-              {immeubles.map(imm => (
-                <SelectItem key={imm.id} value={imm.id} className="font-bold">{imm.nom}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={selectedImmeuble}
+            onValueChange={setSelectedImmeuble}
+            options={[
+              { value: "all", label: "Tous les immeubles" },
+              ...immeubles.map(imm => ({ value: imm.id, label: imm.nom }))
+            ]}
+            placeholder="Rechercher un immeuble..."
+            className="w-[280px] h-9 border-none shadow-none font-bold text-sm bg-transparent focus:ring-0"
+          />
         </div>
 
         {rapports.length === 0 ? (

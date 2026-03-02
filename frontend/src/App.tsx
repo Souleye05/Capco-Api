@@ -22,12 +22,14 @@ import ImmeublesPage from "@/pages/immobilier/ImmeublesPage";
 import ImmeubleDetailPage from "@/pages/immobilier/ImmeubleDetailPage";
 import LotsPage from "@/pages/immobilier/LotsPage";
 import LocatairesPage from "@/pages/immobilier/LocatairesPage";
+import LocataireDetailPage from "@/pages/immobilier/LocataireDetailPage";
 import LoyersPage from "@/pages/immobilier/LoyersPage";
 import ImpayesPage from "@/pages/immobilier/ImpayesPage";
 import ArrieresPage from "@/pages/immobilier/ArrieresPage";
 import DepensesImmeublesPage from "@/pages/immobilier/DepensesPage";
 import RapportsPage from "@/pages/immobilier/RapportsPage";
 import ProprietairesPage from "@/pages/immobilier/ProprietairesPage";
+import ProprietaireDetailPage from "@/pages/immobilier/ProprietaireDetailPage";
 import ClientsPage from "@/pages/conseil/ClientsPage";
 import ClientDetailPage from "@/pages/conseil/ClientDetailPage";
 import FacturesPage from "@/pages/conseil/FacturesPage";
@@ -92,10 +94,12 @@ const App = () => (
                 {/* Immobilier */}
                 <Route path="/immobilier" element={<Navigate to="/immobilier/immeubles" replace />} />
                 <Route path="/immobilier/proprietaires" element={<ProprietairesPage />} />
+                <Route path="/immobilier/proprietaires/:id" element={<ProprietaireDetailPage />} />
                 <Route path="/immobilier/immeubles" element={<ImmeublesPage />} />
                 <Route path="/immobilier/immeubles/:id" element={<ImmeubleDetailPage />} />
                 <Route path="/immobilier/lots" element={<LotsPage />} />
                 <Route path="/immobilier/locataires" element={<LocatairesPage />} />
+                <Route path="/immobilier/locataires/:id" element={<LocataireDetailPage />} />
                 <Route path="/immobilier/loyers" element={<LoyersPage />} />
                 <Route path="/immobilier/impayes" element={<ImpayesPage />} />
                 <Route path="/immobilier/arrieres" element={<ArrieresPage />} />

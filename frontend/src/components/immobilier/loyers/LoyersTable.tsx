@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Building2 } from 'lucide-react';
+import { Building2, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -9,18 +9,45 @@ import {
     TableRow
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { formatCurrency } from '@/lib/utils';
 import { parseDateFromAPI } from '@/lib/date-utils';
 import { Pagination } from '@/components/ui/pagination-custom';
+import { useState } from 'react';
+import { EditEncaissementDialog } from './EditEncaissementDialog';
 
 interface LoyersTableProps {
     encaissements: any[];
     pagination?: any;
     onPageChange?: (page: number) => void;
+    onDelete?: (id: string) => Promise<any>;
+    onUpdate?: (id: string, data: any) => Promise<any>;
 }
 
-export function LoyersTable({ encaissements, pagination, onPageChange }: LoyersTableProps) {
+export function LoyersTable({ encaissements, pagination, onPageChange, onDelete, onUpdate }: LoyersTableProps) {
     const navigate = useNavigate();
+    const [selectedEnc, setSelectedEnc] = useState<any>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+    const handleEdit = (enc: any) => {
+        setSelectedEnc(enc);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!onDelete) return;
+        if (window.confirm('Voulez-vous vraiment supprimer cet encaissement ? cette action est irréversible.')) {
+            await onDelete(id);
+        }
+    };
 
     return (
         <>
@@ -36,12 +63,13 @@ export function LoyersTable({ encaissements, pagination, onPageChange }: LoyersT
                             <TableHead className="font-bold py-4 text-right">Montant</TableHead>
                             <TableHead className="font-bold py-4 text-right">Commission</TableHead>
                             <TableHead className="font-bold py-4 text-right">Net</TableHead>
+                            {(onDelete || onUpdate) && <TableHead className="font-bold py-4 text-right">Actions</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {encaissements.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="text-center text-muted-foreground py-16">
+                                <TableCell colSpan={9} className="text-center text-muted-foreground py-16">
                                     Aucun encaissement trouvé
                                 </TableCell>
                             </TableRow>
@@ -78,6 +106,31 @@ export function LoyersTable({ encaissements, pagination, onPageChange }: LoyersT
                                     <TableCell className="text-right font-black text-info">
                                         {formatCurrency(enc.netProprietaire)}
                                     </TableCell>
+                                    {(onDelete || onUpdate) && (
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48 rounded-xl border-border/40 p-2">
+                                                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 px-2 py-1.5">Options</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    {onUpdate && (
+                                                        <DropdownMenuItem onClick={() => handleEdit(enc)} className="rounded-lg gap-2 font-bold text-xs py-2.5">
+                                                            <Pencil className="h-3.5 w-3.5" /> Modifier
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    {onDelete && (
+                                                        <DropdownMenuItem onClick={() => handleDelete(enc.id)} className="rounded-lg gap-2 font-bold text-xs py-2.5 text-destructive hover:bg-destructive/5">
+                                                            <Trash2 className="h-3.5 w-3.5" /> Supprimer
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))
                         )}
@@ -93,6 +146,15 @@ export function LoyersTable({ encaissements, pagination, onPageChange }: LoyersT
                         onPageChange={onPageChange}
                     />
                 </div>
+            )}
+
+            {onUpdate && (
+                <EditEncaissementDialog
+                    open={isEditDialogOpen}
+                    onOpenChange={setIsEditDialogOpen}
+                    encaissement={selectedEnc}
+                    onUpdate={onUpdate}
+                />
             )}
         </>
     );

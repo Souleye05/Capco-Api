@@ -12,7 +12,7 @@ export const DossierSummaryCards = ({ dossier }: { dossier: DossierRecouvrement 
                 label="Total à Recouvrer"
                 value={formatCurrency(dossier.totalARecouvrer)}
                 icon={<TrendingUp className="h-24 w-24" />}
-                bgColor="bg-recouvrement"
+                bgColor="bg-primary"
             />
             <StatCard
                 label="Déjà Encaissé"

@@ -217,11 +217,18 @@ function unwrap<T>(result: { data?: T; error?: string }): T {
 
 // ─── Propriétaires ────────────────────────────────────────────────────────────
 
-export function useProprietaires(params?: { page?: number; limit?: number; search?: string }) {
+export function useProprietaires(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  withImmeublesOnly?: string;
+}) {
   return useQuery({
     queryKey: ['proprietaires', params],
     queryFn: async () => {
-      const result = await nestjsApi.getProprietaires({ limit: 20, ...params });
+      const result = await nestjsApi.getProprietaires({ limit: 10, ...params });
       return unwrap<PaginatedResult<Proprietaire>>(result);
     },
   });
@@ -592,6 +599,36 @@ export function useCreateEncaissementLoyer() {
       queryClient.invalidateQueries({ queryKey: ['encaissements'] });
       queryClient.invalidateQueries({ queryKey: ['lots', 'immeuble'] });
       toast.success('Encaissement enregistré');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+export function useUpdateEncaissement() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; moisConcerne?: string; dateEncaissement?: string; montantEncaisse?: number; modePaiement?: string; observation?: string }) => {
+      const result = await nestjsApi.patch<Encaissement>(`/immobilier/encaissements/${id}`, data);
+      return unwrap<Encaissement>(result);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['encaissements'] });
+      toast.success('Encaissement mis à jour');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+export function useDeleteEncaissement() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await nestjsApi.delete(`/immobilier/encaissements/${id}`);
+      return unwrap<any>(result);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['encaissements'] });
+      toast.success('Encaissement supprimé');
     },
     onError: (error: Error) => toast.error(error.message),
   });

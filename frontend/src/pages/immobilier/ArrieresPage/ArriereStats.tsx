@@ -36,7 +36,7 @@ export function ResumeImmeubles({ data }: { data: any[] }) {
                 {data.map((r, i) => (
                     <div key={i} className="p-3 bg-muted/50 rounded-lg text-xs space-y-1">
                         <div className="flex justify-between font-medium"><span>{r.nom}</span> <Badge variant="outline">{r.count}</Badge></div>
-                        <div className="flex justify-between"><span>Dû: <span className="text-destructive font-medium">{formatFCFA(r.due)}</span></span> <span>Payé: <span className="text-success font-medium">{formatFCFA(r.paye)}</span></span></div>
+                        <div className="flex justify-between"><span>Dû: <span className="text-slate-600 font-bold">{formatFCFA(r.due)}</span></span> <span>Payé: <span className="text-success font-medium">{formatFCFA(r.paye)}</span></span></div>
                         <div className="text-warning font-bold">Solde: {formatFCFA(r.solde)}</div>
                     </div>
                 ))}

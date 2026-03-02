@@ -56,10 +56,10 @@ export function Navbar() {
     };
 
     return (
-        <nav className="shrink-0 z-30 h-20 w-full border-b border-border/40 bg-background/80 backdrop-blur-2xl flex items-center justify-between px-8">
-            <div className="flex items-center gap-6">
-                {/* Breadcrumbs */}
-                <div className="flex items-center text-sm text-muted-foreground">
+        <nav className="shrink-0 z-30 h-20 w-full border-b border-border/40 bg-background/80 backdrop-blur-2xl flex items-center justify-between px-[var(--space-4)] md:px-[var(--space-8)]">
+            <div className="flex items-center gap-6 overflow-hidden">
+                {/* Breadcrumbs - Hidden on small mobile */}
+                <div className="hidden sm:flex items-center text-sm text-muted-foreground overflow-hidden">
                     <Button
                         variant="ghost"
                         size="icon"

@@ -45,9 +45,9 @@ export default function ImmeublesPage() {
         subtitle={`${allImmeublesCount} immeubles gérés`}
         actions={
           <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              className="gap-2 rounded-xl" 
+            <Button
+              variant="outline"
+              className="gap-2 rounded-xl"
               onClick={downloadImportTemplate}
               disabled={isDownloading}
             >

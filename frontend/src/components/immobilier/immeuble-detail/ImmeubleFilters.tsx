@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Filter, Calendar } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -47,36 +47,36 @@ export function ImmeubleFilters({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="space-y-2">
                         <Label>Lot / Appartement</Label>
-                        <Select value={selectedLot} onValueChange={setSelectedLot}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tous les lots" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tous les lots</SelectItem>
-                                {lots.map(lot => (
-                                    <SelectItem key={lot.id} value={lot.id}>
-                                        {lot.numero} - {lot.type || 'Lot'} {lot.locataireNom ? `(${lot.locataireNom})` : ''}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <SearchableSelect
+                            options={[
+                                { label: "Tous les lots", value: "all" },
+                                ...lots.map(lot => ({
+                                    label: `${lot.numero} - ${lot.type || 'Lot'} ${lot.locataireNom ? `(${lot.locataireNom})` : ''}`,
+                                    value: lot.id
+                                }))
+                            ]}
+                            value={selectedLot}
+                            onValueChange={setSelectedLot}
+                            placeholder="Tous les lots"
+                            searchPlaceholder="Rechercher un lot..."
+                        />
                     </div>
 
                     <div className="space-y-2">
                         <Label>Mois</Label>
-                        <Select value={selectedMois} onValueChange={setSelectedMois}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tous les mois" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tous les mois</SelectItem>
-                                {uniqueMois.map(mois => (
-                                    <SelectItem key={mois} value={mois}>
-                                        {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(mois + '-01'))}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <SearchableSelect
+                            options={[
+                                { label: "Tous les mois", value: "all" },
+                                ...uniqueMois.map(mois => ({
+                                    label: new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(parseDateFromAPI(mois + '-01')),
+                                    value: mois
+                                }))
+                            ]}
+                            value={selectedMois}
+                            onValueChange={setSelectedMois}
+                            placeholder="Tous les mois"
+                            searchPlaceholder="Rechercher un mois..."
+                        />
                     </div>
 
                     <div className="space-y-2">

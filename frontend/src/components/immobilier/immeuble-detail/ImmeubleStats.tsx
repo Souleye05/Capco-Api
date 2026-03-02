@@ -43,8 +43,8 @@ export function ImmeubleStats({
             label: 'Net propriétaire',
             value: netProprietaire,
             icon: Users,
-            bg: 'bg-info/10',
-            color: 'text-info'
+            bg: 'bg-primary/10',
+            color: 'text-primary'
         }
     ];
 

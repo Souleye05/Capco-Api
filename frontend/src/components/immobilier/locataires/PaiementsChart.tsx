@@ -50,7 +50,7 @@ export function PaiementsChart({ encaissements }: PaiementsChartProps) {
           <div className="space-y-3">
             {monthlyData.map((data) => {
               const percentage = maxAmount > 0 ? (data.total / maxAmount) * 100 : 0;
-              const monthLabel = data.month.includes('-') 
+              const monthLabel = data.month.includes('-')
                 ? format(parseISO(data.month + '-01'), 'MMM yyyy', { locale: fr })
                 : data.month;
 
@@ -62,14 +62,14 @@ export function PaiementsChart({ encaissements }: PaiementsChartProps) {
                       <Badge variant="outline" className="text-xs">
                         {data.count} paiement{data.count > 1 ? 's' : ''}
                       </Badge>
-                      <span className="font-bold text-green-600">
+                      <span className="font-bold text-accent">
                         {formatCurrency(data.total)}
                       </span>
                     </div>
                   </div>
                   <div className="w-full bg-muted/30 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-500 ease-out"
+                    <div
+                      className="h-full bg-gradient-to-r from-accent to-accent/80 rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${Math.max(percentage, CHART_CONFIG.MIN_BAR_WIDTH_PERCENTAGE)}%` }}
                       role="progressbar"
                       aria-valuenow={percentage}
@@ -90,7 +90,7 @@ export function PaiementsChart({ encaissements }: PaiementsChartProps) {
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   Total période
                 </p>
-                <p className="text-lg font-bold text-green-600">
+                <p className="text-lg font-bold text-accent">
                   {formatCurrency(monthlyData.reduce((sum, data) => sum + data.total, 0))}
                 </p>
               </div>
@@ -98,7 +98,7 @@ export function PaiementsChart({ encaissements }: PaiementsChartProps) {
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   Moyenne mensuelle
                 </p>
-                <p className="text-lg font-bold text-blue-600">
+                <p className="text-lg font-bold text-primary">
                   {formatCurrency(monthlyData.reduce((sum, data) => sum + data.total, 0) / monthlyData.length)}
                 </p>
               </div>
@@ -106,7 +106,7 @@ export function PaiementsChart({ encaissements }: PaiementsChartProps) {
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   Meilleur mois
                 </p>
-                <p className="text-lg font-bold text-purple-600">
+                <p className="text-lg font-bold text-sidebar-primary">
                   {formatCurrency(Math.max(...monthlyData.map((data) => data.total)))}
                 </p>
               </div>

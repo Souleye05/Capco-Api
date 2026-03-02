@@ -59,7 +59,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col h-full">
       <PageHeader
         title="Tableau de bord"
         description={`${formatDateLong(new Date())}`}

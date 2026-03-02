@@ -1,0 +1,16 @@
+﻿src/pages/immobilier/ImpayesPage.tsx(2,34): error TS2307: Cannot find module '@/lib/date-utils' or its corresponding type declarations.
+src/pages/immobilier/ImpayesPage.tsx(3,24): error TS2307: Cannot find module '@/components/layout/Header' or its corresponding type declarations.
+src/pages/immobilier/ImpayesPage.tsx(4,51): error TS2307: Cannot find module '@/hooks/useImpayesPage' or its corresponding type declarations.
+src/pages/immobilier/ImpayesPage.tsx(5,30): error TS2307: Cannot find module '@/components/immobilier/impayes/ImpayesStats' or its corresponding type declarations.
+src/pages/immobilier/ImpayesPage.tsx(6,32): error TS2307: Cannot find module '@/components/immobilier/impayes/ImpayesFilters' or its corresponding type declarations.
+src/pages/immobilier/ImpayesPage.tsx(7,30): error TS2307: Cannot find module '@/components/immobilier/impayes/ImpayesTable' or its corresponding type declarations.
+src/pages/immobilier/ImpayesPage.tsx(8,37): error TS2307: Cannot find module '@/components/immobilier/impayes/PaiementLoyerDialog' or its corresponding type declarations.
+src/pages/immobilier/ImpayesPage.tsx(44,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(45,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(57,5): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(58,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(63,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(64,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(66,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(72,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/pages/immobilier/ImpayesPage.tsx(84,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.

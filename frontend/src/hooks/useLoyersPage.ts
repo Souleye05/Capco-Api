@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useImmeubles, useLots, useEncaissements, useEncaissementsStatistics, type Encaissement } from '@/hooks/useImmobilier';
+import { useImmeubles, useLots, useEncaissements, useEncaissementsStatistics, useUpdateEncaissement, useDeleteEncaissement, type Encaissement } from '@/hooks/useImmobilier';
 
 export function useLoyersPage() {
     const [page, setPage] = useState(1);
@@ -59,6 +59,9 @@ export function useLoyersPage() {
         setDateFin(undefined);
     };
 
+    const deleteMutation = useDeleteEncaissement();
+    const updateMutation = useUpdateEncaissement();
+
     return {
         encaissements: filteredEncaissements,
         allEncaissementsCount: pagination?.total || 0,
@@ -70,6 +73,10 @@ export function useLoyersPage() {
         page,
         setPage,
         pagination,
+        deleteEncaissement: deleteMutation.mutateAsync,
+        updateEncaissement: updateMutation.mutateAsync,
+        isDeleting: deleteMutation.isPending,
+        isUpdating: updateMutation.isPending,
         filters: {
             searchQuery, setSearchQuery: (v: string) => { setSearchQuery(v); setPage(1); },
             selectedImmeuble, setSelectedImmeuble: (v: string) => { setSelectedImmeuble(v); setPage(1); },

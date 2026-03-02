@@ -7,4 +7,9 @@ export class ProprietairesQueryDto extends PaginationQueryDto {
     @IsOptional()
     @IsString()
     nom?: string;
+
+    @ApiPropertyOptional({ description: 'Filtrer uniquement ceux avec immeubles' })
+    @IsOptional()
+    @IsString() // From query params it might be a string "true"
+    withImmeublesOnly?: string;
 }

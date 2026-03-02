@@ -28,7 +28,7 @@ import { AppRole } from '@prisma/client';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('contentieux/affaires')
 export class AffairesController {
-  constructor(private readonly affairesService: AffairesService) {}
+  constructor(private readonly affairesService: AffairesService) { }
 
   @Post()
   @Roles(AppRole.admin, AppRole.collaborateur)
@@ -48,6 +48,26 @@ export class AffairesController {
   @ApiResponse({ status: 200, description: 'Liste des affaires récupérée avec succès' })
   async findAll(@Query() pagination: PaginationQueryDto): Promise<PaginatedResponse<AffaireResponseDto>> {
     return this.affairesService.findAll(pagination);
+  }
+
+  @Get('statistics')
+  @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+  @ApiOperation({ summary: 'Obtenir les statistiques des affaires' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistiques des affaires récupérées avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        total: { type: 'number' },
+        actives: { type: 'number' },
+        cloturees: { type: 'number' },
+        radiees: { type: 'number' }
+      }
+    }
+  })
+  async getStatistics() {
+    return this.affairesService.getStatistics();
   }
 
   @Get(':id')
@@ -78,7 +98,7 @@ export class AffairesController {
   @ApiOperation({ summary: 'Supprimer une affaire' })
   @ApiResponse({ status: 200, description: 'Affaire supprimée avec succès' })
   @ApiResponse({ status: 404, description: 'Affaire non trouvée' })
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string}> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
     await this.affairesService.remove(id);
     return { message: 'Affaire supprimée avec succès' };
   }

@@ -83,7 +83,7 @@ export default function PaiementsPage() {
   const totalPages = response?.total ? Math.ceil(response.total / LIMIT) : 1;
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="flex flex-col h-full">
       <Header
         title="Historique des Paiements"
         subtitle="Suivi global de tous les encaissements du module recouvrement"
@@ -148,19 +148,19 @@ export default function PaiementsPage() {
 
         <Card className="border-none shadow-sm bg-white overflow-hidden">
           <CardHeader className="pb-4 pt-6 px-6 space-y-4">
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-              <div className="relative w-full md:w-96">
+            <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-end">
+              <div className="relative w-full lg:w-96 shrink-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Chercher reference, débiteur, créancier..."
-                  className="pl-10 bg-slate-50 border-none h-11"
+                  className="pl-10 bg-slate-50 border-none h-11 w-full"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
 
-              <div className="flex flex-wrap gap-4 w-full md:w-auto items-end">
-                <div className="flex flex-col gap-1.5 min-w-[240px]">
+              <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-start sm:items-end">
+                <div className="flex flex-col gap-1.5 w-full sm:w-[240px]">
                   <Label className="text-[10px] font-bold uppercase text-slate-400 ml-1">Dossier</Label>
                   <Popover open={dossierComboOpen} onOpenChange={setDossierComboOpen}>
                     <PopoverTrigger asChild>

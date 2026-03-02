@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
-  DollarSign, Calendar, TrendingUp, 
+  DollarSign, Calendar, TrendingUp,
   Clock, AlertTriangle, CheckCircle
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
@@ -22,14 +22,14 @@ export function PaiementsSummaryCards({ encaissements }: PaiementsSummaryCardsPr
       <Card className="rounded-2xl border-border/50">
         <CardContent className="p-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 text-green-600">
+            <div className="p-2 rounded-lg bg-accent/10 text-accent">
               <DollarSign className="h-5 w-5" />
             </div>
             <div>
               <Label className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
                 Total payé
               </Label>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-accent">
                 {formatCurrency(stats.totalPaye)}
               </p>
               <p className="text-xs text-muted-foreground">
@@ -88,30 +88,29 @@ export function PaiementsSummaryCards({ encaissements }: PaiementsSummaryCardsPr
       <Card className="rounded-2xl border-border/50">
         <CardContent className="p-6">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${
-              stats.paymentStatus.color === 'green' ? 'bg-green-100 text-green-600' :
-              stats.paymentStatus.color === 'orange' ? 'bg-orange-100 text-orange-600' :
-              stats.paymentStatus.color === 'red' ? 'bg-red-100 text-red-600' :
-              'bg-gray-100 text-gray-600'
-            }`}>
+            <div className={`p-2 rounded-lg ${stats.paymentStatus.color === 'green' ? 'bg-accent/10 text-accent' :
+                stats.paymentStatus.color === 'orange' ? 'bg-orange-100 text-orange-600' :
+                  stats.paymentStatus.color === 'red' ? 'bg-red-100 text-red-600' :
+                    'bg-gray-100 text-gray-600'
+              }`}>
               {stats.paymentStatus.status === 'good' ? <CheckCircle className="h-5 w-5" /> :
-               stats.paymentStatus.status === 'warning' ? <Clock className="h-5 w-5" /> :
-               stats.paymentStatus.status === 'late' ? <AlertTriangle className="h-5 w-5" /> :
-               <Clock className="h-5 w-5" />}
+                stats.paymentStatus.status === 'warning' ? <Clock className="h-5 w-5" /> :
+                  stats.paymentStatus.status === 'late' ? <AlertTriangle className="h-5 w-5" /> :
+                    <Clock className="h-5 w-5" />}
             </div>
             <div>
               <Label className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
                 Statut
               </Label>
               <div className="flex items-center gap-2">
-                <Badge 
-                  variant={stats.paymentStatus.status === 'good' ? 'default' : 
-                          stats.paymentStatus.status === 'warning' ? 'secondary' : 'destructive'}
+                <Badge
+                  variant={stats.paymentStatus.status === 'good' ? 'default' :
+                    stats.paymentStatus.status === 'warning' ? 'secondary' : 'destructive'}
                   className="text-xs"
                 >
                   {stats.paymentStatus.status === 'good' ? 'À jour' :
-                   stats.paymentStatus.status === 'warning' ? 'Attention' :
-                   stats.paymentStatus.status === 'late' ? 'En retard' : 'Inconnu'}
+                    stats.paymentStatus.status === 'warning' ? 'Attention' :
+                      stats.paymentStatus.status === 'late' ? 'En retard' : 'Inconnu'}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">

@@ -25,7 +25,9 @@ export default function LoyersPage() {
     filters,
     page,
     setPage,
-    pagination
+    pagination,
+    deleteEncaissement,
+    updateEncaissement
   } = useLoyersPage();
 
   const [encaissementDialogOpen, setEncaissementDialogOpen] = useState(false);
@@ -75,6 +77,8 @@ export default function LoyersPage() {
           encaissements={encaissements}
           pagination={pagination}
           onPageChange={setPage}
+          onDelete={deleteEncaissement}
+          onUpdate={updateEncaissement}
         />
       </div>
 

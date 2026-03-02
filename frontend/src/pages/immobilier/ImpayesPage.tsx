@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { parseDateFromAPI } from '@/lib/date-utils';
 import { Header } from '@/components/layout/Header';
 import { useImpayesPage, type LoyerAttendu } from '@/hooks/useImpayesPage';
@@ -20,11 +20,24 @@ export default function ImpayesPage() {
 
   const [selectedLoyer, setSelectedLoyer] = useState<LoyerAttendu | null>(null);
   const [paiementDialogOpen, setPaiementDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // Or whatever feels right for the dashboard
+
+  // Reset page when data/filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [loyersAttendus.length, filters.selectedImmeuble, filters.searchQuery, filters.selectedMois, filters.showPaidOnly]);
 
   const handlePaiementClick = (loyer: LoyerAttendu) => {
     setSelectedLoyer(loyer);
     setPaiementDialogOpen(true);
   };
+
+  const totalPages = Math.ceil(loyersAttendus.length / itemsPerPage);
+  const paginatedLoyers = loyersAttendus.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   if (isLoading) {
     return (
@@ -57,8 +70,14 @@ export default function ImpayesPage() {
         />
 
         <ImpayesTable
-          loyers={loyersAttendus}
+          loyers={paginatedLoyers}
           onPaiement={handlePaiementClick}
+          pagination={{
+            page: currentPage,
+            totalPages,
+            total: loyersAttendus.length
+          }}
+          onPageChange={setCurrentPage}
         />
       </div>
 

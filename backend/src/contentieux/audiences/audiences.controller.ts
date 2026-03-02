@@ -34,7 +34,7 @@ export class AudiencesController {
   constructor(
     private readonly audiencesService: AudiencesService,
     private readonly audienceCronService: AudienceCronService,
-  ) {}
+  ) { }
 
   @Post()
   @Roles(AppRole.admin, AppRole.collaborateur)
@@ -57,6 +57,39 @@ export class AudiencesController {
     @Query() query: AudiencesQueryDto,
   ): Promise<PaginatedResponse<AudienceResponseDto>> {
     return this.audiencesService.findAll(query);
+  }
+
+  @Get('rappel-enrolement')
+  @Roles(AppRole.admin, AppRole.collaborateur)
+  @ApiOperation({ summary: 'Récupérer les audiences nécessitant un rappel d\'enrôlement' })
+  @ApiResponse({ status: 200, description: 'Liste des audiences nécessitant un rappel', type: [AudienceResponseDto] })
+  async getAudiencesRappelEnrolement(): Promise<AudienceResponseDto[]> {
+    return this.audiencesService.getAudiencesRappelEnrolement();
+  }
+
+  @Get('statistics')
+  @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
+  @ApiOperation({ summary: 'Obtenir les statistiques des audiences' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistiques des audiences récupérées avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        total: { type: 'number', description: 'Nombre total d\'audiences' },
+        aVenir: { type: 'number', description: 'Nombre d\'audiences à venir' },
+        tenues: { type: 'number', description: 'Nombre d\'audiences tenues (renseignées)' },
+        nonRenseignees: { type: 'number', description: 'Nombre d\'audiences non renseignées' }
+      }
+    }
+  })
+  async getStatistics(): Promise<{
+    total: number;
+    aVenir: number;
+    tenues: number;
+    nonRenseignees: number;
+  }> {
+    return this.audiencesService.getStatistics();
   }
 
   @Get(':id')
@@ -87,7 +120,7 @@ export class AudiencesController {
   @ApiOperation({ summary: 'Supprimer une audience' })
   @ApiResponse({ status: 200, description: 'Audience supprimée avec succès' })
   @ApiResponse({ status: 404, description: 'Audience non trouvée' })
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string}> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
     await this.audiencesService.remove(id);
     return { message: 'Audience supprimée avec succès' };
   }
@@ -155,48 +188,17 @@ export class AudiencesController {
     return this.audiencesService.marquerEnrolementEffectue(id);
   }
 
-  @Get('rappel-enrolement')
-  @Roles(AppRole.admin, AppRole.collaborateur)
-  @ApiOperation({ summary: 'Récupérer les audiences nécessitant un rappel d\'enrôlement' })
-  @ApiResponse({ status: 200, description: 'Liste des audiences nécessitant un rappel', type: [AudienceResponseDto] })
-  async getAudiencesRappelEnrolement(): Promise<AudienceResponseDto[]> {
-    return this.audiencesService.getAudiencesRappelEnrolement();
-  }
 
-  @Get('statistics')
-  @Roles(AppRole.admin, AppRole.collaborateur, AppRole.compta)
-  @ApiOperation({ summary: 'Obtenir les statistiques des audiences' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Statistiques des audiences récupérées avec succès',
-    schema: {
-      type: 'object',
-      properties: {
-        total: { type: 'number', description: 'Nombre total d\'audiences' },
-        aVenir: { type: 'number', description: 'Nombre d\'audiences à venir' },
-        tenues: { type: 'number', description: 'Nombre d\'audiences tenues (renseignées)' },
-        nonRenseignees: { type: 'number', description: 'Nombre d\'audiences non renseignées' }
-      }
-    }
-  })
-  async getStatistics(): Promise<{
-    total: number;
-    aVenir: number;
-    tenues: number;
-    nonRenseignees: number;
-  }> {
-    return this.audiencesService.getStatistics();
-  }
 
   @Post('update-passed-statuses')
   @Roles(AppRole.admin)
   @AuditLog({ action: 'MANUAL_UPDATE_AUDIENCE_STATUSES', module: 'CONTENTIEUX' })
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Déclencher manuellement la mise à jour des statuts d\'audiences passées',
     description: 'Met à jour le statut des audiences passées de A_VENIR vers PASSEE_NON_RENSEIGNEE. Normalement exécuté automatiquement chaque jour à minuit.'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Mise à jour des statuts effectuée avec succès',
     schema: {
       type: 'object',

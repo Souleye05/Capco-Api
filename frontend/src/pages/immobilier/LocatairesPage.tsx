@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNestJSAuth } from '@/contexts/NestJSAuthContext';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { CreateLocataireDialog, EditLocataireDialog } from '@/components/immobilier/LocataireDialogs';
-import { LocataireDetailDialog } from '@/components/immobilier/locataires/LocataireDetailDialog';
+
 import { LocatairesFilters } from '@/components/immobilier/locataires/LocatairesFilters';
 import { LocatairesExport } from '@/components/immobilier/locataires/LocatairesExport';
 import { Plus, Search } from 'lucide-react';
@@ -14,6 +15,7 @@ import { LocatairesTable } from '@/components/immobilier/locataires/LocatairesTa
 import { type LocataireComplete } from '@/hooks/useLocataires';
 
 export default function LocatairesPage() {
+  const navigate = useNavigate();
   const { user } = useNestJSAuth();
   const {
     filteredLocataires,
@@ -29,7 +31,6 @@ export default function LocatairesPage() {
   const [selectedLocataire, setSelectedLocataire] = useState<LocataireComplete | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState('all');
@@ -47,8 +48,7 @@ export default function LocatairesPage() {
   };
 
   const handleDetail = (locataire: LocataireComplete) => {
-    setSelectedLocataire(locataire);
-    setDetailDialogOpen(true);
+    navigate(`/immobilier/locataires/${locataire.id}`);
   };
 
   return (
@@ -64,8 +64,8 @@ export default function LocatairesPage() {
       />
 
       <div className="flex justify-end mb-4">
-        <LocatairesExport 
-          locataires={filteredLocataires} 
+        <LocatairesExport
+          locataires={filteredLocataires}
           isLoading={isLoading}
         />
       </div>
@@ -107,23 +107,11 @@ export default function LocatairesPage() {
       />
 
       {selectedLocataire && (
-        <>
-          <EditLocataireDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            locataire={selectedLocataire}
-          />
-          
-          <LocataireDetailDialog
-            open={detailDialogOpen}
-            onOpenChange={setDetailDialogOpen}
-            locataire={selectedLocataire}
-            onEdit={(locataire) => {
-              setDetailDialogOpen(false);
-              setEditDialogOpen(true);
-            }}
-          />
-        </>
+        <EditLocataireDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          locataire={selectedLocataire}
+        />
       )}
     </div>
   );

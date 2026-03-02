@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Check, X, Users } from 'lucide-react';
+import { Loader2, Check, X, Users, Hash, Layers, Home, DollarSign, Activity, Settings2 } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -11,13 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useUpdateLot } from '@/hooks/useImmobilier';
 import { toast } from 'sonner';
 
@@ -27,6 +21,8 @@ interface EditLotDialogProps {
     lot: any;
     locataires: any[];
 }
+
+const LOT_TYPES = ['STUDIO', 'F1', 'F2', 'F3', 'F4', 'F5', 'MAGASIN', 'BUREAU', 'AUTRE'];
 
 export function EditLotDialog({ open, onOpenChange, lot, locataires }: EditLotDialogProps) {
     const updateLot = useUpdateLot();
@@ -68,116 +64,124 @@ export function EditLotDialog({ open, onOpenChange, lot, locataires }: EditLotDi
                 locataireId: statut === 'LIBRE' ? null : (locataireId === 'none' ? null : locataireId)
             });
             onOpenChange(false);
+            toast.success('Mise à jour réussie');
         } catch (error) { }
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px] rounded-[32px]">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl font-black">Modifier le lot</DialogTitle>
-                    <DialogDescription className="font-medium font-display">
-                        Ajustez les informations techniques ou d'occupation.
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-border/40 bg-background/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl">
+                <div className="px-6 py-5 border-b border-border/10 bg-gradient-to-br from-primary/[0.03] to-transparent">
+                    <DialogHeader>
+                        <div className="flex items-center gap-2 text-primary/60 mb-1">
+                            <Settings2 className="h-4 w-4" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Paramètres Lot</span>
+                        </div>
+                        <DialogTitle className="text-xl font-black tracking-tight text-foreground">Modifier le lot</DialogTitle>
+                        <DialogDescription className="text-xs font-medium opacity-60">
+                            Ajustez les informations techniques ou d'occupation.
+                        </DialogDescription>
+                    </DialogHeader>
+                </div>
 
-                <div className="space-y-5 py-4">
+                <div className="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Référence / N°</Label>
-                            <Input
-                                value={numero}
-                                onChange={(e) => setNumero(e.target.value)}
-                                className="h-11 rounded-xl border-border/50 font-bold"
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase tracking-wider text-foreground/70 ml-1">Référence / N°</Label>
+                            <div className="relative group">
+                                <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <Input
+                                    value={numero}
+                                    onChange={(e) => setNumero(e.target.value)}
+                                    className="h-11 pl-10 rounded-xl border-border/40 bg-muted/20 focus:bg-background focus:ring-4 focus:ring-primary/5 transition-all text-sm font-bold"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase tracking-wider text-foreground/70 ml-1">Étage</Label>
+                            <div className="relative group">
+                                <Layers className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <Input
+                                    value={etage}
+                                    onChange={(e) => setEtage(e.target.value)}
+                                    className="h-11 pl-10 rounded-xl border-border/40 bg-muted/20 focus:bg-background focus:ring-4 focus:ring-primary/5 transition-all text-sm font-medium"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase tracking-wider text-foreground/70 ml-1">Type de bien</Label>
+                        <div className="relative group">
+                            <Home className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors" />
+                            <SearchableSelect
+                                value={type}
+                                onValueChange={setType}
+                                options={LOT_TYPES.map(t => ({ label: t, value: t }))}
+                                placeholder="Sélectionner..."
+                                className="h-11 pl-10 rounded-xl bg-muted/20 border-border/40 text-sm font-bold focus:ring-4 focus:ring-primary/5"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Étage</Label>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase tracking-wider text-foreground/70 ml-1">Loyer mensuel HC (FCFA)</Label>
+                        <div className="relative group">
+                            <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <Input
-                                value={etage}
-                                onChange={(e) => setEtage(e.target.value)}
-                                className="h-11 rounded-xl border-border/50 font-bold"
+                                type="number"
+                                value={loyer}
+                                onChange={(e) => setLoyer(e.target.value)}
+                                className="h-12 pl-10 rounded-xl border-border/40 bg-muted/20 focus:bg-background focus:ring-4 focus:ring-primary/5 transition-all font-black text-xl"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Type de bien</Label>
-                        <Select value={type} onValueChange={setType}>
-                            <SelectTrigger className="h-11 rounded-xl border-border/50 font-bold bg-muted/20">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                                {['STUDIO', 'F1', 'F2', 'F3', 'F4', 'F5', 'MAGASIN', 'BUREAU', 'AUTRE'].map(t => (
-                                    <SelectItem key={t} value={t} className="font-bold">{t}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Loyer HC (FCFA)</Label>
-                        <Input
-                            type="number"
-                            value={loyer}
-                            onChange={(e) => setLoyer(e.target.value)}
-                            className="h-11 rounded-xl border-border/50 font-black text-lg"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Statut d'occupation</Label>
-                        <Select value={statut} onValueChange={(v) => setStatut(v as any)}>
-                            <SelectTrigger className="h-11 rounded-xl border-border/50 font-bold bg-muted/20">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                                <SelectItem value="OCCUPE" className="font-bold">
-                                    <div className="flex items-center gap-2">
-                                        <Check className="h-4 w-4 text-success" />
-                                        Occupé
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="LIBRE" className="font-bold">
-                                    <div className="flex items-center gap-2">
-                                        <X className="h-4 w-4 text-warning" />
-                                        Libre
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase tracking-wider text-foreground/70 ml-1">Statut d'occupation</Label>
+                        <div className="relative group">
+                            <Activity className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors" />
+                            <SearchableSelect
+                                value={statut}
+                                onValueChange={(v) => setStatut(v as any)}
+                                options={[
+                                    { value: "OCCUPE", label: "Occupé" },
+                                    { value: "LIBRE", label: "Libre" }
+                                ]}
+                                placeholder="Choisir..."
+                                className="h-11 pl-10 rounded-xl bg-muted/20 border-border/40 text-sm font-bold focus:ring-4 focus:ring-primary/5"
+                            />
+                        </div>
                     </div>
 
                     {statut === 'OCCUPE' && (
-                        <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                            <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Locataire en place</Label>
-                            <Select value={locataireId} onValueChange={setLocataireId}>
-                                <SelectTrigger className="h-11 rounded-xl border-border/50 font-bold bg-muted/20">
-                                    <SelectValue placeholder="Sélectionner un locataire" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                    <SelectItem value="none" className="font-bold text-muted-foreground italic">Aucun locataire</SelectItem>
-                                    {locataires.map(loc => (
-                                        <SelectItem key={loc.id} value={loc.id} className="font-bold">
-                                            <div className="flex items-center gap-2">
-                                                <Users className="h-4 w-4" />
-                                                {loc.nom}
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+                            <Label className="text-[10px] font-black uppercase tracking-wider text-foreground/70 ml-1">Locataire en place</Label>
+                            <div className="relative group">
+                                <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors" />
+                                <SearchableSelect
+                                    value={locataireId}
+                                    onValueChange={setLocataireId}
+                                    options={[
+                                        { value: "none", label: "Aucun locataire" },
+                                        ...locataires.map(loc => ({ label: loc.nom, value: loc.id }))
+                                    ]}
+                                    placeholder="Sélectionner un locataire..."
+                                    className="h-11 pl-10 rounded-xl bg-muted/20 border-border/40 text-sm font-bold focus:ring-4 focus:ring-primary/5"
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-0 pt-2">
-                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl font-bold">Annuler</Button>
-                    <Button onClick={handleSubmit} disabled={updateLot.isPending} className="rounded-xl font-black px-8 bg-primary">
-                        {updateLot.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        Enregistrer
+                <div className="p-6 flex items-center justify-end gap-3 border-t border-border/10 bg-muted/5">
+                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl h-10 px-6 font-bold text-[10px] uppercase tracking-widest opacity-60 hover:opacity-100 transition-all">
+                        Annuler
                     </Button>
-                </DialogFooter>
+                    <Button onClick={handleSubmit} disabled={updateLot.isPending} className="rounded-xl h-10 px-8 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/10 transition-all hover:scale-[1.02] active:scale-95 text-[10px] font-black uppercase tracking-widest">
+                        {updateLot.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : 'Enregistrer'}
+                    </Button>
+                </div>
             </DialogContent>
         </Dialog>
     );

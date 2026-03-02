@@ -129,23 +129,30 @@ export default function ImmeubleDetailPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="flex flex-col h-full">
       <Header
-        title={immeuble.nom}
-        subtitle={immeuble.adresse}
+        title={
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/immobilier/immeubles')} className="h-8 w-8 rounded-lg -ml-2">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex flex-col">
+              <span className="font-black text-lg">{immeuble.nom}</span>
+              <span className="text-[10px] text-muted-foreground -mt-1">{immeuble.adresse}</span>
+            </div>
+          </div>
+        }
+        subtitle={null}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/immobilier/immeubles')}>
-              <ArrowLeft className="h-4 w-4 mr-2" /> Retour
-            </Button>
-            <Button onClick={handleGenerateRapport} className="gap-2">
+            <Button onClick={handleGenerateRapport} size="sm" className="gap-2 h-9 px-4 bg-primary text-white font-bold rounded-xl shadow-md shadow-primary/10">
               <FileBarChart className="h-4 w-4" /> Rapport
             </Button>
           </div>
         }
       />
 
-      <div className="p-6 space-y-6 animate-in fade-in duration-500">
+      <div className="px-4 lg:px-8 space-y-4 animate-in fade-in duration-500 mt-2">
         <ImmeubleStats
           {...totals}
           tauxCommission={immeuble.tauxCommissionCapco}
@@ -158,11 +165,11 @@ export default function ImmeubleDetailPage() {
         />
 
         <Tabs defaultValue="paiements" className="space-y-4">
-          <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger value="paiements" className="gap-2"><Receipt className="h-4 w-4" /> Paiements</TabsTrigger>
-            <TabsTrigger value="depenses" className="gap-2"><TrendingDown className="h-4 w-4" /> Dépenses</TabsTrigger>
-            <TabsTrigger value="commissions" className="gap-2"><Percent className="h-4 w-4" /> Commissions</TabsTrigger>
-            <TabsTrigger value="rapports" className="gap-2"><FileText className="h-4 w-4" /> Rapports</TabsTrigger>
+          <TabsList className="bg-muted/30 p-1 h-10 rounded-xl border border-border/10">
+            <TabsTrigger value="paiements" className="gap-2 text-xs font-bold rounded-lg px-4"><Receipt className="h-3.5 w-3.5" /> Paiements</TabsTrigger>
+            <TabsTrigger value="depenses" className="gap-2 text-xs font-bold rounded-lg px-4"><TrendingDown className="h-3.5 w-3.5" /> Dépenses</TabsTrigger>
+            <TabsTrigger value="commissions" className="gap-2 text-xs font-bold rounded-lg px-4"><Percent className="h-3.5 w-3.5" /> Commissions</TabsTrigger>
+            <TabsTrigger value="rapports" className="gap-2 text-xs font-bold rounded-lg px-4"><FileText className="h-3.5 w-3.5" /> Rapports</TabsTrigger>
           </TabsList>
 
           <TabsContent value="paiements">

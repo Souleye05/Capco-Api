@@ -1,14 +1,8 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Search, Filter, X } from 'lucide-react';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Search, Filter, X, Users, Briefcase } from 'lucide-react';
 
 interface LocatairesFiltersProps {
   searchTerm: string;
@@ -32,69 +26,79 @@ export function LocatairesFilters({
   const hasActiveFilters = statusFilter || professionFilter;
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 p-6 bg-muted/20 rounded-2xl border border-border/50">
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col lg:flex-row gap-4 p-4 bg-background/40 backdrop-blur-xl rounded-[2rem] border border-border/40 shadow-sm transition-all hover:shadow-md">
+      <div className="relative flex-1 group">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
         <Input
-          placeholder="Rechercher par nom, téléphone ou email..."
-          className="pl-9 h-11 rounded-xl border-border/50 bg-background"
+          placeholder="Rechercher un locataire (nom, tel, email)..."
+          className="pl-11 h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background focus:ring-4 focus:ring-primary/5 transition-all text-sm font-medium shadow-none outline-none"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap sm:flex-nowrap gap-3">
         {onStatusFilterChange && (
-          <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="w-[180px] h-11 rounded-xl border-border/50 bg-background">
-              <SelectValue placeholder="Statut" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="with_lot">Avec lot assigné</SelectItem>
-              <SelectItem value="without_lot">Sans lot</SelectItem>
-              <SelectItem value="active_lease">Bail actif</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative w-full sm:w-[220px] group">
+            <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors pointer-events-none" />
+            <SearchableSelect
+              value={statusFilter}
+              onValueChange={onStatusFilterChange}
+              options={[
+                { value: "all", label: "Tous les statuts" },
+                { value: "with_lot", label: "Avec lot assigné" },
+                { value: "without_lot", label: "Sans lot" },
+                { value: "active_lease", label: "Bail actif" }
+              ]}
+              placeholder="Statut"
+              className="h-12 pl-11 rounded-2xl bg-muted/20 border-border/40 text-sm font-bold focus:ring-4 focus:ring-primary/5 shadow-none"
+            />
+          </div>
         )}
 
         {onProfessionFilterChange && (
-          <Select value={professionFilter} onValueChange={onProfessionFilterChange}>
-            <SelectTrigger className="w-[180px] h-11 rounded-xl border-border/50 bg-background">
-              <SelectValue placeholder="Profession" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="all">Toutes professions</SelectItem>
-              <SelectItem value="employe">Employé</SelectItem>
-              <SelectItem value="fonctionnaire">Fonctionnaire</SelectItem>
-              <SelectItem value="commercant">Commerçant</SelectItem>
-              <SelectItem value="etudiant">Étudiant</SelectItem>
-              <SelectItem value="retraite">Retraité</SelectItem>
-              <SelectItem value="autre">Autre</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative w-full sm:w-[220px] group">
+            <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors pointer-events-none" />
+            <SearchableSelect
+              value={professionFilter}
+              onValueChange={onProfessionFilterChange}
+              options={[
+                { value: "all", label: "Toutes professions" },
+                { value: "employe", label: "Employé" },
+                { value: "fonctionnaire", label: "Fonctionnaire" },
+                { value: "commercant", label: "Commerçant" },
+                { value: "etudiant", label: "Étudiant" },
+                { value: "retraite", label: "Retraité" },
+                { value: "autre", label: "Autre" }
+              ]}
+              placeholder="Profession"
+              className="h-12 pl-11 rounded-2xl bg-muted/20 border-border/40 text-sm font-bold focus:ring-4 focus:ring-primary/5 shadow-none"
+            />
+          </div>
         )}
 
-        {hasActiveFilters && onClearFilters && (
+        <div className="flex gap-2">
+          {hasActiveFilters && onClearFilters && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onClearFilters}
+              className="h-12 w-12 rounded-2xl border-border/40 bg-background/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all flex-shrink-0"
+              title="Effacer les filtres"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+
           <Button
             variant="outline"
             size="icon"
-            onClick={onClearFilters}
-            className="h-11 w-11 rounded-xl border-border/50"
-            title="Effacer les filtres"
+            className="h-12 w-12 rounded-2xl border-border/40 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all flex-shrink-0"
+            title="Plus de filtres"
           >
-            <X className="h-4 w-4" />
+            <Filter className="h-4 w-4" />
           </Button>
-        )}
-
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-11 w-11 rounded-xl border-border/50"
-          title="Plus de filtres"
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
+        </div>
       </div>
     </div>
   );

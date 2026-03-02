@@ -542,7 +542,14 @@ class NestJSApiClient {
   // ===== IMMOBILIER MODULE =====
 
   // Propriétaires
-  async getProprietaires(params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) {
+  async getProprietaires(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    withImmeublesOnly?: string;
+  }) {
     return this.get<any>('/immobilier/proprietaires', params);
   }
   async getProprietaire(id: string) {

@@ -17,19 +17,30 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/pages/recouvrement/components/StatCard';
 import { DossierCard } from '@/pages/recouvrement/components/DossierCard';
 
+const LIMIT = 15;
+
 export default function DossiersPage() {
   const [search, setSearch] = useState('');
   const [statut, setStatut] = useState('all');
+  const [page, setPage] = useState(1);
   const [nouveauDossierOpen, setNouveauDossierOpen] = useState(false);
+
+  // Revenir à la page 1 si les filtres changent
+  React.useEffect(() => {
+    setPage(1);
+  }, [search, statut]);
 
   const { data: response, isLoading } = useDossiersRecouvrement({
     search,
-    statut: statut === 'all' ? undefined : statut
+    statut: statut === 'all' ? undefined : statut,
+    page,
+    limit: LIMIT
   });
   const { data: stats, isLoading: isLoadingStats } = useRecouvrementDashboard();
 
+  const totalPages = response?.total ? Math.ceil(response.total / LIMIT) : 1;
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="flex flex-col h-full">
       <Header
         title="Recouvrement"
         subtitle="Gestion des créances et dossiers de recouvrement"
@@ -113,6 +124,16 @@ export default function DossiersPage() {
             response.data.map(dossier => <DossierCard key={dossier.id} dossier={dossier} />)
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-medium bg-white px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">Page {page} sur {totalPages}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="h-8 border-slate-200 bg-white" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Précédent</Button>
+              <Button variant="outline" size="sm" className="h-8 border-slate-200 bg-white" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Suivant</Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

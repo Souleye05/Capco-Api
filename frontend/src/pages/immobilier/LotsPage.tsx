@@ -8,13 +8,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useLotsPage } from '@/hooks/useLotsPage';
 import { LotsTable } from '@/components/immobilier/lots/LotsTable';
 import { NouvelLotDialog } from '@/components/immobilier/lots/NouvelLotDialog';
@@ -88,32 +82,32 @@ export default function LotsPage() {
               placeholder="Rechercher par numéro ou immeuble..."
               value={filters.searchQuery}
               onChange={(e) => filters.setSearchQuery(e.target.value)}
-              className="pl-11 h-12 rounded-2xl border-border/50 bg-background shadow-sm"
+              className="pl-11 h-12 rounded-2xl border-border/50 bg-background/50 backdrop-blur-md shadow-sm transition-all focus:bg-background"
             />
           </div>
 
-          <Select value={filters.selectedImmeuble} onValueChange={filters.setSelectedImmeuble}>
-            <SelectTrigger className="w-full md:w-[220px] h-12 rounded-2xl border-border/50 bg-background shadow-sm font-medium">
-              <SelectValue placeholder="Tous les immeubles" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl">
-              <SelectItem value="all" className="font-medium">Tous les immeubles</SelectItem>
-              {immeubles.map(imm => (
-                <SelectItem key={imm.id} value={imm.id} className="font-medium">{imm.nom}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={filters.selectedImmeuble}
+            onValueChange={filters.setSelectedImmeuble}
+            options={[
+              { value: "all", label: "Tous les immeubles" },
+              ...immeubles.map(imm => ({ value: imm.id, label: imm.nom }))
+            ]}
+            placeholder="Tous les immeubles"
+            className="w-full md:w-[240px] h-12 rounded-2xl border-border/50 bg-background/50 backdrop-blur-md shadow-sm font-bold"
+          />
 
-          <Select value={filters.selectedStatut} onValueChange={filters.setSelectedStatut}>
-            <SelectTrigger className="w-full md:w-[150px] h-12 rounded-2xl border-border/50 bg-background shadow-sm font-medium">
-              <SelectValue placeholder="Tous" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl">
-              <SelectItem value="all" className="font-medium">Tous les statuts</SelectItem>
-              <SelectItem value="OCCUPE" className="font-medium">Occupés</SelectItem>
-              <SelectItem value="LIBRE" className="font-medium">Libres</SelectItem>
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={filters.selectedStatut}
+            onValueChange={filters.setSelectedStatut}
+            options={[
+              { value: "all", label: "Tous les statuts" },
+              { value: "OCCUPE", label: "Occupés" },
+              { value: "LIBRE", label: "Libres" }
+            ]}
+            placeholder="Statuts"
+            className="w-full md:w-[180px] h-12 rounded-2xl border-border/50 bg-background/50 backdrop-blur-md shadow-sm font-bold"
+          />
         </div>
 
         <LotsTable

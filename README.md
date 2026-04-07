@@ -57,7 +57,7 @@ capco-api/
 - PostgreSQL 15+
 - npm ou yarn
 
-### Installation
+### Installation en Développement
 
 ```bash
 # Cloner le repository
@@ -81,6 +81,54 @@ npm run prisma:push
 # Démarrer en mode développement
 npm run start:dev
 ```
+
+### 🚀 Migration en Production
+
+#### Option 1: Migration avec Dump & Restore (Docker)
+
+Pour transférer vos données locales vers production avec Docker:
+
+```bash
+# 1. Créer un dump de votre base locale
+cd backend
+npm run db:dump:win      # Windows
+npm run db:dump          # Linux/Mac
+
+# 2. Démarrer Docker et restaurer
+docker-compose up -d
+docker cp dumps/capco_dump_*.dump capco-postgres:/tmp/restore.dump
+docker exec capco-postgres pg_restore -U capco_user -d capco_db --clean --if-exists /tmp/restore.dump
+docker-compose restart api
+```
+
+**Documentation Dump & Restore:**
+- ⚡ [Étapes à Suivre Maintenant](ETAPES_MIGRATION_MAINTENANT.md) - Script complet
+- 🐳 [Guide Docker Dump & Restore](docs/GUIDE_DUMP_RESTORE_DOCKER.md) - Documentation complète
+- 📦 [Résumé des Outils](RESUME_OUTILS_MIGRATION.md) - Vue d'ensemble
+
+#### Option 2: Migration Complète en Production
+
+Pour une migration complète avec Prisma:
+
+```bash
+# 1. Configurer l'environnement de production
+cd backend
+cp .env.production .env.prod
+# Éditer .env.prod avec vos credentials de production
+
+# 2. Exécuter la migration automatique
+npm run migrate:prod      # Linux/Mac
+npm run migrate:prod:win  # Windows
+
+# 3. Build et démarrage
+npm run build:prod
+npm run start:prod
+```
+
+**Documentation Migration Production:**
+- 📖 [Guide de Démarrage Rapide (5 min)](docs/QUICK_START_PRODUCTION.md)
+- 📚 [Guide Complet de Migration](docs/GUIDE_MIGRATION_PRODUCTION.md)
+- ✅ [Checklist de Migration](backend/MIGRATION_CHECKLIST.md)
 
 ### 🔧 Variables d'Environnement
 
@@ -109,13 +157,20 @@ AUDIT_ENABLED=true
 ### API Documentation
 - **Swagger UI** : `http://localhost:3000/api` (en développement)
 - **Spécifications** : [Design Document](.kiro/specs/nestjs-api-architecture/design.md)
-- **Architecture** : [Module Common](backend/src/common/README.md)
+- **Architecture** : [Module Common](docs/COMMON_README.md)
 
 ### Guides de Développement
-- [Guide d'Installation](docs/INSTALLATION.md)
-- [Guide de Développement](docs/DEVELOPMENT.md)
-- [Guide de Déploiement](docs/DEPLOYMENT.md)
-- [Guide de Migration](docs/MIGRATION.md)
+- [Guide d'Apprentissage](docs/LEARNING_GUIDE.md)
+- [Documentation de l'Infrastructure](docs/INFRASTRUCTURE_SETUP.md)
+- [Documentation des Utilisateurs](docs/USERS_README.md)
+- [Documentation de l'Audit](docs/AUDIT_README.md)
+
+### Guides de Migration et Déploiement
+- 🚀 **[Guide de Démarrage Rapide Production](docs/QUICK_START_PRODUCTION.md)** - Migration en 5 minutes
+- 📚 **[Guide Complet de Migration](docs/GUIDE_MIGRATION_PRODUCTION.md)** - Documentation détaillée
+- ✅ **[Checklist de Migration](backend/MIGRATION_CHECKLIST.md)** - Liste de vérification
+- 📦 **[Résumé des Outils](docs/MIGRATION_PRODUCTION_SUMMARY.md)** - Vue d'ensemble
+- 🔧 **[Documentation des Scripts](backend/scripts/README.md)** - Tous les scripts disponibles
 
 ## 🧪 Tests
 

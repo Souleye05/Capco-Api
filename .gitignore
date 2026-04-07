@@ -210,11 +210,12 @@ build/
 /backend/audit-logs/
 /backend/backups/
 
-# Environment files
+# Environment files (keep .env.production as template)
+.env
 .env.local
 .env.development
 .env.test
-.env.production
+.env.prod
 
 # Package manager
 package-lock.json
@@ -264,7 +265,12 @@ docker-compose.override.yml
 # Kiro specific (keep specs but ignore temp files)
 .kiro/temp/
 .kiro/cache/
-.kiro/specs/
 
-# Documentation
-docs/
+# Database dumps (ignore actual dumps but keep folder structure)
+backend/dumps/*.dump
+backend/dumps/*.sql
+backend/dumps/*.gz
+backend/dumps/*.tar.gz
+backend/dumps/backup_*.sql
+!backend/dumps/README.md
+!backend/dumps/.gitignore

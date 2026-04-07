@@ -1,0 +1,8 @@
+# Ignorer tous les fichiers de dump
+*.dump
+*.sql
+*.gz
+*.tar.gz
+
+# Garder le dossier
+!.gitignore
